@@ -36,33 +36,33 @@ function makeResearchProject(techId: string): ResearchProject {
 describe("getTechStatus", () => {
   test("returns 'completed' for completed tech", () => {
     const system = solSystem({
-      completedResearch: { basic_mining_techniques: true },
+      completedResearch: { mining_t1: true },
     });
-    expect(getTechStatus(system, "basic_mining_techniques")).toBe("completed");
+    expect(getTechStatus(system, "mining_t1")).toBe("completed");
   });
 
   test("returns 'in_progress' for tech in the research queue", () => {
-    const project = makeResearchProject("basic_mining_techniques");
+    const project = makeResearchProject("mining_t1");
     const system = solSystem({ researchQueue: [project] });
 
-    expect(getTechStatus(system, "basic_mining_techniques")).toBe("in_progress");
+    expect(getTechStatus(system, "mining_t1")).toBe("in_progress");
   });
 
   test("returns 'available' when prerequisites are met but not started", () => {
     const system = solSystem({ completedResearch: {} });
-    expect(getTechStatus(system, "basic_mining_techniques")).toBe("available");
+    expect(getTechStatus(system, "mining_t1")).toBe("available");
   });
 
   test("returns 'locked' when prerequisites are not met", () => {
     const system = solSystem({ completedResearch: {} });
-    expect(getTechStatus(system, "mineral_separation")).toBe("locked");
+    expect(getTechStatus(system, "mining_t2")).toBe("locked");
   });
 
   test("tier-2 tech becomes 'available' after tier-1 prerequisite is completed", () => {
     const system = solSystem({
-      completedResearch: { basic_mining_techniques: true },
+      completedResearch: { mining_t1: true },
     });
-    expect(getTechStatus(system, "mineral_separation")).toBe("available");
+    expect(getTechStatus(system, "mining_t2")).toBe("available");
   });
 });
 
@@ -82,21 +82,21 @@ describe("getAvailableStructures", () => {
 
   test("includes gated structure when its tech is completed", () => {
     const system = solSystem({
-      completedResearch: { fusion_efficiency: true },
+      completedResearch: { energy_t2: true },
     });
     const available = getAvailableStructures(system);
-    const fusionReactor = available.find((d) => d.type === "reactor" && d.tier === 2);
+    const reactor2 = available.find((d) => d.type === "reactor" && d.tier === 2);
 
-    expect(fusionReactor).toBeDefined();
-    expect(fusionReactor!.techGate).toBe("fusion_efficiency");
+    expect(reactor2).toBeDefined();
+    expect(reactor2!.techGate).toBe("energy_t2");
   });
 
   test("excludes gated structure when its tech is not completed", () => {
     const system = solSystem({ completedResearch: {} });
     const available = getAvailableStructures(system);
-    const fusionReactor = available.find((d) => d.type === "reactor" && d.tier === 2);
+    const reactor2 = available.find((d) => d.type === "reactor" && d.tier === 2);
 
-    expect(fusionReactor).toBeUndefined();
+    expect(reactor2).toBeUndefined();
   });
 });
 
@@ -106,38 +106,38 @@ describe("getAvailableComponents", () => {
     const { cpus, propulsions, reactors } = getAvailableComponents(system);
 
     expect(cpus).toHaveLength(1);
-    expect(cpus[0]!.type).toBe("basic_cpu");
+    expect(cpus[0]!.type).toBe("cpu_t1");
 
     expect(propulsions).toHaveLength(1);
-    expect(propulsions[0]!.type).toBe("basic_ion_drive");
+    expect(propulsions[0]!.type).toBe("prop_t1");
 
     expect(reactors).toHaveLength(1);
-    expect(reactors[0]!.type).toBe("basic_reactor");
+    expect(reactors[0]!.type).toBe("rct_t1");
   });
 
-  test("unlocks enhanced components when efficient_probes is completed", () => {
+  test("unlocks tier-2 components when probe_components_t2 is completed", () => {
     const system = solSystem({
-      completedResearch: { efficient_probes: true },
+      completedResearch: { probe_components_t2: true },
     });
     const { cpus, propulsions } = getAvailableComponents(system);
 
     const cpuTypes = cpus.map((c) => c.type);
-    expect(cpuTypes).toContain("basic_cpu");
-    expect(cpuTypes).toContain("enhanced_cpu");
+    expect(cpuTypes).toContain("cpu_t1");
+    expect(cpuTypes).toContain("cpu_t2");
 
     const propTypes = propulsions.map((p) => p.type);
-    expect(propTypes).toContain("basic_ion_drive");
-    expect(propTypes).toContain("efficient_drive");
+    expect(propTypes).toContain("prop_t1");
+    expect(propTypes).toContain("prop_t2");
   });
 
-  test("unlocks fusion reactor component when fusion_efficiency is completed", () => {
+  test("unlocks rct_t2 reactor component when energy_t2 is completed", () => {
     const system = solSystem({
-      completedResearch: { fusion_efficiency: true },
+      completedResearch: { energy_t2: true },
     });
     const { reactors } = getAvailableComponents(system);
 
     const reactorTypes = reactors.map((r) => r.type);
-    expect(reactorTypes).toContain("basic_reactor");
-    expect(reactorTypes).toContain("fusion_reactor");
+    expect(reactorTypes).toContain("rct_t1");
+    expect(reactorTypes).toContain("rct_t2");
   });
 });

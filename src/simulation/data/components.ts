@@ -1,7 +1,7 @@
-import type { CpuType, PropulsionType, ReactorType } from "../state";
+import { MAX_TIER } from "../state";
 
 export interface CpuDefinition {
-  type: CpuType;
+  type: string;
   name: string;
   cost: { materials: number; energy: number };
   computingOutput: number;
@@ -11,7 +11,7 @@ export interface CpuDefinition {
 }
 
 export interface PropulsionDefinition {
-  type: PropulsionType;
+  type: string;
   name: string;
   cost: { materials: number; energy: number };
   travelSpeed: number;
@@ -20,133 +20,159 @@ export interface PropulsionDefinition {
 }
 
 export interface ReactorDefinition {
-  type: ReactorType;
+  type: string;
   name: string;
   cost: { materials: number; energy: number };
   energyMultiplier: number;
   operatingCostMultiplier: number;
+  solarScaling: boolean;
   techGate: string | null;
 }
 
-export const CPUS: Record<CpuType, CpuDefinition> = {
-  basic_cpu: {
-    type: "basic_cpu",
-    name: "Basic CPU",
-    cost: { materials: 10, energy: 2 },
-    computingOutput: 1,
-    miningOutput: 5,
-    printSpeed: 1,
-    techGate: null,
-  },
-  enhanced_cpu: {
-    type: "enhanced_cpu",
-    name: "Enhanced CPU",
-    cost: { materials: 30, energy: 6 },
-    computingOutput: 2,
-    miningOutput: 6.5,
-    printSpeed: 1.3,
-    techGate: "efficient_probes",
-  },
-  advanced_cpu: {
-    type: "advanced_cpu",
-    name: "Advanced CPU",
-    cost: { materials: 80, energy: 16 },
-    computingOutput: 5,
-    miningOutput: 9,
-    printSpeed: 1.8,
-    techGate: "advanced_components",
-  },
-  quantum_cpu: {
-    type: "quantum_cpu",
-    name: "Quantum CPU",
-    cost: { materials: 200, energy: 40 },
-    computingOutput: 12,
-    miningOutput: 12.5,
-    printSpeed: 2.5,
-    techGate: "von_neumann_replicators",
-  },
-} as const satisfies Record<CpuType, CpuDefinition>;
+const CPU_NAMES = [
+  "Basic CPU",
+  "Enhanced CPU",
+  "Advanced CPU",
+  "Neural Processor",
+  "Quantum Core",
+  "Adaptive Processor",
+  "Photonic CPU",
+  "Neuromorphic Core",
+  "Probabilistic Engine",
+  "Quantum Supreme CPU",
+  "Hyperdimensional Core",
+  "Temporal Logic Unit",
+  "Consciousness Emulator",
+  "Distributed Mind",
+  "Omniscient Core",
+  "Reality Engine",
+  "Planck Processor",
+  "Entropic Computer",
+  "Dimensional Reasoner",
+  "Universal Mind",
+];
 
-export const PROPULSIONS: Record<PropulsionType, PropulsionDefinition> = {
-  basic_ion_drive: {
-    type: "basic_ion_drive",
-    name: "Basic Ion Drive",
-    cost: { materials: 10, energy: 2 },
-    travelSpeed: 1,
-    autoReplicate: false,
-    techGate: null,
-  },
-  efficient_drive: {
-    type: "efficient_drive",
-    name: "Efficient Drive",
-    cost: { materials: 30, energy: 6 },
-    travelSpeed: 1.5,
-    autoReplicate: false,
-    techGate: "efficient_probes",
-  },
-  advanced_drive: {
-    type: "advanced_drive",
-    name: "Advanced Drive",
-    cost: { materials: 80, energy: 16 },
-    travelSpeed: 2.5,
-    autoReplicate: false,
-    techGate: "advanced_components",
-  },
-  von_neumann_drive: {
-    type: "von_neumann_drive",
-    name: "Von Neumann Drive",
-    cost: { materials: 200, energy: 40 },
-    travelSpeed: 3,
-    autoReplicate: true,
-    techGate: "von_neumann_replicators",
-  },
-} as const satisfies Record<PropulsionType, PropulsionDefinition>;
+const PROPULSION_NAMES = [
+  "Basic Ion Drive",
+  "Efficient Drive",
+  "Advanced Drive",
+  "Plasma Thruster",
+  "Fusion Torch",
+  "Antimatter Drive",
+  "Solar Sail Array",
+  "Magnetoplasma Rocket",
+  "Bussard Ramjet",
+  "Alcubierre Bubble",
+  "Graviton Thruster",
+  "Warp Field Drive",
+  "Subspace Engine",
+  "Dimensional Shifter",
+  "Temporal Drive",
+  "Von Neumann Drive",
+  "Singularity Thruster",
+  "Reality Anchor Drive",
+  "Omniscient Navigator",
+  "Transcendent Drive",
+];
 
-export const REACTORS: Record<ReactorType, ReactorDefinition> = {
-  basic_reactor: {
-    type: "basic_reactor",
-    name: "Basic Reactor",
-    cost: { materials: 10, energy: 2 },
-    energyMultiplier: 1,
-    operatingCostMultiplier: 1,
-    techGate: null,
-  },
-  fusion_reactor: {
-    type: "fusion_reactor",
-    name: "Fusion Reactor",
-    cost: { materials: 30, energy: 6 },
-    energyMultiplier: 1.5,
-    operatingCostMultiplier: 0.8,
-    techGate: "fusion_efficiency",
-  },
-  solar_harvester: {
-    type: "solar_harvester",
-    name: "Solar Harvester",
-    cost: { materials: 25, energy: 5 },
-    energyMultiplier: 1.2,
-    operatingCostMultiplier: 0.5,
-    techGate: "solar_harvesters",
-  },
-  exotic_reactor: {
-    type: "exotic_reactor",
-    name: "Exotic Reactor",
-    cost: { materials: 100, energy: 25 },
-    energyMultiplier: 2.5,
-    operatingCostMultiplier: 0.6,
-    techGate: "exotic_power",
-  },
-} as const satisfies Record<ReactorType, ReactorDefinition>;
+const REACTOR_NAMES = [
+  "Basic Reactor",
+  "Fusion Reactor",
+  "Solar Harvester",
+  "Plasma Cell",
+  "Antimatter Core",
+  "Zero-Point Module",
+  "Stellar Collector",
+  "Solar Dynamo",
+  "MHD Generator",
+  "Neutrino Cell",
+  "Hawking Cell",
+  "Dyson Fragment",
+  "Quark Reactor",
+  "Solar Siphon",
+  "Vacuum Cell",
+  "Dark Energy Core",
+  "Cosmic String Tap",
+  "Entropic Core",
+  "Brane Tap",
+  "Omnipotent Core",
+];
+
+const SOLAR_REACTOR_TIERS = new Set([3, 8, 14]);
+
+function generateCpus(): Record<string, CpuDefinition> {
+  const cpus: Record<string, CpuDefinition> = {};
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    const id = `cpu_t${tier}`;
+    cpus[id] = {
+      type: id,
+      name: CPU_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(10 * 1.20 ** (tier - 1)),
+        energy: Math.round(2 * 1.20 ** (tier - 1)),
+      },
+      computingOutput: +(1 * 1.15 ** (tier - 1)).toFixed(2),
+      miningOutput: +(5 * (1 + 0.08 * (tier - 1))).toFixed(2),
+      printSpeed: +(1 * (1 + 0.06 * (tier - 1))).toFixed(2),
+      techGate: tier === 1 ? null : `probe_components_t${tier}`,
+    };
+  }
+  return cpus;
+}
+
+function generatePropulsions(): Record<string, PropulsionDefinition> {
+  const propulsions: Record<string, PropulsionDefinition> = {};
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    const id = `prop_t${tier}`;
+    propulsions[id] = {
+      type: id,
+      name: PROPULSION_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(10 * 1.20 ** (tier - 1)),
+        energy: Math.round(2 * 1.20 ** (tier - 1)),
+      },
+      travelSpeed: +(1 * (1 + 0.10 * (tier - 1))).toFixed(2),
+      autoReplicate: tier >= 16,
+      techGate: tier === 1 ? null : `probe_components_t${tier}`,
+    };
+  }
+  return propulsions;
+}
+
+function generateReactors(): Record<string, ReactorDefinition> {
+  const reactors: Record<string, ReactorDefinition> = {};
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    const id = `rct_t${tier}`;
+    reactors[id] = {
+      type: id,
+      name: REACTOR_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(10 * 1.20 ** (tier - 1)),
+        energy: Math.round(2 * 1.20 ** (tier - 1)),
+      },
+      energyMultiplier: +(1 * (1 + 0.08 * (tier - 1))).toFixed(2),
+      operatingCostMultiplier: +(1 * 0.98 ** (tier - 1)).toFixed(2),
+      solarScaling: SOLAR_REACTOR_TIERS.has(tier),
+      techGate: tier === 1 ? null : `energy_t${tier}`,
+    };
+  }
+  return reactors;
+}
+
+export const CPUS: Record<string, CpuDefinition> = generateCpus();
+export const PROPULSIONS: Record<string, PropulsionDefinition> = generatePropulsions();
+export const REACTORS: Record<string, ReactorDefinition> = generateReactors();
 
 export function totalProbeCost(
-  cpu: CpuType,
-  propulsion: PropulsionType,
-  reactor: ReactorType,
+  cpu: string,
+  propulsion: string,
+  reactor: string,
 ): { materials: number; energy: number } {
   const c = CPUS[cpu];
   const p = PROPULSIONS[propulsion];
   const r = REACTORS[reactor];
   return {
-    materials: c.cost.materials + p.cost.materials + r.cost.materials,
-    energy: c.cost.energy + p.cost.energy + r.cost.energy,
+    materials: (c?.cost.materials ?? 0) + (p?.cost.materials ?? 0) + (r?.cost.materials ?? 0),
+    energy: (c?.cost.energy ?? 0) + (p?.cost.energy ?? 0) + (r?.cost.energy ?? 0),
   };
 }

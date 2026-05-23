@@ -16,65 +16,65 @@ describe("getTechMultipliers", () => {
   });
 
   describe("mining multiplier", () => {
-    test("basic_mining_techniques adds 0.2", () => {
-      const m = getTechMultipliers({ basic_mining_techniques: true });
-      expect(m.miningMultiplier).toBe(1.2);
+    test("mining_t1 adds 0.10", () => {
+      const m = getTechMultipliers({ mining_t1: true });
+      expect(m.miningMultiplier).toBeCloseTo(1.1);
     });
 
-    test("all four mining techs stack to 3.2", () => {
+    test("all four mining techs (t1-t4) stack", () => {
       const m = getTechMultipliers({
-        basic_mining_techniques: true,
-        mineral_separation: true,
-        advanced_extraction: true,
-        automated_deep_mining: true,
+        mining_t1: true,
+        mining_t2: true,
+        mining_t3: true,
+        mining_t4: true,
       });
-      expect(m.miningMultiplier).toBe(3.2);
+      expect(m.miningMultiplier).toBeCloseTo(1.0 + 0.100 + 0.105 + 0.110 + 0.115);
     });
   });
 
   describe("research speed multiplier", () => {
-    test("basic_computing adds 0.25", () => {
-      const m = getTechMultipliers({ basic_computing: true });
-      expect(m.researchSpeedMultiplier).toBe(1.25);
+    test("computing_t1 adds 0.06", () => {
+      const m = getTechMultipliers({ computing_t1: true });
+      expect(m.researchSpeedMultiplier).toBeCloseTo(1.06);
     });
 
-    test("basic_computing + quantum_computing stack to 2.25", () => {
+    test("computing_t1 + computing_t3 stack", () => {
       const m = getTechMultipliers({
-        basic_computing: true,
-        quantum_computing: true,
+        computing_t1: true,
+        computing_t3: true,
       });
-      expect(m.researchSpeedMultiplier).toBe(2.25);
+      expect(m.researchSpeedMultiplier).toBeCloseTo(1.0 + 0.060 + 0.068);
     });
   });
 
   describe("concurrent research", () => {
-    test("parallel_processing sets max to 2", () => {
-      const m = getTechMultipliers({ parallel_processing: true });
+    test("computing_t4 sets max to 2", () => {
+      const m = getTechMultipliers({ computing_t4: true });
       expect(m.maxConcurrentResearch).toBe(2);
     });
   });
 
   describe("boolean flags", () => {
-    test("printer_networking", () => {
-      const m = getTechMultipliers({ printer_networking: true });
+    test("manufacturing_t8 enables printer networking", () => {
+      const m = getTechMultipliers({ manufacturing_t8: true });
       expect(m.printerNetworking).toBe(true);
     });
 
-    test("distributed_intelligence", () => {
-      const m = getTechMultipliers({ distributed_intelligence: true });
+    test("computing_t14 enables distributed intelligence", () => {
+      const m = getTechMultipliers({ computing_t14: true });
       expect(m.distributedIntelligence).toBe(true);
     });
 
-    test("zero_latency_communication", () => {
-      const m = getTechMultipliers({ zero_latency_communication: true });
+    test("communication_t18 enables zero latency communication", () => {
+      const m = getTechMultipliers({ communication_t18: true });
       expect(m.zeroLatencyCommunication).toBe(true);
     });
   });
 
   describe("manufacturing speed multiplier", () => {
-    test("faster_printing adds 0.25", () => {
-      const m = getTechMultipliers({ faster_printing: true });
-      expect(m.manufacturingSpeedMultiplier).toBe(1.25);
+    test("manufacturing_t1 adds 0.05", () => {
+      const m = getTechMultipliers({ manufacturing_t1: true });
+      expect(m.manufacturingSpeedMultiplier).toBeCloseTo(1.05);
     });
   });
 });

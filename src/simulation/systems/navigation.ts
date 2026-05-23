@@ -8,14 +8,15 @@ function createArrivingProbe(
   systemId: string,
 ): ProbeState {
   const cpuDef = CPUS[probe.components.cpu];
+  const propDef = PROPULSIONS[probe.components.propulsion];
   return {
     id: probe.id,
     systemId,
     components: probe.components,
-    miningOutput: cpuDef.miningOutput,
-    computingOutput: cpuDef.computingOutput,
-    internalPrinterSpeed: cpuDef.printSpeed,
-    autoReplicating: PROPULSIONS[probe.components.propulsion].autoReplicate,
+    miningOutput: cpuDef?.miningOutput ?? 5,
+    computingOutput: cpuDef?.computingOutput ?? 1,
+    internalPrinterSpeed: cpuDef?.printSpeed ?? 1,
+    autoReplicating: propDef?.autoReplicate ?? false,
   };
 }
 
@@ -224,7 +225,7 @@ export function tickNavigation(
   }
 
   const anyZeroLatency = Object.values(state.systems).some(
-    (sys) => sys.completedResearch["zero_latency_communication"],
+    (sys) => sys.completedResearch["communication_t18"],
   );
 
   if (!changed && !anyZeroLatency) return state;

@@ -1,4 +1,5 @@
 import type { SystemState } from "../../../simulation/state";
+import { MAX_TIER } from "../../../simulation/state";
 import {
   TECH_BRANCHES,
   techsInBranch,
@@ -158,7 +159,7 @@ export function TechWeb({
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
-          overflowX: "hidden",
+          overflowX: "auto",
           padding: "4px 8px 8px",
         }}
       >
@@ -166,13 +167,13 @@ export function TechWeb({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "140px repeat(4, 1fr)",
+            gridTemplateColumns: `140px repeat(${MAX_TIER}, 80px)`,
             gap: 0,
             marginBottom: 8,
           }}
         >
           <div />
-          {[1, 2, 3, 4].map((tier) => (
+          {Array.from({ length: MAX_TIER }, (_, i) => i + 1).map((tier) => (
             <div
               key={tier}
               style={{
@@ -185,7 +186,7 @@ export function TechWeb({
                 padding: "4px 0",
               }}
             >
-              TIER {tier}
+              T{tier}
             </div>
           ))}
         </div>
@@ -202,7 +203,7 @@ export function TechWeb({
               key={branchId}
               style={{
                 display: "grid",
-                gridTemplateColumns: "140px repeat(4, 1fr)",
+                gridTemplateColumns: `140px repeat(${MAX_TIER}, 80px)`,
                 gap: 0,
                 background: `rgba(${meta.color === "#5cc7ff" ? "92,199,255" : meta.color === "#ffcb47" ? "255,203,71" : meta.color === "#4cd8a8" ? "76,216,168" : meta.color === "#4ddbff" ? "77,219,255" : meta.color === "#b08bff" ? "176,139,255" : "255,153,102"},${bgOpacity})`,
                 alignItems: "center",

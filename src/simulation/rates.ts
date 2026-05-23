@@ -1,6 +1,7 @@
 import type { StructureInstance, SystemState } from "./state";
 import { getTechMultipliers } from "./tech-effects";
 import { REACTORS } from "./data/components";
+import { STRUCTURES, structureKey } from "./data/structures";
 
 export interface ResourceRates {
   materialsPerSecond: number;
@@ -44,17 +45,18 @@ export function calculateRates(system: SystemState): ResourceRates {
   let probeEnergy = 0;
   if (mainProbe) {
     const reactorDef = REACTORS[mainProbe.components.reactor];
-    const baseOutput = 10 * reactorDef.energyMultiplier;
-    const operatingCost = 1 * reactorDef.operatingCostMultiplier;
+    const baseOutput = 10 * (reactorDef?.energyMultiplier ?? 1);
+    const operatingCost = 1 * (reactorDef?.operatingCostMultiplier ?? 1);
     const solarMultiplier =
-      mainProbe.components.reactor === "solar_harvester" ? resourceRichness : 1;
+      REACTORS[mainProbe.components.reactor]?.solarScaling === true ? resourceRichness : 1;
     probeEnergy = baseOutput * solarMultiplier - operatingCost;
   }
 
   let structureReactorOutput = 0;
   for (const reactor of structures.reactors) {
     if (isActiveAndComplete(reactor)) {
-      const multiplier = reactor.tier === 3 ? resourceRichness : 1;
+      const def = STRUCTURES[structureKey("reactor", reactor.tier)];
+      const multiplier = def?.solarScaling ? resourceRichness : 1;
       structureReactorOutput += reactor.productionRate * multiplier;
     }
   }

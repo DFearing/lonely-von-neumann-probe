@@ -49,10 +49,10 @@ function makeGameStateWithResearch(
 }
 
 describe("parallel research mechanics", () => {
-  describe("without parallel_processing", () => {
+  describe("without computing_t4", () => {
     test("only the first queued project progresses", () => {
-      const project1 = makeResearchProject("basic_mining_techniques");
-      const project2 = makeResearchProject("basic_reactors");
+      const project1 = makeResearchProject("mining_t1");
+      const project2 = makeResearchProject("energy_t1");
 
       const state = makeGameStateWithResearch({
         researchQueue: [project1, project2],
@@ -63,8 +63,8 @@ describe("parallel research mechanics", () => {
       const next = tickResearch(state, DT);
       const sol = next.systems["sol"]!;
 
-      const p1 = sol.researchQueue.find((p) => p.techId === "basic_mining_techniques");
-      const p2 = sol.researchQueue.find((p) => p.techId === "basic_reactors");
+      const p1 = sol.researchQueue.find((p) => p.techId === "mining_t1");
+      const p2 = sol.researchQueue.find((p) => p.techId === "energy_t1");
 
       expect(p1).toBeDefined();
       expect(p1!.progress).toBeGreaterThan(0);
@@ -73,22 +73,22 @@ describe("parallel research mechanics", () => {
     });
   });
 
-  describe("with parallel_processing", () => {
+  describe("with computing_t4", () => {
     test("both of the first 2 queued projects progress simultaneously", () => {
-      const project1 = makeResearchProject("basic_mining_techniques");
-      const project2 = makeResearchProject("basic_reactors");
+      const project1 = makeResearchProject("mining_t1");
+      const project2 = makeResearchProject("energy_t1");
 
       const state = makeGameStateWithResearch({
         researchQueue: [project1, project2],
         resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 20 },
-        completedResearch: { parallel_processing: true },
+        completedResearch: { computing_t4: true },
       });
 
       const next = tickResearch(state, DT);
       const sol = next.systems["sol"]!;
 
-      const p1 = sol.researchQueue.find((p) => p.techId === "basic_mining_techniques");
-      const p2 = sol.researchQueue.find((p) => p.techId === "basic_reactors");
+      const p1 = sol.researchQueue.find((p) => p.techId === "mining_t1");
+      const p2 = sol.researchQueue.find((p) => p.techId === "energy_t1");
 
       expect(p1).toBeDefined();
       expect(p1!.progress).toBeGreaterThan(0);
@@ -97,15 +97,15 @@ describe("parallel research mechanics", () => {
     });
 
     test("computing power is split evenly across concurrent projects", () => {
-      const project1 = makeResearchProject("basic_mining_techniques");
-      const project2 = makeResearchProject("basic_reactors");
+      const project1 = makeResearchProject("mining_t1");
+      const project2 = makeResearchProject("energy_t1");
 
       const computingPower = 20;
 
       const parallelState = makeGameStateWithResearch({
         researchQueue: [project1, project2],
         resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: computingPower },
-        completedResearch: { parallel_processing: true },
+        completedResearch: { computing_t4: true },
       });
 
       const serialState = makeGameStateWithResearch({
@@ -118,10 +118,10 @@ describe("parallel research mechanics", () => {
       const nextSerial = tickResearch(serialState, DT);
 
       const parallelP1 = nextParallel.systems["sol"]!.researchQueue.find(
-        (p) => p.techId === "basic_mining_techniques",
+        (p) => p.techId === "mining_t1",
       );
       const serialP1 = nextSerial.systems["sol"]!.researchQueue.find(
-        (p) => p.techId === "basic_mining_techniques",
+        (p) => p.techId === "mining_t1",
       );
 
       expect(parallelP1).toBeDefined();
@@ -130,10 +130,10 @@ describe("parallel research mechanics", () => {
     });
   });
 
-  describe("distributed_intelligence", () => {
+  describe("computing_t14", () => {
     test("pooled computing from multiple systems benefits all research projects", () => {
-      const project1 = makeResearchProject("basic_mining_techniques");
-      const project2 = makeResearchProject("basic_reactors");
+      const project1 = makeResearchProject("mining_t1");
+      const project2 = makeResearchProject("energy_t1");
 
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
@@ -147,23 +147,23 @@ describe("parallel research mechanics", () => {
             ...sol,
             researchQueue: [project1],
             resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
-            completedResearch: { distributed_intelligence: true },
+            completedResearch: { computing_t14: true },
           },
           alpha_centauri: {
             ...ac,
             researchQueue: [{ ...project2 }],
             resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 5 },
-            completedResearch: { distributed_intelligence: true },
+            completedResearch: { computing_t14: true },
           },
         },
       };
 
       const next = tickResearch(distributed, DT);
       const solP = next.systems["sol"]!.researchQueue.find(
-        (p) => p.techId === "basic_mining_techniques",
+        (p) => p.techId === "mining_t1",
       );
       const acP = next.systems["alpha_centauri"]!.researchQueue.find(
-        (p) => p.techId === "basic_reactors",
+        (p) => p.techId === "energy_t1",
       );
 
       expect(solP).toBeDefined();
@@ -177,8 +177,8 @@ describe("parallel research mechanics", () => {
       const sol = state.systems["sol"]!;
       const ac = state.systems["alpha_centauri"]!;
 
-      const project1 = makeResearchProject("basic_mining_techniques");
-      const project2 = makeResearchProject("basic_reactors");
+      const project1 = makeResearchProject("mining_t1");
+      const project2 = makeResearchProject("energy_t1");
 
       const twoSystemState: GameState = {
         ...state,
@@ -188,13 +188,13 @@ describe("parallel research mechanics", () => {
             ...sol,
             researchQueue: [project1],
             resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
-            completedResearch: { distributed_intelligence: true },
+            completedResearch: { computing_t14: true },
           },
           alpha_centauri: {
             ...ac,
             researchQueue: [{ ...project2 }],
             resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 5 },
-            completedResearch: { distributed_intelligence: true },
+            completedResearch: { computing_t14: true },
           },
         },
       };
@@ -209,10 +209,10 @@ describe("parallel research mechanics", () => {
       const nextSingle = tickResearch(singleSystemState, DT);
 
       const twoSolP = nextTwo.systems["sol"]!.researchQueue.find(
-        (p) => p.techId === "basic_mining_techniques",
+        (p) => p.techId === "mining_t1",
       );
       const singleP = nextSingle.systems["sol"]!.researchQueue.find(
-        (p) => p.techId === "basic_mining_techniques",
+        (p) => p.techId === "mining_t1",
       );
 
       expect(twoSolP).toBeDefined();
@@ -223,7 +223,7 @@ describe("parallel research mechanics", () => {
 
   describe("zero computing power", () => {
     test("research progress stays at 0 with no computing power", () => {
-      const project = makeResearchProject("basic_mining_techniques");
+      const project = makeResearchProject("mining_t1");
 
       const state = makeGameStateWithResearch({
         researchQueue: [project],
@@ -233,7 +233,7 @@ describe("parallel research mechanics", () => {
 
       const next = tickResearch(state, DT);
       const p = next.systems["sol"]!.researchQueue.find(
-        (p) => p.techId === "basic_mining_techniques",
+        (p) => p.techId === "mining_t1",
       );
 
       expect(p).toBeDefined();
@@ -243,8 +243,8 @@ describe("parallel research mechanics", () => {
 
   describe("research completion", () => {
     test("completed project is removed from queue and added to completedResearch", () => {
-      const tech = TECH_TREE["basic_mining_techniques"]!;
-      const project = makeResearchProject("basic_mining_techniques", {
+      const tech = TECH_TREE["mining_t1"]!;
+      const project = makeResearchProject("mining_t1", {
         progress: 0.999,
       });
 
@@ -264,20 +264,20 @@ describe("parallel research mechanics", () => {
       for (let i = 0; i < 1000; i++) {
         current = tickResearch(current, DT);
         const sol = current.systems["sol"]!;
-        if (sol.completedResearch["basic_mining_techniques"]) break;
+        if (sol.completedResearch["mining_t1"]) break;
       }
 
       const sol = current.systems["sol"]!;
-      expect(sol.completedResearch["basic_mining_techniques"]).toBe(true);
+      expect(sol.completedResearch["mining_t1"]).toBe(true);
       expect(
-        sol.researchQueue.some((p) => p.techId === "basic_mining_techniques"),
+        sol.researchQueue.some((p) => p.techId === "mining_t1"),
       ).toBe(false);
     });
   });
 
   describe("research speed multiplier", () => {
-    test("basic_computing increases research progress rate by 1.25x", () => {
-      const project = makeResearchProject("basic_reactors");
+    test("computing_t1 increases research progress rate by 1.06x", () => {
+      const project = makeResearchProject("energy_t1");
 
       const baseState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
@@ -288,7 +288,7 @@ describe("parallel research mechanics", () => {
       const boostedState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
         resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
-        completedResearch: { basic_computing: true },
+        completedResearch: { computing_t1: true },
       });
 
       const nextBase = tickResearch(baseState, DT);
@@ -298,11 +298,11 @@ describe("parallel research mechanics", () => {
       const boostedProgress = nextBoosted.systems["sol"]!.researchQueue[0]!.progress;
 
       expect(boostedProgress).toBeGreaterThan(baseProgress);
-      expect(boostedProgress).toBeCloseTo(baseProgress * 1.25);
+      expect(boostedProgress).toBeCloseTo(baseProgress * 1.06);
     });
 
-    test("quantum_computing stacks to 2.25x research speed", () => {
-      const project = makeResearchProject("basic_reactors");
+    test("computing_t1 + computing_t3 stack research speed", () => {
+      const project = makeResearchProject("energy_t1");
 
       const baseState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
@@ -313,7 +313,7 @@ describe("parallel research mechanics", () => {
       const maxState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
         resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
-        completedResearch: { basic_computing: true, quantum_computing: true },
+        completedResearch: { computing_t1: true, computing_t3: true },
       });
 
       const nextBase = tickResearch(baseState, DT);
@@ -322,7 +322,7 @@ describe("parallel research mechanics", () => {
       const baseProgress = nextBase.systems["sol"]!.researchQueue[0]!.progress;
       const maxProgress = nextMax.systems["sol"]!.researchQueue[0]!.progress;
 
-      expect(maxProgress).toBeCloseTo(baseProgress * 2.25);
+      expect(maxProgress).toBeCloseTo(baseProgress * (1.0 + 0.060 + 0.068));
     });
   });
 });

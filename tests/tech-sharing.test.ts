@@ -23,9 +23,9 @@ function stateWithProbeAndResearch(
   const probe: ProbeInTransit = {
     id: "test_probe_1",
     components: {
-      cpu: "basic_cpu",
-      propulsion: "basic_ion_drive",
-      reactor: "basic_reactor",
+      cpu: "cpu_t1",
+      propulsion: "prop_t1",
+      reactor: "rct_t1",
     },
     originSystemId: "sol",
     destinationSystemId: destId,
@@ -55,7 +55,7 @@ describe("cross-system tech sharing", () => {
   describe("tech sharing on probe arrival", () => {
     test("destination gets origin completedResearch", () => {
       const state = stateWithProbeAndResearch({
-        originResearch: { basic_mining_techniques: true, basic_computing: true },
+        originResearch: { mining_t1: true, computing_t1: true },
         destResearch: {},
       });
       const rng = createRngFromState(state.rngState);
@@ -63,26 +63,26 @@ describe("cross-system tech sharing", () => {
       const next = tickNavigation(state, DT, rng);
       const dest = next.systems["alpha_centauri"]!;
 
-      expect(dest.completedResearch["basic_mining_techniques"]).toBe(true);
-      expect(dest.completedResearch["basic_computing"]).toBe(true);
+      expect(dest.completedResearch["mining_t1"]).toBe(true);
+      expect(dest.completedResearch["computing_t1"]).toBe(true);
     });
 
     test("existing destination research is merged (union)", () => {
       const state = stateWithProbeAndResearch({
-        originResearch: { basic_mining_techniques: true },
-        destResearch: { basic_reactors: true },
+        originResearch: { mining_t1: true },
+        destResearch: { energy_t1: true },
       });
       const rng = createRngFromState(state.rngState);
 
       const next = tickNavigation(state, DT, rng);
       const dest = next.systems["alpha_centauri"]!;
 
-      expect(dest.completedResearch["basic_mining_techniques"]).toBe(true);
-      expect(dest.completedResearch["basic_reactors"]).toBe(true);
+      expect(dest.completedResearch["mining_t1"]).toBe(true);
+      expect(dest.completedResearch["energy_t1"]).toBe(true);
     });
   });
 
-  describe("zero_latency_communication", () => {
+  describe("communication_t18", () => {
     test("without tech: no automatic sync between systems", () => {
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
@@ -92,16 +92,16 @@ describe("cross-system tech sharing", () => {
         ...state,
         systems: {
           ...state.systems,
-          sol: { ...sol, completedResearch: { basic_mining_techniques: true } },
-          alpha_centauri: { ...ac, completedResearch: { basic_reactors: true } },
+          sol: { ...sol, completedResearch: { mining_t1: true } },
+          alpha_centauri: { ...ac, completedResearch: { energy_t1: true } },
         },
       };
 
       const rng = createRngFromState(modified.rngState);
       const next = tickNavigation(modified, DT, rng);
 
-      expect(next.systems["sol"]!.completedResearch["basic_reactors"]).toBeUndefined();
-      expect(next.systems["alpha_centauri"]!.completedResearch["basic_mining_techniques"]).toBeUndefined();
+      expect(next.systems["sol"]!.completedResearch["energy_t1"]).toBeUndefined();
+      expect(next.systems["alpha_centauri"]!.completedResearch["mining_t1"]).toBeUndefined();
     });
 
     test("with tech on any system: all systems get the union of all completedResearch", () => {
@@ -117,17 +117,17 @@ describe("cross-system tech sharing", () => {
           sol: {
             ...sol,
             completedResearch: {
-              basic_mining_techniques: true,
-              zero_latency_communication: true,
+              mining_t1: true,
+              communication_t18: true,
             },
           },
           alpha_centauri: {
             ...ac,
-            completedResearch: { basic_reactors: true },
+            completedResearch: { energy_t1: true },
           },
           barnards_star: {
             ...barnards,
-            completedResearch: { faster_printing: true },
+            completedResearch: { manufacturing_t1: true },
           },
         },
       };
@@ -137,10 +137,10 @@ describe("cross-system tech sharing", () => {
 
       for (const systemId of ["sol", "alpha_centauri", "barnards_star"]) {
         const sys = next.systems[systemId]!;
-        expect(sys.completedResearch["basic_mining_techniques"]).toBe(true);
-        expect(sys.completedResearch["basic_reactors"]).toBe(true);
-        expect(sys.completedResearch["faster_printing"]).toBe(true);
-        expect(sys.completedResearch["zero_latency_communication"]).toBe(true);
+        expect(sys.completedResearch["mining_t1"]).toBe(true);
+        expect(sys.completedResearch["energy_t1"]).toBe(true);
+        expect(sys.completedResearch["manufacturing_t1"]).toBe(true);
+        expect(sys.completedResearch["communication_t18"]).toBe(true);
       }
     });
   });

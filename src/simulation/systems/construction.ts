@@ -122,6 +122,7 @@ function completeProbe(
   if (!config) return system;
 
   const propulsion = PROPULSIONS[config.propulsion];
+  if (!propulsion) return system;
   const distance = resolveDistance(system, config.targetSystemId, allSystems);
   const travelTimeSeconds = distance / propulsion.travelSpeed;
 

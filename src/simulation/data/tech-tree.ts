@@ -1,3 +1,5 @@
+import { MAX_TIER } from "../state";
+
 export interface TechDefinition {
   id: string;
   branchId: string;
@@ -21,277 +23,212 @@ export const TECH_BRANCHES = [
 
 export type TechBranchId = (typeof TECH_BRANCHES)[number];
 
-export const TECH_TREE: Record<string, TechDefinition> = {
-  basic_mining_techniques: {
-    id: "basic_mining_techniques",
-    branchId: "mining",
-    tier: 1,
-    name: "Basic Mining Techniques",
-    initialCost: { materials: 25, energy: 5 },
-    continuousCost: 5,
-    researchTime: 60,
-    effects: ["+20% mining output"],
-    unlocks: [],
-  },
-  mineral_separation: {
-    id: "mineral_separation",
-    branchId: "mining",
-    tier: 2,
-    name: "Mineral Separation",
-    initialCost: { materials: 50, energy: 15 },
-    continuousCost: 10,
-    researchTime: 180,
-    effects: ["+40% mining output"],
-    unlocks: [],
-  },
-  advanced_extraction: {
-    id: "advanced_extraction",
-    branchId: "mining",
-    tier: 3,
-    name: "Advanced Extraction",
-    initialCost: { materials: 150, energy: 40 },
-    continuousCost: 20,
-    researchTime: 600,
-    effects: ["+60% mining output", "Unlock special deposits"],
-    unlocks: [],
-  },
-  automated_deep_mining: {
-    id: "automated_deep_mining",
-    branchId: "mining",
-    tier: 4,
-    name: "Automated Deep Mining",
-    initialCost: { materials: 400, energy: 100 },
-    continuousCost: 40,
-    researchTime: 1800,
-    effects: ["+100% mining output"],
-    unlocks: [],
-  },
+const TECH_NAMES: Record<TechBranchId, string[]> = {
+  mining: [
+    "Basic Mining Techniques",
+    "Mineral Separation",
+    "Subsurface Scanning",
+    "Drill Optimization",
+    "Seismic Fracturing",
+    "Deep Core Extraction",
+    "Molecular Sifting",
+    "Plasma Drilling",
+    "Gravitometric Surveying",
+    "Nanoscale Extraction",
+    "Asteroid Disassembly",
+    "Tidal Force Mining",
+    "Dark Matter Filtering",
+    "Quantum Tunneling Drills",
+    "Stellar Core Sampling",
+    "Neutronium Harvesting",
+    "Singularity Mining",
+    "Dimensional Excavation",
+    "Void Matter Collection",
+    "Omniscient Extraction",
+  ],
+  energy: [
+    "Basic Reactors",
+    "Fusion Efficiency",
+    "Solar Harvesters",
+    "Plasma Containment",
+    "Antimatter Coupling",
+    "Zero-Point Tapping",
+    "Stellar Wind Capture",
+    "Solar Dynamo Arrays",
+    "Magnetohydrodynamic Generators",
+    "Neutrino Harvesting",
+    "Hawking Radiation Capture",
+    "Dyson Filament Weaving",
+    "Quark-Gluon Extraction",
+    "Solar Corona Siphoning",
+    "Vacuum Energy Extraction",
+    "Dark Energy Condensation",
+    "Cosmic String Harvesting",
+    "Entropic Reversal Engines",
+    "Brane Energy Tapping",
+    "Omnipotent Power Core",
+  ],
+  manufacturing: [
+    "Faster Printing",
+    "Complex Object Fabrication",
+    "Molecular Assembly",
+    "Nanoscale Printing",
+    "Swarm Fabrication",
+    "Atomic Precision Assembly",
+    "Self-Healing Structures",
+    "Printer Networking",
+    "Quantum Lithography",
+    "Programmable Matter",
+    "Von Neumann Assemblers",
+    "Femtoscale Engineering",
+    "Phase-Shifted Construction",
+    "Dimensional Printing",
+    "Reality Sculpting",
+    "Subspace Fabrication",
+    "Temporal Construction",
+    "Planck-Scale Assembly",
+    "Probability Forging",
+    "Omnifabrication",
+  ],
+  probe_components: [
+    "Efficient Probes",
+    "Advanced Components",
+    "Specialized Probes",
+    "Hardened Systems",
+    "Modular Architecture",
+    "Adaptive Firmware",
+    "Neural Processing Cores",
+    "Quantum Entangled Sensors",
+    "Self-Evolving Software",
+    "Metamaterial Hulls",
+    "Gravimetric Shielding",
+    "Warp Field Generators",
+    "Subspace Transceivers",
+    "Dimensional Phasing",
+    "Temporal Stabilizers",
+    "Von Neumann Replicators",
+    "Singularity Drives",
+    "Reality Anchors",
+    "Omniscient Navigation",
+    "Transcendent Probes",
+  ],
+  computing: [
+    "Basic Computing",
+    "Distributed Algorithms",
+    "Neural Network Processors",
+    "Parallel Processing",
+    "Quantum Error Correction",
+    "Topological Qubits",
+    "Photonic Computing",
+    "Neuromorphic Architecture",
+    "Probabilistic Processors",
+    "Quantum Supremacy",
+    "Hyperdimensional Computing",
+    "Temporal Logic Gates",
+    "Consciousness Emulation",
+    "Distributed Intelligence",
+    "Omniscient Computation",
+    "Reality Simulation Engines",
+    "Planck-Time Processing",
+    "Entropic Computation",
+    "Dimensional Reasoning",
+    "Universal Computation",
+  ],
+  communication: [
+    "Basic Transmission",
+    "Enhanced Scanning",
+    "Tightbeam Protocols",
+    "Quantum Key Distribution",
+    "Entangled Particle Relay",
+    "Neutrino Messaging",
+    "Gravitational Wave Comm",
+    "Subspace Beacons",
+    "Tachyon Burst Transmitters",
+    "Dark Matter Resonance",
+    "Dimensional Echo Relay",
+    "Temporal Signal Routing",
+    "Wormhole Bandwidth",
+    "Consciousness Transfer",
+    "Reality Wave Modulation",
+    "Planck-Scale Signaling",
+    "Brane Resonance Comm",
+    "Zero Latency Communication",
+    "Universal Translation",
+    "Omniscient Awareness",
+  ],
+};
 
-  basic_reactors: {
-    id: "basic_reactors",
-    branchId: "energy",
-    tier: 1,
-    name: "Basic Reactors",
-    initialCost: { materials: 25, energy: 5 },
-    continuousCost: 5,
-    researchTime: 60,
-    effects: ["Unlock all basic reactor types"],
-    unlocks: ["reactor_1"],
-  },
-  fusion_efficiency: {
-    id: "fusion_efficiency",
-    branchId: "energy",
-    tier: 2,
-    name: "Fusion Efficiency",
-    initialCost: { materials: 50, energy: 15 },
-    continuousCost: 10,
-    researchTime: 180,
-    effects: ["Unlock Fusion Reactor"],
-    unlocks: ["reactor_2", "fusion_reactor"],
-  },
-  solar_harvesters: {
-    id: "solar_harvesters",
-    branchId: "energy",
-    tier: 3,
-    name: "Solar Harvesters",
-    initialCost: { materials: 150, energy: 40 },
-    continuousCost: 20,
-    researchTime: 600,
-    effects: ["Unlock Solar Harvester"],
-    unlocks: ["reactor_3", "solar_harvester"],
-  },
-  exotic_power: {
-    id: "exotic_power",
-    branchId: "energy",
-    tier: 4,
-    name: "Exotic Power",
-    initialCost: { materials: 400, energy: 100 },
-    continuousCost: 40,
-    researchTime: 1800,
-    effects: ["Unlock Exotic Reactor"],
-    unlocks: ["reactor_4", "exotic_reactor"],
-  },
+function techIdForBranch(branchId: string, tier: number): string {
+  return `${branchId}_t${tier}`;
+}
 
-  faster_printing: {
-    id: "faster_printing",
-    branchId: "manufacturing",
-    tier: 1,
-    name: "Faster Printing",
-    initialCost: { materials: 25, energy: 5 },
-    continuousCost: 5,
-    researchTime: 60,
-    effects: ["Unlock Enhanced Printer"],
-    unlocks: ["printer_2"],
-  },
-  complex_objects: {
-    id: "complex_objects",
-    branchId: "manufacturing",
-    tier: 2,
-    name: "Complex Objects",
-    initialCost: { materials: 50, energy: 15 },
-    continuousCost: 10,
-    researchTime: 180,
-    effects: ["Unlock Advanced Printer"],
-    unlocks: ["printer_3"],
-  },
-  printer_networking: {
-    id: "printer_networking",
-    branchId: "manufacturing",
-    tier: 3,
-    name: "Printer Networking",
-    initialCost: { materials: 150, energy: 40 },
-    continuousCost: 20,
-    researchTime: 600,
-    effects: ["Multiple printers can pool output on a single project"],
-    unlocks: [],
-  },
-  automated_assembly: {
-    id: "automated_assembly",
-    branchId: "manufacturing",
-    tier: 4,
-    name: "Automated Assembly",
-    initialCost: { materials: 400, energy: 100 },
-    continuousCost: 40,
-    researchTime: 1800,
-    effects: ["Unlock Automated Assembly structure"],
-    unlocks: ["printer_4"],
-  },
+function generateEffects(branchId: string, tier: number): string[] {
+  const bonusPercent = 10 + 5 * (tier - 1);
+  switch (branchId) {
+    case "mining":
+      return [`+${bonusPercent}% mining output`];
+    case "energy":
+      return [`Unlock tier ${tier} energy structures`];
+    case "manufacturing":
+      return [`+${bonusPercent}% manufacturing speed`];
+    case "probe_components":
+      return [`Unlock tier ${tier} probe components`];
+    case "computing":
+      return [`+${bonusPercent}% research speed`];
+    case "communication":
+      return [`+${bonusPercent}% communication range`];
+    default:
+      return [];
+  }
+}
 
-  efficient_probes: {
-    id: "efficient_probes",
-    branchId: "probe_components",
-    tier: 1,
-    name: "Efficient Probes",
-    initialCost: { materials: 25, energy: 5 },
-    continuousCost: 5,
-    researchTime: 60,
-    effects: ["Unlock Enhanced CPU and Efficient Drive"],
-    unlocks: ["enhanced_cpu", "efficient_drive"],
-  },
-  advanced_components: {
-    id: "advanced_components",
-    branchId: "probe_components",
-    tier: 2,
-    name: "Advanced Components",
-    initialCost: { materials: 50, energy: 15 },
-    continuousCost: 10,
-    researchTime: 180,
-    effects: ["Unlock Advanced CPU and Advanced Drive"],
-    unlocks: ["advanced_cpu", "advanced_drive"],
-  },
-  specialized_probes: {
-    id: "specialized_probes",
-    branchId: "probe_components",
-    tier: 3,
-    name: "Specialized Probes",
-    initialCost: { materials: 150, energy: 40 },
-    continuousCost: 20,
-    researchTime: 600,
-    effects: ["Unlock specialized component variants"],
-    unlocks: [],
-  },
-  von_neumann_replicators: {
-    id: "von_neumann_replicators",
-    branchId: "probe_components",
-    tier: 4,
-    name: "Von Neumann Replicators",
-    initialCost: { materials: 400, energy: 100 },
-    continuousCost: 40,
-    researchTime: 1800,
-    effects: ["Unlock Quantum CPU, Von Neumann Drive, and Exotic Reactor"],
-    unlocks: ["quantum_cpu", "von_neumann_drive"],
-  },
+function generateUnlocks(branchId: string, tier: number): string[] {
+  if (tier < 2) return [];
+  switch (branchId) {
+    case "mining":
+      return [`miner_${tier}`];
+    case "energy":
+      return [`reactor_${tier}`, `rct_t${tier}`];
+    case "manufacturing":
+      return [`printer_${tier}`];
+    case "probe_components":
+      return [`cpu_t${tier}`, `prop_t${tier}`];
+    case "computing":
+    case "communication":
+      return [];
+    default:
+      return [];
+  }
+}
 
-  basic_computing: {
-    id: "basic_computing",
-    branchId: "computing",
-    tier: 1,
-    name: "Basic Computing",
-    initialCost: { materials: 25, energy: 5 },
-    continuousCost: 5,
-    researchTime: 60,
-    effects: ["+25% research speed"],
-    unlocks: [],
-  },
-  parallel_processing: {
-    id: "parallel_processing",
-    branchId: "computing",
-    tier: 2,
-    name: "Parallel Processing",
-    initialCost: { materials: 50, energy: 15 },
-    continuousCost: 10,
-    researchTime: 180,
-    effects: ["Research 2 techs simultaneously per system"],
-    unlocks: [],
-  },
-  quantum_computing: {
-    id: "quantum_computing",
-    branchId: "computing",
-    tier: 3,
-    name: "Quantum Computing",
-    initialCost: { materials: 150, energy: 40 },
-    continuousCost: 20,
-    researchTime: 600,
-    effects: ["+100% research speed"],
-    unlocks: [],
-  },
-  distributed_intelligence: {
-    id: "distributed_intelligence",
-    branchId: "computing",
-    tier: 4,
-    name: "Distributed Intelligence",
-    initialCost: { materials: 400, energy: 100 },
-    continuousCost: 40,
-    researchTime: 1800,
-    effects: ["All systems contribute computing power to shared research pool"],
-    unlocks: [],
-  },
+function generateTechTree(): Record<string, TechDefinition> {
+  const tree: Record<string, TechDefinition> = {};
 
-  basic_transmission: {
-    id: "basic_transmission",
-    branchId: "communication",
-    tier: 1,
-    name: "Basic Transmission",
-    initialCost: { materials: 25, energy: 5 },
-    continuousCost: 5,
-    researchTime: 60,
-    effects: ["Probes send scan data instantly"],
-    unlocks: [],
-  },
-  enhanced_scanning: {
-    id: "enhanced_scanning",
-    branchId: "communication",
-    tier: 2,
-    name: "Enhanced Scanning",
-    initialCost: { materials: 50, energy: 15 },
-    continuousCost: 10,
-    researchTime: 180,
-    effects: ["Reveals resource richness faster"],
-    unlocks: [],
-  },
-  system_mapping: {
-    id: "system_mapping",
-    branchId: "communication",
-    tier: 3,
-    name: "System Mapping",
-    initialCost: { materials: 150, energy: 40 },
-    continuousCost: 20,
-    researchTime: 600,
-    effects: ["Auto-map all known systems"],
-    unlocks: [],
-  },
-  zero_latency_communication: {
-    id: "zero_latency_communication",
-    branchId: "communication",
-    tier: 4,
-    name: "Zero Latency Communication",
-    initialCost: { materials: 400, energy: 100 },
-    continuousCost: 40,
-    researchTime: 1800,
-    effects: ["Tech syncs instantly across all systems"],
-    unlocks: [],
-  },
-} as const satisfies Record<string, TechDefinition>;
+  for (const branchId of TECH_BRANCHES) {
+    const names = TECH_NAMES[branchId];
+    for (let tier = 1; tier <= MAX_TIER; tier++) {
+      const id = techIdForBranch(branchId, tier);
+      tree[id] = {
+        id,
+        branchId,
+        tier,
+        name: names[tier - 1]!,
+        initialCost: {
+          materials: Math.round(25 * 1.22 ** (tier - 1)),
+          energy: Math.round(5 * 1.25 ** (tier - 1)),
+        },
+        continuousCost: Math.round(5 * 1.18 ** (tier - 1)),
+        researchTime: Math.round(60 * 1.20 ** (tier - 1)),
+        effects: generateEffects(branchId, tier),
+        unlocks: generateUnlocks(branchId, tier),
+      };
+    }
+  }
+
+  return tree;
+}
+
+export const TECH_TREE: Record<string, TechDefinition> = generateTechTree();
 
 export function techsInBranch(branchId: string): TechDefinition[] {
   return Object.values(TECH_TREE)

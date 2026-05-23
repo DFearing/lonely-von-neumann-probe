@@ -1,7 +1,6 @@
 import type { GameState, SystemState } from "../../../simulation/state";
 import type { ViewId } from "../../shell/Sidebar";
 import { CPUS, PROPULSIONS, REACTORS } from "../../../simulation/data/components";
-import type { CpuType, PropulsionType, ReactorType } from "../../../simulation/state";
 import { Panel } from "../../components/Panel";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { fmtTime, fmtYears } from "../../format";
@@ -10,13 +9,13 @@ import { FONT_MONO } from "../../tokens";
 const ACCENT = "#4ddbff";
 
 function componentNames(components: {
-  cpu: CpuType;
-  propulsion: PropulsionType;
-  reactor: ReactorType;
+  cpu: string;
+  propulsion: string;
+  reactor: string;
 }): string {
-  const cpuName = CPUS[components.cpu].name;
-  const propName = PROPULSIONS[components.propulsion].name;
-  const reactorName = REACTORS[components.reactor].name;
+  const cpuName = CPUS[components.cpu]?.name ?? components.cpu;
+  const propName = PROPULSIONS[components.propulsion]?.name ?? components.propulsion;
+  const reactorName = REACTORS[components.reactor]?.name ?? components.reactor;
   return `${cpuName} · ${propName} · ${reactorName}`;
 }
 

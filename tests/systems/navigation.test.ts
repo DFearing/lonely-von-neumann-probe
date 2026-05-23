@@ -18,9 +18,9 @@ function stateWithProbeInTransit(
   const probe: ProbeInTransit = {
     id: "test_probe_1",
     components: {
-      cpu: "basic_cpu",
-      propulsion: "basic_ion_drive",
-      reactor: "basic_reactor",
+      cpu: "cpu_t1",
+      propulsion: "prop_t1",
+      reactor: "rct_t1",
     },
     originSystemId: originId,
     destinationSystemId: "alpha_centauri",
@@ -197,9 +197,9 @@ describe("tickNavigation", () => {
               {
                 id: "arriving_probe",
                 components: {
-                  cpu: "basic_cpu" as const,
-                  propulsion: "basic_ion_drive" as const,
-                  reactor: "basic_reactor" as const,
+                  cpu: "cpu_t1" as const,
+                  propulsion: "prop_t1" as const,
+                  reactor: "rct_t1" as const,
                 },
                 originSystemId: "alpha_centauri",
                 destinationSystemId: "sol",

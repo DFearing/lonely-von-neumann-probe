@@ -764,9 +764,10 @@ button {
 
 .tech-grid {
   display: grid;
-  grid-template-columns: 120px repeat(4, 1fr);
+  grid-template-columns: 120px repeat(20, 80px);
   gap: 8px;
   padding: 12px;
+  overflow-x: auto;
 }
 
 .tech-branch-label {

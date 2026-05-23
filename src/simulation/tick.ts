@@ -125,6 +125,7 @@ function applyBuildProbe(
   const cpuDef = CPUS[action.cpu];
   const propDef = PROPULSIONS[action.propulsion];
   const reactorDef = REACTORS[action.reactor];
+  if (!cpuDef || !propDef || !reactorDef) return state;
 
   if (cpuDef.techGate && !system.completedResearch[cpuDef.techGate]) return state;
   if (propDef.techGate && !system.completedResearch[propDef.techGate]) return state;
