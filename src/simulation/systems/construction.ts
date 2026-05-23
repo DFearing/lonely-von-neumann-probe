@@ -7,6 +7,8 @@ import type {
 } from "../state";
 import { STRUCTURES, structureKey } from "../data/structures";
 import { PROPULSIONS } from "../data/components";
+import { KNOWN_SYSTEMS } from "../data/star-systems";
+import { getTechMultipliers } from "../tech-effects";
 
 const STRUCTURE_BUILD_TIME = 8;
 const PROBE_BUILD_TIME = 20;
@@ -18,6 +20,7 @@ function buildTimeForProject(project: ConstructionProject): number {
 function totalPrintSpeed(
   printerIds: readonly string[],
   printers: readonly StructureInstance[],
+  manufacturingSpeedMultiplier: number,
 ): number {
   let speed = 0;
   for (const id of printerIds) {
@@ -28,7 +31,7 @@ function totalPrintSpeed(
       speed += printer.productionRate;
     }
   }
-  return speed;
+  return speed * manufacturingSpeedMultiplier;
 }
 
 function idlePrinterIds(
@@ -89,17 +92,37 @@ function completeStructure(
   };
 }
 
+function resolveDistance(
+  originSystem: SystemState,
+  targetSystemId: string,
+  allSystems: Record<string, SystemState>,
+): number {
+  const target = allSystems[targetSystemId];
+  if (target) {
+    return Math.abs(target.distanceFromOrigin - originSystem.distanceFromOrigin);
+  }
+
+  const knownTarget = KNOWN_SYSTEMS.find((s) => s.id === targetSystemId);
+  if (knownTarget) {
+    return Math.abs(
+      knownTarget.distanceFromOrigin - originSystem.distanceFromOrigin,
+    );
+  }
+
+  return 10;
+}
+
 function completeProbe(
   system: SystemState,
   project: ConstructionProject,
   tickCount: number,
+  allSystems: Record<string, SystemState>,
 ): SystemState {
   const config = project.targetConfig;
   if (!config) return system;
 
   const propulsion = PROPULSIONS[config.propulsion];
-  const destinationSystem = config.targetSystemId;
-  const distance = 10;
+  const distance = resolveDistance(system, config.targetSystemId, allSystems);
   const travelTimeSeconds = distance / propulsion.travelSpeed;
 
   const probe: ProbeInTransit = {
@@ -110,7 +133,7 @@ function completeProbe(
       reactor: config.reactor,
     },
     originSystemId: system.id,
-    destinationSystemId: destinationSystem,
+    destinationSystemId: config.targetSystemId,
     travelTimeSeconds,
     elapsedSeconds: 0,
   };
@@ -124,9 +147,31 @@ function completeProbe(
 function autoAssignPrinters(
   queue: readonly ConstructionProject[],
   printers: readonly StructureInstance[],
+  printerNetworking: boolean,
 ): ConstructionProject[] {
   const idle = idlePrinterIds(printers, queue);
   if (idle.length === 0) return queue as ConstructionProject[];
+
+  if (printerNetworking) {
+    const firstUnassigned = queue.findIndex(
+      (p) => p.assignedPrinterIds.length === 0,
+    );
+    const firstWithPrinters = queue.findIndex(
+      (p) => p.assignedPrinterIds.length > 0,
+    );
+    const targetIndex =
+      firstWithPrinters >= 0 ? firstWithPrinters : firstUnassigned;
+
+    if (targetIndex < 0) return queue as ConstructionProject[];
+
+    return queue.map((project, i) => {
+      if (i !== targetIndex) return project;
+      return {
+        ...project,
+        assignedPrinterIds: [...project.assignedPrinterIds, ...idle],
+      };
+    });
+  }
 
   let idleIndex = 0;
   return queue.map((project) => {
@@ -147,11 +192,13 @@ function tickSystemConstruction(
   system: SystemState,
   dt: number,
   tickCount: number,
+  allSystems: Record<string, SystemState>,
 ): { system: SystemState; log: GameState["log"] } {
   if (system.constructionQueue.length === 0) {
     return { system, log: [] };
   }
 
+  const multipliers = getTechMultipliers(system.completedResearch);
   const log: GameState["log"] = [];
   let updatedSystem = system;
   const updatedQueue: ConstructionProject[] = [];
@@ -160,6 +207,7 @@ function tickSystemConstruction(
     const speed = totalPrintSpeed(
       project.assignedPrinterIds,
       updatedSystem.structures.printers,
+      multipliers.manufacturingSpeedMultiplier,
     );
 
     if (speed <= 0) {
@@ -186,7 +234,12 @@ function tickSystemConstruction(
           category: "milestone",
         });
       } else {
-        updatedSystem = completeProbe(updatedSystem, project, tickCount);
+        updatedSystem = completeProbe(
+          updatedSystem,
+          project,
+          tickCount,
+          allSystems,
+        );
         log.push({
           tick: tickCount,
           message: `Probe constructed and launched toward ${project.targetConfig.targetSystemId}`,
@@ -201,6 +254,7 @@ function tickSystemConstruction(
   const finalQueue = autoAssignPrinters(
     updatedQueue,
     updatedSystem.structures.printers,
+    multipliers.printerNetworking,
   );
 
   return {
@@ -215,7 +269,12 @@ export function tickConstruction(state: GameState, dt: number): GameState {
   let changed = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    const result = tickSystemConstruction(system, dt, state.tickCount);
+    const result = tickSystemConstruction(
+      system,
+      dt,
+      state.tickCount,
+      state.systems,
+    );
     newSystems[id] = result.system;
     if (result.log.length > 0) {
       newLog = [...newLog, ...result.log];

@@ -3,83 +3,138 @@ import type {
   SystemState,
 } from "../state";
 import { TECH_TREE } from "../data/tech-tree";
+import { getTechMultipliers, type TechMultipliers } from "../tech-effects";
 
 function tickSystemResearch(
   system: SystemState,
   dt: number,
   tickCount: number,
+  perProjectComputing: number | null,
+  multipliers: TechMultipliers,
 ): { system: SystemState; log: GameState["log"] } {
   if (system.researchQueue.length === 0) {
     return { system, log: [] };
   }
 
-  const activeProject = system.researchQueue.find(
-    (p) => !p.completed,
+  const incompleteProjects = system.researchQueue.filter((p) => !p.completed);
+  const activeProjects = incompleteProjects.slice(
+    0,
+    multipliers.maxConcurrentResearch,
   );
-  if (!activeProject) {
+
+  if (activeProjects.length === 0) {
     return { system, log: [] };
   }
 
-  const techDef = TECH_TREE[activeProject.techId];
-  if (!techDef) {
-    return { system, log: [] };
-  }
+  const computingPerProject =
+    perProjectComputing ??
+    system.resourceRates.computingPowerPerSecond / activeProjects.length;
 
-  const requiredComputing = activeProject.continuousCost;
-  const availableComputing =
-    requiredComputing > 0
-      ? Math.min(system.resourceRates.computingPowerPerSecond, requiredComputing)
-      : 0;
+  const log: GameState["log"] = [];
+  const completedIds = new Set<string>();
+  const newlyCompleted: Record<string, boolean> = {};
+  const updatedProgressMap = new Map<string, number>();
 
-  const effectiveRate =
-    requiredComputing > 0 ? availableComputing / requiredComputing : 1;
+  for (const project of activeProjects) {
+    const techDef = TECH_TREE[project.techId];
+    if (!techDef) continue;
 
-  const progressIncrement = (effectiveRate * dt) / techDef.researchTime;
-  const newProgress = Math.min(activeProject.progress + progressIncrement, 1);
+    const requiredComputing = project.continuousCost;
+    const availableComputing =
+      requiredComputing > 0
+        ? Math.min(computingPerProject, requiredComputing)
+        : 0;
 
-  if (newProgress >= 1) {
-    const remainingQueue = system.researchQueue.filter(
-      (p) => p.id !== activeProject.id,
-    );
+    const effectiveRate =
+      requiredComputing > 0 ? availableComputing / requiredComputing : 1;
 
-    const log: GameState["log"] = [
-      {
+    const progressIncrement =
+      (effectiveRate * dt * multipliers.researchSpeedMultiplier) /
+      techDef.researchTime;
+    const newProgress = Math.min(project.progress + progressIncrement, 1);
+
+    if (newProgress >= 1) {
+      completedIds.add(project.id);
+      newlyCompleted[project.techId] = true;
+      log.push({
         tick: tickCount,
-        message: `Research complete: ${activeProject.name}`,
+        message: `Research complete: ${project.name}`,
         category: "milestone",
-      },
-    ];
-
-    return {
-      system: {
-        ...system,
-        researchQueue: remainingQueue,
-        completedResearch: {
-          ...system.completedResearch,
-          [activeProject.techId]: true,
-        },
-      },
-      log,
-    };
+      });
+    } else {
+      updatedProgressMap.set(project.id, newProgress);
+    }
   }
 
-  const updatedQueue = system.researchQueue.map((p) =>
-    p.id === activeProject.id ? { ...p, progress: newProgress } : p,
-  );
+  if (completedIds.size === 0 && updatedProgressMap.size === 0) {
+    return { system, log: [] };
+  }
+
+  const updatedQueue = system.researchQueue
+    .filter((p) => !completedIds.has(p.id))
+    .map((p) => {
+      const newProgress = updatedProgressMap.get(p.id);
+      if (newProgress !== undefined) {
+        return { ...p, progress: newProgress };
+      }
+      return p;
+    });
 
   return {
-    system: { ...system, researchQueue: updatedQueue },
-    log: [],
+    system: {
+      ...system,
+      researchQueue: updatedQueue,
+      completedResearch: {
+        ...system.completedResearch,
+        ...newlyCompleted,
+      },
+    },
+    log,
   };
 }
 
+function countActiveProjects(
+  systems: Record<string, SystemState>,
+  multipliersMap: Map<string, TechMultipliers>,
+): number {
+  let total = 0;
+  for (const [id, system] of Object.entries(systems)) {
+    const multipliers = multipliersMap.get(id)!;
+    const incomplete = system.researchQueue.filter((p) => !p.completed);
+    total += Math.min(incomplete.length, multipliers.maxConcurrentResearch);
+  }
+  return total;
+}
+
 export function tickResearch(state: GameState, dt: number): GameState {
+  const multipliersMap = new Map<string, TechMultipliers>();
+  for (const [id, system] of Object.entries(state.systems)) {
+    multipliersMap.set(id, getTechMultipliers(system.completedResearch));
+  }
+
+  const anyDistributed = Object.values(state.systems).some(
+    (sys) => sys.completedResearch["distributed_intelligence"],
+  );
+
+  let pooledComputing: number | null = null;
+  if (anyDistributed) {
+    pooledComputing = 0;
+    for (const sys of Object.values(state.systems)) {
+      pooledComputing += sys.resourceRates.computingPowerPerSecond;
+    }
+
+    const totalActiveProjects = countActiveProjects(state.systems, multipliersMap);
+    if (totalActiveProjects > 0) {
+      pooledComputing = pooledComputing / totalActiveProjects;
+    }
+  }
+
   let newLog = state.log;
   const newSystems: Record<string, SystemState> = {};
   let changed = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    const result = tickSystemResearch(system, dt, state.tickCount);
+    const result = tickSystemResearch(system, dt, state.tickCount, pooledComputing, multipliersMap.get(id)!);
     newSystems[id] = result.system;
     if (result.log.length > 0) {
       newLog = [...newLog, ...result.log];

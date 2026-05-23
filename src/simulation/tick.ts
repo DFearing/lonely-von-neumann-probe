@@ -12,7 +12,7 @@ import { tickResearch } from "./systems/research";
 import { tickNavigation } from "./systems/navigation";
 import { tickEvents } from "./systems/events";
 import { STRUCTURES, structureKey } from "./data/structures";
-import { totalProbeCost } from "./data/components";
+import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE, techsInBranch } from "./data/tech-tree";
 
 function getSystem(state: GameState, systemId: string): SystemState | undefined {
@@ -64,6 +64,8 @@ function applyBuildStructure(
   const key = structureKey(action.structureType, action.tier);
   const def = STRUCTURES[key];
   if (!def) return state;
+
+  if (def.techGate && !system.completedResearch[def.techGate]) return state;
 
   if (!canAfford(system, def.cost)) return state;
 
@@ -118,6 +120,14 @@ function applyBuildProbe(
 ): GameState {
   const system = getSystem(state, action.systemId);
   if (!system) return state;
+
+  const cpuDef = CPUS[action.cpu];
+  const propDef = PROPULSIONS[action.propulsion];
+  const reactorDef = REACTORS[action.reactor];
+
+  if (cpuDef.techGate && !system.completedResearch[cpuDef.techGate]) return state;
+  if (propDef.techGate && !system.completedResearch[propDef.techGate]) return state;
+  if (reactorDef.techGate && !system.completedResearch[reactorDef.techGate]) return state;
 
   const cost = totalProbeCost(action.cpu, action.propulsion, action.reactor);
   if (!canAfford(system, cost)) return state;

@@ -45,6 +45,19 @@ function generateNewSystem(
   };
 }
 
+function mergeResearch(
+  destination: Record<string, boolean>,
+  source: Record<string, boolean>,
+): Record<string, boolean> {
+  const merged = { ...destination };
+  for (const [techId, completed] of Object.entries(source)) {
+    if (completed) {
+      merged[techId] = true;
+    }
+  }
+  return merged;
+}
+
 function tickSystemNavigation(
   originSystem: SystemState,
   allSystems: Record<string, SystemState>,
@@ -79,11 +92,16 @@ function tickSystemNavigation(
         allSystems[destId];
 
       if (existingDest) {
+        const mergedResearch = mergeResearch(
+          existingDest.completedResearch,
+          originSystem.completedResearch,
+        );
         const updated: SystemState = {
           ...existingDest,
           discovered: true,
           scanned: true,
           mainProbe: existingDest.mainProbe ?? arrivingProbe,
+          completedResearch: mergedResearch,
         };
         if (allSystems[destId]) {
           updatedSystems[destId] = updated;
@@ -110,7 +128,7 @@ function tickSystemNavigation(
           },
           constructionQueue: [],
           researchQueue: [],
-          completedResearch: {},
+          completedResearch: { ...originSystem.completedResearch },
           discoveredSystems: [],
           sentProbes: [],
         };
@@ -133,6 +151,20 @@ function tickSystemNavigation(
     updatedSystems,
     log,
   };
+}
+
+function unionAllResearch(
+  systems: Record<string, SystemState>,
+): Record<string, boolean> {
+  const unified: Record<string, boolean> = {};
+  for (const system of Object.values(systems)) {
+    for (const [techId, completed] of Object.entries(system.completedResearch)) {
+      if (completed) {
+        unified[techId] = true;
+      }
+    }
+  }
+  return unified;
 }
 
 export function tickNavigation(
@@ -177,7 +209,11 @@ export function tickNavigation(
     }
   }
 
-  if (!changed) return state;
+  const anyZeroLatency = Object.values(state.systems).some(
+    (sys) => sys.completedResearch["zero_latency_communication"],
+  );
+
+  if (!changed && !anyZeroLatency) return state;
 
   const mergedSystems: Record<string, SystemState> = {};
   for (const [id, system] of Object.entries(processedOrigins)) {
@@ -186,6 +222,20 @@ export function tickNavigation(
   for (const [id, system] of Object.entries(allNewSystems)) {
     if (!mergedSystems[id]) {
       mergedSystems[id] = system;
+    }
+  }
+
+  if (anyZeroLatency) {
+    const unified = unionAllResearch(mergedSystems);
+    const unifiedCount = Object.keys(unified).length;
+    const researchChanged = Object.values(mergedSystems).some(
+      (system) => Object.keys(system.completedResearch).length !== unifiedCount,
+    );
+    if (!changed && !researchChanged) return state;
+    if (researchChanged) {
+      for (const [id, system] of Object.entries(mergedSystems)) {
+        mergedSystems[id] = { ...system, completedResearch: { ...unified } };
+      }
     }
   }
 

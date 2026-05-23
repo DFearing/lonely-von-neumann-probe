@@ -1,4 +1,5 @@
 import type { StructureInstance, SystemState } from "./state";
+import { getTechMultipliers } from "./tech-effects";
 
 export interface ResourceRates {
   materialsPerSecond: number;
@@ -33,9 +34,11 @@ function sumOperatingCosts(structures: readonly StructureInstance[]): number {
 export function calculateRates(system: SystemState): ResourceRates {
   const { structures, resourceRichness, mainProbe } = system;
 
+  const { miningMultiplier } = getTechMultipliers(system.completedResearch);
+
   const probeMining = mainProbe ? mainProbe.miningOutput : 0;
   const minerOutput = sumProductionRates(structures.miners);
-  const materialsPerSecond = (probeMining + minerOutput) * resourceRichness;
+  const materialsPerSecond = (probeMining + minerOutput) * miningMultiplier * resourceRichness;
 
   let reactorOutput = 0;
   for (const reactor of structures.reactors) {
