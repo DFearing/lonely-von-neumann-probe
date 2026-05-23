@@ -12,7 +12,14 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "4",
     "typescript": "^5.7",
     "vite": "^6"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   }
 }
