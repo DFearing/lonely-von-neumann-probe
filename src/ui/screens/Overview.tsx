@@ -1,36 +1,42 @@
-import { useGameState, useDispatch } from "../context";
+import type { ViewId } from "../shell/Sidebar";
+import { useGameState, useDispatch, useCurrentSystem } from "../context";
 import { ProbesColumn } from "./overview/ProbesColumn";
 import { StructureColumn } from "./overview/StructureColumn";
 
-export function Overview() {
+export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void }) {
   const state = useGameState();
   const dispatch = useDispatch();
-  const system = state.systems[state.currentSystemId];
-  if (!system) return null;
+  const system = useCurrentSystem();
 
   return (
-    <div className="overview-grid">
-      <ProbesColumn state={state} />
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+        gridTemplateRows: "minmax(0, 1fr)",
+        gap: 16,
+        flex: 1,
+        minHeight: 0,
+      }}
+    >
+      <ProbesColumn state={state} system={system} onNavigate={onNavigate} />
       <StructureColumn
         system={system}
-        type="miner"
-        label="Miners"
-        rateUnit="mat/s"
+        category="miners"
         dispatch={dispatch}
+        onNavigate={onNavigate}
       />
       <StructureColumn
         system={system}
-        type="reactor"
-        label="Reactors"
-        rateUnit="E/s"
+        category="reactors"
         dispatch={dispatch}
+        onNavigate={onNavigate}
       />
       <StructureColumn
         system={system}
-        type="printer"
-        label="Printers"
-        rateUnit=""
+        category="printers"
         dispatch={dispatch}
+        onNavigate={onNavigate}
       />
     </div>
   );

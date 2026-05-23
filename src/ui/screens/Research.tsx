@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useCurrentSystem, useDispatch } from "../context";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { Panel } from "../components/Panel";
 import { ActiveBanner } from "./research/ActiveBanner";
 import { TechWeb } from "./research/TechWeb";
 import { TechDetail } from "./research/TechDetail";
@@ -15,7 +17,9 @@ export function Research() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <>
+      <ScreenHeader title="Research & Technology" />
+
       {activeProject && (
         <ActiveBanner
           project={activeProject}
@@ -23,29 +27,63 @@ export function Research() {
         />
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 12 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 340px",
+          gridTemplateRows: "minmax(0, 1fr)",
+          gap: 16,
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
         <TechWeb
           system={system}
           selectedTech={selectedTech}
           onSelect={setSelectedTech}
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {selectedTech ? (
-            <TechDetail
-              system={system}
-              techId={selectedTech}
-              dispatch={dispatch}
-            />
-          ) : (
-            <div className="panel">
-              <div className="panel-body">
-                <div className="empty-state">Select a technology to view details</div>
+
+        <Panel
+          label="DETAIL"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+            minWidth: 0,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              overflowY: "auto",
+              overflowX: "hidden",
+              flex: 1,
+              margin: "-18px",
+            }}
+          >
+            {selectedTech ? (
+              <TechDetail
+                system={system}
+                techId={selectedTech}
+                dispatch={dispatch}
+              />
+            ) : (
+              <div
+                style={{
+                  padding: "24px 16px",
+                  textAlign: "center",
+                  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                  fontSize: 10,
+                  color: "#6b87a3",
+                }}
+              >
+                Select a technology to view details
               </div>
-            </div>
-          )}
-          <ResearchQueue system={system} dispatch={dispatch} />
-        </div>
+            )}
+            <ResearchQueue system={system} dispatch={dispatch} />
+          </div>
+        </Panel>
       </div>
-    </div>
+    </>
   );
 }

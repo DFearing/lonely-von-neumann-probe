@@ -1,18 +1,22 @@
 import type { GameState } from "../../../simulation/state";
 import { getSystemCoord } from "../../data/system-coords";
-
-const MAP_SIZE = 400;
-const MAP_CENTER = MAP_SIZE / 2;
-const SCALE = 16;
+import { Panel } from "../../components/Panel";
+import { FONT_MONO } from "../../tokens";
 
 function starColor(starType: string): string {
   switch (starType) {
-    case "yellow": return "#ffe066";
-    case "red": return "#ff6b6b";
-    case "blue": return "#66b3ff";
-    default: return "#f0f0ff";
+    case "yellow":
+      return "#ffcb47";
+    case "red":
+      return "#ff8a6e";
+    case "blue":
+      return "#bcd5ff";
+    default:
+      return "#f0f0ff";
   }
 }
+
+const SCALE = 6;
 
 export function StarMap({
   state,
@@ -28,85 +32,215 @@ export function StarMap({
     ? [currentSystem.id, ...currentSystem.discoveredSystems]
     : [];
 
-  const rings = [5, 10];
+  const distanceRings = [15, 30, 45, 55];
 
   return (
-    <div className="star-map">
-      <svg
-        viewBox={`0 0 ${MAP_SIZE} ${MAP_SIZE}`}
-        width="100%"
-        style={{ display: "block" }}
+    <Panel
+      label="STAR MAP · KNOWN SYSTEMS"
+      style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}
+      right={
+        <div
+          style={{
+            display: "flex",
+            gap: 14,
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            color: "#6b87a3",
+          }}
+        >
+          <span>
+            ●{" "}
+            <span style={{ color: "#4cd8a8" }}>HOME</span>
+          </span>
+          <span>
+            ○{" "}
+            <span style={{ color: "#4ddbff" }}>KNOWN</span>
+          </span>
+          <span>
+            ◌{" "}
+            <span style={{ color: "#6b87a3" }}>UNVISITED</span>
+          </span>
+        </div>
+      }
+    >
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          position: "relative",
+          background:
+            "radial-gradient(ellipse at center, rgba(77,219,255,0.04) 0%, transparent 60%)",
+          border: "1px dashed rgba(110,200,255,0.08)",
+          overflow: "hidden",
+        }}
       >
-        <rect width={MAP_SIZE} height={MAP_SIZE} fill="#050913" />
-
-        {rings.map((r) => (
-          <circle
-            key={r}
-            cx={MAP_CENTER}
-            cy={MAP_CENTER}
-            r={r * SCALE}
-            fill="none"
-            stroke="#1a2338"
-            strokeWidth={0.5}
-            strokeDasharray="2 4"
-          />
-        ))}
-
-        <line
-          x1={MAP_CENTER}
-          y1={0}
-          x2={MAP_CENTER}
-          y2={MAP_SIZE}
-          stroke="#1a2338"
-          strokeWidth={0.3}
-        />
-        <line
-          x1={0}
-          y1={MAP_CENTER}
-          x2={MAP_SIZE}
-          y2={MAP_CENTER}
-          stroke="#1a2338"
-          strokeWidth={0.3}
-        />
-
-        {systemIds.map((id) => {
-          const sys = state.systems[id];
-          if (!sys) return null;
-          const coord = getSystemCoord(id);
-          const cx = MAP_CENTER + coord.x * SCALE;
-          const cy = MAP_CENTER + coord.y * SCALE;
-          const isSelected = selectedSystem === id;
-          const isCurrent = state.currentSystemId === id;
-          const hasProbe = sys.mainProbe !== null;
-          const color = starColor(sys.starType);
-
-          return (
-            <g
-              key={id}
-              onClick={() => onSelect(id)}
-              style={{ cursor: "pointer" }}
-            >
-              {isSelected && (
-                <circle cx={cx} cy={cy} r={10} fill="none" stroke="#4ddbff" strokeWidth={1} opacity={0.5} />
-              )}
-              {hasProbe && (
-                <circle cx={cx} cy={cy} r={7} fill="none" stroke="#00e87b" strokeWidth={0.5} opacity={0.4} />
-              )}
-              <circle cx={cx} cy={cy} r={isCurrent ? 4 : 3} fill={color} />
+        <svg
+          viewBox="-60 -60 120 120"
+          preserveAspectRatio="xMidYMid meet"
+          style={{ width: "100%", height: "100%" }}
+        >
+          {/* Distance rings */}
+          {distanceRings.map((r) => (
+            <g key={r}>
+              <circle
+                cx="0"
+                cy="0"
+                r={r}
+                fill="none"
+                stroke="rgba(110,200,255,0.10)"
+                strokeWidth="0.3"
+                strokeDasharray="1 2"
+              />
               <text
-                x={cx}
-                y={cy + 12}
-                fill="#5a6d84"
-                fontSize={6}
-                textAnchor="middle"
-                fontFamily="'Space Grotesk', sans-serif"
+                x={r + 1}
+                y={-1}
+                fontFamily="JetBrains Mono"
+                fontSize="2.6"
+                fill="#3d5572"
               >
-                {sys.name}
+                {Math.round(r / SCALE)}ly
               </text>
             </g>
-          );
-        })}
-      </svg>
-    </div>
+          ))}
+
+          {/* Crosshair */}
+          <line
+            x1="-60"
+            y1="0"
+            x2="60"
+            y2="0"
+            stroke="rgba(110,200,255,0.06)"
+            strokeWidth="0.3"
+          />
+          <line
+            x1="0"
+            y1="-60"
+            x2="0"
+            y2="60"
+            stroke="rgba(110,200,255,0.06)"
+            strokeWidth="0.3"
+          />
+
+          {/* Direction labels */}
+          <text
+            x="0"
+            y="-56"
+            fontFamily="JetBrains Mono"
+            fontSize="3"
+            fill="#3d5572"
+            textAnchor="middle"
+            letterSpacing="0.5"
+          >
+            N
+          </text>
+          <text
+            x="0"
+            y="58.5"
+            fontFamily="JetBrains Mono"
+            fontSize="3"
+            fill="#3d5572"
+            textAnchor="middle"
+            letterSpacing="0.5"
+          >
+            S
+          </text>
+          <text
+            x="-56"
+            y="1"
+            fontFamily="JetBrains Mono"
+            fontSize="3"
+            fill="#3d5572"
+            textAnchor="middle"
+            letterSpacing="0.5"
+          >
+            W
+          </text>
+          <text
+            x="56"
+            y="1"
+            fontFamily="JetBrains Mono"
+            fontSize="3"
+            fill="#3d5572"
+            textAnchor="middle"
+            letterSpacing="0.5"
+          >
+            E
+          </text>
+
+          {/* Stars */}
+          {systemIds.map((id) => {
+            const sys = state.systems[id];
+            if (!sys) return null;
+            const coord = getSystemCoord(id);
+            const cx = coord.x * SCALE;
+            const cy = coord.y * SCALE;
+            const isSelected = selectedSystem === id;
+            const isHome = state.currentSystemId === id;
+            const hasProbe = sys.mainProbe !== null;
+            const color = starColor(sys.starType);
+            const r = isHome ? 3 : hasProbe ? 2.5 : 1.8;
+
+            return (
+              <g
+                key={id}
+                onClick={() => onSelect(id)}
+                style={{ cursor: "pointer" }}
+              >
+                {isSelected && (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={9}
+                    fill="none"
+                    stroke="#4ddbff"
+                    strokeWidth="0.5"
+                    strokeDasharray="1 1"
+                  />
+                )}
+                <circle cx={cx} cy={cy} r={r + 4} fill={color} opacity="0.15" />
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={r}
+                  fill={color}
+                  stroke={isSelected ? "#4ddbff" : "transparent"}
+                  strokeWidth="0.4"
+                />
+                <text
+                  x={cx}
+                  y={cy + r + 4.5}
+                  fontFamily="JetBrains Mono"
+                  fontSize="3"
+                  fill={isHome ? "#4cd8a8" : isSelected ? "#4ddbff" : "#9ab4cf"}
+                  textAnchor="middle"
+                  letterSpacing="0.4"
+                >
+                  {sys.name.toUpperCase()}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Scale indicator overlay */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 12,
+            left: 12,
+            padding: "6px 10px",
+            background: "rgba(8,16,30,0.8)",
+            border: "1px solid rgba(110,200,255,0.18)",
+            fontFamily: FONT_MONO,
+            fontSize: 9,
+            color: "#6b87a3",
+            letterSpacing: "0.14em",
+          }}
+        >
+          <div>SCALE · 12LY MAX</div>
+          <div>ORIGIN · SOL</div>
+        </div>
+      </div>
+    </Panel>
   );
 }

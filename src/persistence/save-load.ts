@@ -15,6 +15,10 @@ export interface SaveSlotInfo {
   name: string;
   tickCount: number;
   timestamp: number;
+  probeName: string;
+  year: number;
+  systemCount: number;
+  structureCount: number;
 }
 
 export function saveGame(state: GameState): void {
@@ -77,11 +81,16 @@ export function listSaves(): SaveSlotInfo[] {
   if (index.length === 0) {
     const legacy = loadGame();
     if (legacy) {
+      const stats = deriveSlotStats(legacy.state);
       const slot: SaveSlotInfo = {
         key: SAVE_KEY,
         name: "Legacy Save",
         tickCount: legacy.state.tickCount,
         timestamp: legacy.timestamp,
+        probeName: "Legacy Probe",
+        year: stats.year,
+        systemCount: stats.systemCount,
+        structureCount: stats.structureCount,
       };
       writeSaveIndex([slot]);
       return [slot];
@@ -91,7 +100,30 @@ export function listSaves(): SaveSlotInfo[] {
   return index;
 }
 
-export function saveGameSlot(slotKey: string, state: GameState): void {
+function deriveSlotStats(state: GameState): {
+  year: number;
+  systemCount: number;
+  structureCount: number;
+} {
+  const systems = Object.values(state.systems);
+  const systemCount = systems.filter((s) => s.mainProbe !== null).length;
+  const structureCount = systems.reduce(
+    (sum, s) =>
+      sum +
+      s.structures.miners.length +
+      s.structures.reactors.length +
+      s.structures.printers.length,
+    0,
+  );
+  const year = Math.floor(state.elapsedSeconds);
+  return { year, systemCount, structureCount };
+}
+
+export function saveGameSlot(
+  slotKey: string,
+  state: GameState,
+  probeName?: string,
+): void {
   const data: SaveData = {
     version: CURRENT_VERSION,
     timestamp: Date.now(),
@@ -99,17 +131,25 @@ export function saveGameSlot(slotKey: string, state: GameState): void {
   };
   localStorage.setItem(slotKey, JSON.stringify(data));
 
+  const stats = deriveSlotStats(state);
   const index = getSaveIndex();
   const existing = index.find((s) => s.key === slotKey);
   if (existing) {
     existing.tickCount = state.tickCount;
     existing.timestamp = data.timestamp;
+    existing.year = stats.year;
+    existing.systemCount = stats.systemCount;
+    existing.structureCount = stats.structureCount;
   } else {
     index.push({
       key: slotKey,
-      name: `Mission ${index.length + 1}`,
+      name: probeName ?? `Mission ${index.length + 1}`,
       tickCount: state.tickCount,
       timestamp: data.timestamp,
+      probeName: probeName ?? `Probe-${index.length + 1}`,
+      year: stats.year,
+      systemCount: stats.systemCount,
+      structureCount: stats.structureCount,
     });
   }
   writeSaveIndex(index);

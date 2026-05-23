@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useGameState, useDispatch } from "../context";
 import type { ProbeState, ProbeInTransit } from "../../simulation/state";
+import { FONT_MONO } from "../tokens";
 import { Panel } from "../components/Panel";
+import { ScreenHeader } from "../components/ScreenHeader";
 import { ProbeRow, TransitProbeRow } from "./probes/ProbeRow";
 import { ProbeDetail } from "./probes/ProbeDetail";
 import { BuildProbeModal } from "./probes/BuildProbeModal";
-
-type SelectedProbe =
-  | { kind: "active"; probe: ProbeState; systemName: string }
-  | { kind: "transit"; probe: ProbeInTransit };
 
 export function Probes() {
   const state = useGameState();
@@ -31,16 +29,17 @@ export function Probes() {
     }
   }
 
-  let selectedProbe: SelectedProbe | null = null;
+  const totalCount = activeProbes.length + transitProbes.length;
+  const homeCount = activeProbes.length;
+  const transitCount = transitProbes.length;
+
+  let selectedProbe: ProbeState | null = null;
+  let selectedSystemName = "";
   if (selected) {
     const active = activeProbes.find((a) => a.probe.id === selected);
     if (active) {
-      selectedProbe = { kind: "active", probe: active.probe, systemName: active.systemName };
-    } else {
-      const transit = transitProbes.find((t) => t.id === selected);
-      if (transit) {
-        selectedProbe = { kind: "transit", probe: transit };
-      }
+      selectedProbe = active.probe;
+      selectedSystemName = active.systemName;
     }
   }
 
@@ -50,17 +49,109 @@ export function Probes() {
     .map((s) => ({ id: s.id, name: s.name }));
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, height: "100%" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <Panel
-          label="Fleet Roster"
-          right={
-            <button className="btn btn-primary btn-sm" onClick={() => setShowBuild(true)}>
-              + Build Probe
+    <>
+      <ScreenHeader
+        title="Probe Fleet"
+        actions={
+          <>
+            <div
+              style={{
+                display: "flex",
+                gap: 18,
+                padding: "4px 12px",
+                alignItems: "center",
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+              }}
+            >
+              <span>
+                <span style={{ color: "#d6e8f5" }}>{totalCount}</span>{" "}
+                <span style={{ color: "#6b87a3" }}>TOTAL</span>
+              </span>
+              <span>
+                <span style={{ color: "#4cd8a8" }}>{homeCount}</span>{" "}
+                <span style={{ color: "#6b87a3" }}>IN SYSTEM</span>
+              </span>
+              <span>
+                <span style={{ color: "#4ddbff" }}>{transitCount}</span>{" "}
+                <span style={{ color: "#6b87a3" }}>IN TRANSIT</span>
+              </span>
+            </div>
+            <button
+              onClick={() => setShowBuild(true)}
+              title="Build new probe"
+              style={{
+                width: 28,
+                height: 28,
+                background: "rgba(77,219,255,0.10)",
+                border: "1px solid rgba(77,219,255,0.6)",
+                color: "#4ddbff",
+                fontFamily: FONT_MONO,
+                fontSize: 16,
+                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                borderRadius: 2,
+                padding: 0,
+              }}
+            >
+              +
             </button>
+          </>
+        }
+      />
+
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        <Panel
+          label="FLEET ROSTER"
+          right={
+            <div
+              style={{
+                display: "flex",
+                gap: 14,
+                fontFamily: FONT_MONO,
+                fontSize: 10,
+                color: "#6b87a3",
+                alignItems: "center",
+              }}
+            >
+              {[
+                { color: "#4cd8a8", label: "IN SYSTEM" },
+                { color: "#4ddbff", label: "TRANSIT" },
+                { color: "#ff9966", label: "BUILDING" },
+              ].map((l) => (
+                <span
+                  key={l.label}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <span
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: l.color,
+                      boxShadow: `0 0 4px ${l.color}`,
+                    }}
+                  />
+                  <span style={{ color: l.color }}>{l.label}</span>
+                </span>
+              ))}
+            </div>
           }
+          style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              overflowY: "auto",
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
             {activeProbes.map(({ probe, systemName }) => (
               <ProbeRow
                 key={probe.id}
@@ -79,24 +170,40 @@ export function Probes() {
               />
             ))}
             {activeProbes.length === 0 && transitProbes.length === 0 && (
-              <div className="empty-state">No probes in fleet</div>
+              <div
+                style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 11,
+                  color: "#6b87a3",
+                  textAlign: "center",
+                  padding: "24px 0",
+                }}
+              >
+                No probes in fleet
+              </div>
             )}
           </div>
         </Panel>
       </div>
 
-      <div>
-        {selectedProbe?.kind === "active" ? (
+      {selectedProbe && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: 380,
+            height: "100%",
+            zIndex: 10,
+          }}
+        >
           <ProbeDetail
-            probe={selectedProbe.probe}
-            systemName={selectedProbe.systemName}
+            probe={selectedProbe}
+            systemName={selectedSystemName}
+            onBuild={() => setShowBuild(true)}
           />
-        ) : (
-          <Panel label="Probe Detail">
-            <div className="empty-state">Select a probe to view details</div>
-          </Panel>
-        )}
-      </div>
+        </div>
+      )}
 
       {showBuild && (
         <BuildProbeModal
@@ -106,6 +213,6 @@ export function Probes() {
           onClose={() => setShowBuild(false)}
         />
       )}
-    </div>
+    </>
   );
 }
