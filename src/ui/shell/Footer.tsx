@@ -1,6 +1,5 @@
 import { useCurrentSystem } from "../context";
 import { fmt, fmtRate, fmtTime } from "../format";
-import { getEnergyCap } from "../queries";
 import type { ViewId } from "./Sidebar";
 
 const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
@@ -9,18 +8,15 @@ function StockpileCell({
   label,
   value,
   rate,
-  cap,
   color,
   unit,
 }: {
   label: string;
   value: number;
   rate: number;
-  cap?: number;
   color: string;
   unit: string;
 }) {
-  const pct = cap != null && cap > 0 ? Math.min(100, (value / cap) * 100) : 0;
   return (
     <div
       style={{
@@ -49,11 +45,6 @@ function StockpileCell({
         >
           {label}
         </span>
-        {cap != null && (
-          <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#3d5572" }}>
-            CAP {fmt(cap)} {unit}
-          </span>
-        )}
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
         <span
@@ -75,27 +66,6 @@ function StockpileCell({
           {fmtRate(rate)} {unit}/s
         </span>
       </div>
-      {cap != null && (
-        <div
-          style={{
-            height: 2,
-            marginTop: 8,
-            background: "rgba(110,200,255,0.08)",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: "0 auto 0 0",
-              width: `${pct}%`,
-              background: color,
-              opacity: 0.6,
-              transition: "width .4s linear",
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
@@ -233,8 +203,6 @@ export function Footer({
   onNavigate: (view: ViewId) => void;
 }) {
   const system = useCurrentSystem();
-  const enCap = getEnergyCap(system);
-
   const activeResearch = system.researchQueue.find(
     (r) => !r.completed && !r.paused,
   );
@@ -267,7 +235,6 @@ export function Footer({
           label="ENERGY"
           value={system.resources.energy}
           rate={system.resourceRates.energyPerSecond}
-          cap={enCap}
           color="#ffcb47"
           unit="MW"
         />
