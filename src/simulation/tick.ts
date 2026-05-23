@@ -13,7 +13,8 @@ import { tickNavigation } from "./systems/navigation";
 import { tickEvents } from "./systems/events";
 import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
-import { TECH_TREE, techsInBranch } from "./data/tech-tree";
+import { TECH_TREE } from "./data/tech-tree";
+import { hasPrerequisites } from "./queries";
 
 function getSystem(state: GameState, systemId: string): SystemState | undefined {
   return state.systems[systemId];
@@ -155,24 +156,6 @@ function applyBuildProbe(
   });
 }
 
-function hasPrerequisites(
-  system: SystemState,
-  techId: string,
-): boolean {
-  const tech = TECH_TREE[techId];
-  if (!tech) return false;
-
-  if (tech.tier <= 1) return true;
-
-  const branchTechs = techsInBranch(tech.branchId);
-  for (const t of branchTechs) {
-    if (t.tier < tech.tier && !system.completedResearch[t.id]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 function applyStartResearch(
   state: GameState,
   action: Extract<PlayerAction, { type: "start_research" }>,
@@ -203,6 +186,7 @@ function applyStartResearch(
     continuousCost: tech.continuousCost,
     progress: 0,
     completed: false,
+    paused: false,
   };
 
   const updated = deductResources(system, tech.initialCost);
@@ -226,8 +210,8 @@ function applyPauseResearch(
 
   return updateSystem(state, action.systemId, {
     ...system,
-    researchQueue: system.researchQueue.filter(
-      (p) => p.id !== action.projectId,
+    researchQueue: system.researchQueue.map((p) =>
+      p.id === action.projectId ? { ...p, paused: !p.paused } : p,
     ),
   });
 }
@@ -306,14 +290,16 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       return applyCancelResearch(state, action);
     case "reorder_research":
       return applyReorderResearch(state, action);
-    case "switch_system":
-      return { ...state, currentSystemId: action.systemId };
+    case "switch_system": {
+      const sys = state.systems[action.systemId];
+      return sys ? { ...state, currentSystemId: action.systemId } : state;
+    }
     case "pause":
       return { ...state, paused: true };
     case "unpause":
       return { ...state, paused: false };
     case "set_speed":
-      return state;
+      return { ...state, speed: action.speed };
   }
 }
 

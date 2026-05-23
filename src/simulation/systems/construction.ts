@@ -247,7 +247,14 @@ function tickSystemConstruction(
         });
       }
     } else {
-      updatedQueue.push({ ...project, progress: newProgress });
+      updatedQueue.push({
+        ...project,
+        progress: newProgress,
+        remainingCost: {
+          materials: project.totalCost.materials * (1 - newProgress),
+          energy: project.totalCost.energy * (1 - newProgress),
+        },
+      });
     }
   }
 

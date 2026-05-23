@@ -1,4 +1,5 @@
 import type { RngState } from "./rng";
+import type { GameSpeed } from "./actions";
 import { createRng } from "./rng";
 
 export type StructureType = "miner" | "reactor" | "printer";
@@ -13,7 +14,7 @@ export interface GameState {
   rngState: RngState;
   currentSystemId: string;
   systems: Record<string, SystemState>;
-  globalTech: Record<string, boolean>;
+  speed: GameSpeed;
   log: LogEntry[];
   paused: boolean;
 }
@@ -99,6 +100,7 @@ export interface ResearchProject {
   continuousCost: number;
   progress: number;
   completed: boolean;
+  paused: boolean;
 }
 
 export interface ProbeInTransit {
@@ -241,7 +243,7 @@ export function createInitialState(seed: number): GameState {
     rngState: rng.snapshot(),
     currentSystemId: "sol",
     systems,
-    globalTech: {},
+    speed: 1,
     log: [
       {
         tick: 0,

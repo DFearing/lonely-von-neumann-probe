@@ -22,6 +22,7 @@ function makeResearchProject(
     continuousCost: tech.continuousCost,
     progress: 0,
     completed: false,
+    paused: false,
     ...overrides,
   };
 }
@@ -217,6 +218,60 @@ describe("parallel research mechanics", () => {
       expect(twoSolP).toBeDefined();
       expect(singleP).toBeDefined();
       expect(twoSolP!.progress).toBeCloseTo(singleP!.progress);
+    });
+  });
+
+  describe("zero computing power", () => {
+    test("research progress stays at 0 with no computing power", () => {
+      const project = makeResearchProject("basic_mining_techniques");
+
+      const state = makeGameStateWithResearch({
+        researchQueue: [project],
+        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 0 },
+        completedResearch: {},
+      });
+
+      const next = tickResearch(state, DT);
+      const p = next.systems["sol"]!.researchQueue.find(
+        (p) => p.techId === "basic_mining_techniques",
+      );
+
+      expect(p).toBeDefined();
+      expect(p!.progress).toBe(0);
+    });
+  });
+
+  describe("research completion", () => {
+    test("completed project is removed from queue and added to completedResearch", () => {
+      const tech = TECH_TREE["basic_mining_techniques"]!;
+      const project = makeResearchProject("basic_mining_techniques", {
+        progress: 0.999,
+      });
+
+      const computingPower = tech.continuousCost * 10;
+
+      const state = makeGameStateWithResearch({
+        researchQueue: [project],
+        resourceRates: {
+          materialsPerSecond: 0,
+          energyPerSecond: 0,
+          computingPowerPerSecond: computingPower,
+        },
+        completedResearch: {},
+      });
+
+      let current = state;
+      for (let i = 0; i < 1000; i++) {
+        current = tickResearch(current, DT);
+        const sol = current.systems["sol"]!;
+        if (sol.completedResearch["basic_mining_techniques"]) break;
+      }
+
+      const sol = current.systems["sol"]!;
+      expect(sol.completedResearch["basic_mining_techniques"]).toBe(true);
+      expect(
+        sol.researchQueue.some((p) => p.techId === "basic_mining_techniques"),
+      ).toBe(false);
     });
   });
 

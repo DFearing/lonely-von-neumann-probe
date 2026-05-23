@@ -1,7 +1,7 @@
 import type { GameState, ProbeInTransit, ProbeState, SystemState } from "../state";
 import type { Rng } from "../rng";
 import { KNOWN_SYSTEMS } from "../data/star-systems";
-import { CPUS } from "../data/components";
+import { CPUS, PROPULSIONS } from "../data/components";
 
 function createArrivingProbe(
   probe: ProbeInTransit,
@@ -15,7 +15,7 @@ function createArrivingProbe(
     miningOutput: cpuDef.miningOutput,
     computingOutput: cpuDef.computingOutput,
     internalPrinterSpeed: cpuDef.printSpeed,
-    autoReplicating: false,
+    autoReplicating: PROPULSIONS[probe.components.propulsion].autoReplicate,
   };
 }
 
@@ -78,6 +78,7 @@ function tickSystemNavigation(
   const newSystems: Record<string, SystemState> = {};
   const updatedSystems: Record<string, SystemState> = {};
   const log: GameState["log"] = [];
+  const newlyDiscovered: string[] = [];
 
   for (const probe of originSystem.sentProbes) {
     const elapsed = probe.elapsedSeconds + dt;
@@ -85,6 +86,10 @@ function tickSystemNavigation(
     if (elapsed >= probe.travelTimeSeconds) {
       const destId = probe.destinationSystemId;
       const arrivingProbe = createArrivingProbe(probe, destId);
+
+      if (!originSystem.discoveredSystems.includes(destId)) {
+        newlyDiscovered.push(destId);
+      }
 
       const existingDest =
         updatedSystems[destId] ??
@@ -96,12 +101,16 @@ function tickSystemNavigation(
           existingDest.completedResearch,
           originSystem.completedResearch,
         );
+        const destDiscovered = existingDest.discoveredSystems.includes(originSystem.id)
+          ? existingDest.discoveredSystems
+          : [...existingDest.discoveredSystems, originSystem.id];
         const updated: SystemState = {
           ...existingDest,
           discovered: true,
           scanned: true,
           mainProbe: existingDest.mainProbe ?? arrivingProbe,
           completedResearch: mergedResearch,
+          discoveredSystems: destDiscovered,
         };
         if (allSystems[destId]) {
           updatedSystems[destId] = updated;
@@ -129,7 +138,7 @@ function tickSystemNavigation(
           constructionQueue: [],
           researchQueue: [],
           completedResearch: { ...originSystem.completedResearch },
-          discoveredSystems: [],
+          discoveredSystems: [originSystem.id],
           sentProbes: [],
         };
         newSystems[destId] = system;
@@ -145,8 +154,13 @@ function tickSystemNavigation(
     }
   }
 
+  const updatedOriginDiscovered =
+    newlyDiscovered.length > 0
+      ? [...originSystem.discoveredSystems, ...newlyDiscovered]
+      : originSystem.discoveredSystems;
+
   return {
-    originSystem: { ...originSystem, sentProbes: remaining },
+    originSystem: { ...originSystem, sentProbes: remaining, discoveredSystems: updatedOriginDiscovered },
     newSystems,
     updatedSystems,
     log,

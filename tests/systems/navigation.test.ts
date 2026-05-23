@@ -172,6 +172,53 @@ describe("tickNavigation", () => {
     });
   });
 
+  describe("probe arrival at occupied system", () => {
+    test("arriving probe is discarded when destination already has a mainProbe", () => {
+      const state = stateWithProbeInTransit({
+        id: "arriving_probe",
+        destinationSystemId: "sol",
+        travelTimeSeconds: 10,
+        elapsedSeconds: 9,
+        originSystemId: "alpha_centauri",
+      });
+
+      const sol = state.systems["sol"]!;
+      expect(sol.mainProbe).not.toBeNull();
+      const originalProbeId = sol.mainProbe!.id;
+
+      const ac = state.systems["alpha_centauri"]!;
+      const stateWithTransit = {
+        ...state,
+        systems: {
+          ...state.systems,
+          alpha_centauri: {
+            ...ac,
+            sentProbes: [
+              {
+                id: "arriving_probe",
+                components: {
+                  cpu: "basic_cpu" as const,
+                  propulsion: "basic_ion_drive" as const,
+                  reactor: "basic_reactor" as const,
+                },
+                originSystemId: "alpha_centauri",
+                destinationSystemId: "sol",
+                travelTimeSeconds: 10,
+                elapsedSeconds: 9,
+              },
+            ],
+          },
+        },
+      };
+
+      const rng = createRngFromState(stateWithTransit.rngState);
+      const next = tickNavigation(stateWithTransit, DT, rng);
+
+      expect(next.systems["sol"]!.mainProbe!.id).toBe(originalProbeId);
+      expect(next.systems["alpha_centauri"]!.sentProbes).toHaveLength(0);
+    });
+  });
+
   describe("no-op when no probes in transit", () => {
     test("systems without sentProbes are unchanged", () => {
       const state = createInitialState(SEED);

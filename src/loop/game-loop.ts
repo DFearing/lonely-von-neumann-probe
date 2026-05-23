@@ -3,7 +3,7 @@ import type { PlayerAction, GameSpeed } from "../simulation/actions";
 import { tick } from "../simulation/tick";
 import { saveGame } from "../persistence/save-load";
 
-const TICK_MS = 100;
+export const TICK_MS = 100;
 const AUTO_SAVE_INTERVAL_MS = 10_000;
 
 const SPEED_MULTIPLIERS: Record<GameSpeed, number> = {
@@ -36,8 +36,6 @@ export interface GameLoop {
  */
 export function createGameLoop(initialState: GameState): GameLoop {
   let state = initialState;
-  let speed: GameSpeed = 1;
-  let paused = false;
   let running = false;
   let rafId = 0;
   let lastTime = 0;
@@ -73,9 +71,9 @@ export function createGameLoop(initialState: GameState): GameLoop {
       lastSaveTime = now;
     }
 
-    if (!paused) {
+    if (!state.paused) {
       const delta = now - lastTime;
-      accumulator += delta * SPEED_MULTIPLIERS[speed];
+      accumulator += delta * SPEED_MULTIPLIERS[state.speed];
 
       let ticked = false;
       while (accumulator >= TICK_MS) {
@@ -113,23 +111,23 @@ export function createGameLoop(initialState: GameState): GameLoop {
     },
 
     setSpeed(newSpeed: GameSpeed): void {
-      speed = newSpeed;
+      actionQueue.push({ type: "set_speed", speed: newSpeed });
     },
 
     pause(): void {
-      paused = true;
+      actionQueue.push({ type: "pause" });
     },
 
     unpause(): void {
-      paused = false;
+      actionQueue.push({ type: "unpause" });
     },
 
     isPaused(): boolean {
-      return paused;
+      return state.paused;
     },
 
     getSpeed(): GameSpeed {
-      return speed;
+      return state.speed;
     },
 
     dispatchAction(action: PlayerAction): void {
