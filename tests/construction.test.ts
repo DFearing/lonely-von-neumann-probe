@@ -32,9 +32,9 @@ function makeProbeProject(
     targetType: "probe",
     targetTier: 0,
     targetConfig: {
-      cpu: "basic_cpu",
-      propulsion: "basic_ion_drive",
-      reactor: "basic_reactor",
+      cpu: "cpu_t1",
+      propulsion: "prop_t1",
+      reactor: "rct_t1",
       targetSystemId,
     },
     totalCost: { materials: 30, energy: 6 },
@@ -71,7 +71,7 @@ describe("resolveDistance via probe construction", () => {
     expect(probe).toBeDefined();
 
     const expectedDistance = 4.37;
-    const propulsion = PROPULSIONS["basic_ion_drive"];
+    const propulsion = PROPULSIONS["prop_t1"]!;
     const expectedTravelTime = expectedDistance / propulsion.travelSpeed;
 
     expect(probe!.travelTimeSeconds).toBeCloseTo(expectedTravelTime);
@@ -111,7 +111,7 @@ describe("resolveDistance via probe construction", () => {
 
     expect(probeAC.travelTimeSeconds).not.toBe(probeSirius.travelTimeSeconds);
 
-    const propulsion = PROPULSIONS["basic_ion_drive"];
+    const propulsion = PROPULSIONS["prop_t1"]!;
     expect(probeAC.travelTimeSeconds).toBeCloseTo(4.37 / propulsion.travelSpeed);
     expect(probeSirius.travelTimeSeconds).toBeCloseTo(8.6 / propulsion.travelSpeed);
   });

@@ -2,10 +2,12 @@ import type { RngState } from "./rng";
 import type { GameSpeed } from "./actions";
 import { createRng } from "./rng";
 
+export const MAX_TIER = 20;
+
 export type StructureType = "miner" | "reactor" | "printer";
-export type CpuType = "basic_cpu" | "enhanced_cpu" | "advanced_cpu" | "quantum_cpu";
-export type PropulsionType = "basic_ion_drive" | "efficient_drive" | "advanced_drive" | "von_neumann_drive";
-export type ReactorType = "basic_reactor" | "fusion_reactor" | "solar_harvester" | "exotic_reactor";
+export type CpuType = string;
+export type PropulsionType = string;
+export type ReactorType = string;
 
 export interface GameState {
   seed: number;
@@ -168,9 +170,9 @@ export function createInitialState(seed: number): GameState {
     id: "probe_sol_0",
     systemId: "sol",
     components: {
-      cpu: "basic_cpu",
-      propulsion: "basic_ion_drive",
-      reactor: "basic_reactor",
+      cpu: "cpu_t1",
+      propulsion: "prop_t1",
+      reactor: "rct_t1",
     },
     miningOutput: 5,
     computingOutput: 1,

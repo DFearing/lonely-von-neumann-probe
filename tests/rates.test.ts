@@ -18,7 +18,7 @@ function makeProbe(overrides?: Partial<ProbeState>): ProbeState {
   return {
     id: "probe_1",
     systemId: "test",
-    components: { cpu: "basic_cpu", propulsion: "basic_ion_drive", reactor: "basic_reactor" },
+    components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
     miningOutput: 5,
     computingOutput: 1,
     internalPrinterSpeed: 1,

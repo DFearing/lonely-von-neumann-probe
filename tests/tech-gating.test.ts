@@ -32,7 +32,7 @@ function stateWithResourcesAndResearch(
 
 describe("tech gating", () => {
   describe("structure gating", () => {
-    test("reactor tier 2 blocked without fusion_efficiency", () => {
+    test("reactor tier 2 blocked without energy_t2", () => {
       const cost = STRUCTURES["reactor_2"]!.cost;
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
@@ -50,12 +50,12 @@ describe("tech gating", () => {
       expect(next.systems["sol"]!.constructionQueue.length).toBe(0);
     });
 
-    test("reactor tier 2 succeeds with fusion_efficiency", () => {
+    test("reactor tier 2 succeeds with energy_t2", () => {
       const cost = STRUCTURES["reactor_2"]!.cost;
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { fusion_efficiency: true },
+        { energy_t2: true },
       );
 
       const action: PlayerAction = {
@@ -73,8 +73,8 @@ describe("tech gating", () => {
   });
 
   describe("probe component gating", () => {
-    test("enhanced_cpu probe blocked without efficient_probes tech", () => {
-      const cost = totalProbeCost("enhanced_cpu", "basic_ion_drive", "basic_reactor");
+    test("cpu_t2 probe blocked without probe_components_t2 tech", () => {
+      const cost = totalProbeCost("cpu_t2", "prop_t1", "rct_t1");
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
@@ -83,9 +83,9 @@ describe("tech gating", () => {
       const action: PlayerAction = {
         type: "build_probe",
         systemId: "sol",
-        cpu: "enhanced_cpu",
-        propulsion: "basic_ion_drive",
-        reactor: "basic_reactor",
+        cpu: "cpu_t2",
+        propulsion: "prop_t1",
+        reactor: "rct_t1",
         targetSystemId: "alpha_centauri",
       };
 
@@ -93,20 +93,20 @@ describe("tech gating", () => {
       expect(next.systems["sol"]!.constructionQueue.length).toBe(0);
     });
 
-    test("enhanced_cpu probe succeeds with efficient_probes tech", () => {
-      const cost = totalProbeCost("enhanced_cpu", "basic_ion_drive", "basic_reactor");
+    test("cpu_t2 probe succeeds with probe_components_t2 tech", () => {
+      const cost = totalProbeCost("cpu_t2", "prop_t1", "rct_t1");
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { efficient_probes: true },
+        { probe_components_t2: true },
       );
 
       const action: PlayerAction = {
         type: "build_probe",
         systemId: "sol",
-        cpu: "enhanced_cpu",
-        propulsion: "basic_ion_drive",
-        reactor: "basic_reactor",
+        cpu: "cpu_t2",
+        propulsion: "prop_t1",
+        reactor: "rct_t1",
         targetSystemId: "alpha_centauri",
       };
 
@@ -137,21 +137,21 @@ describe("tech gating", () => {
   });
 
   describe("multiple component gates", () => {
-    test("probe with enhanced_cpu + efficient_drive + fusion_reactor requires all three gates", () => {
-      const cost = totalProbeCost("enhanced_cpu", "efficient_drive", "fusion_reactor");
+    test("probe with cpu_t2 + prop_t2 + rct_t2 requires all gates", () => {
+      const cost = totalProbeCost("cpu_t2", "prop_t2", "rct_t2");
 
       const missingOne = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { efficient_probes: true },
+        { probe_components_t2: true },
       );
 
       const action: PlayerAction = {
         type: "build_probe",
         systemId: "sol",
-        cpu: "enhanced_cpu",
-        propulsion: "efficient_drive",
-        reactor: "fusion_reactor",
+        cpu: "cpu_t2",
+        propulsion: "prop_t2",
+        reactor: "rct_t2",
         targetSystemId: "alpha_centauri",
       };
 
@@ -161,7 +161,7 @@ describe("tech gating", () => {
       const allGates = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { efficient_probes: true, fusion_efficiency: true },
+        { probe_components_t2: true, energy_t2: true },
       );
 
       const nextAll = tick(allGates, DT, [action]);

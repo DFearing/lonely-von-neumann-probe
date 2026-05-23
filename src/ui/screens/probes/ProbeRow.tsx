@@ -12,47 +12,22 @@ function TechChip({ label, tier, accent }: { label: string; tier: number; accent
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
       <span style={{ color: "#3d5572", letterSpacing: "0.14em" }}>{label}</span>
-      <span style={{ display: "inline-flex", gap: 3 }}>
-        {Array.from({ length: 4 }, (_, i) => {
-          const filled = i < tier;
-          return (
-            <span
-              key={i}
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: filled ? accent : "transparent",
-                border: `1px solid ${filled ? accent : "rgba(110,200,255,0.22)"}`,
-                boxShadow: filled ? `0 0 3px ${accent}80` : "none",
-              }}
-            />
-          );
-        })}
+      <span
+        style={{
+          fontFamily: FONT_MONO,
+          fontSize: 9,
+          color: accent,
+          letterSpacing: "0.08em",
+        }}
+      >
+        T{tier}
       </span>
     </div>
   );
 }
 
-function cpuTier(cpu: string): number {
-  const tiers: Record<string, number> = {
-    basic_cpu: 1, enhanced_cpu: 2, advanced_cpu: 3, quantum_cpu: 4,
-  };
-  return tiers[cpu] ?? 1;
-}
-
-function propTier(prop: string): number {
-  const tiers: Record<string, number> = {
-    basic_ion_drive: 1, efficient_drive: 2, advanced_drive: 3, von_neumann_drive: 4,
-  };
-  return tiers[prop] ?? 1;
-}
-
-function rctTier(rct: string): number {
-  const tiers: Record<string, number> = {
-    basic_reactor: 1, fusion_reactor: 2, solar_harvester: 2, exotic_reactor: 4,
-  };
-  return tiers[rct] ?? 1;
+function parseTier(id: string): number {
+  return parseInt(id.split("_t")[1] ?? "1", 10);
 }
 
 export function ProbeRow({
@@ -67,9 +42,9 @@ export function ProbeRow({
   onClick: () => void;
 }) {
   const color = STATUS_COLORS.active;
-  const ct = cpuTier(probe.components.cpu);
-  const pt = propTier(probe.components.propulsion);
-  const rt = rctTier(probe.components.reactor);
+  const ct = parseTier(probe.components.cpu);
+  const pt = parseTier(probe.components.propulsion);
+  const rt = parseTier(probe.components.reactor);
 
   return (
     <div
@@ -187,9 +162,9 @@ export function TransitProbeRow({
       : 1;
   const remaining = Math.max(0, probe.travelTimeSeconds - probe.elapsedSeconds);
   const color = STATUS_COLORS.transit;
-  const ct = cpuTier(probe.components.cpu);
-  const pt = propTier(probe.components.propulsion);
-  const rt = rctTier(probe.components.reactor);
+  const ct = parseTier(probe.components.cpu);
+  const pt = parseTier(probe.components.propulsion);
+  const rt = parseTier(probe.components.reactor);
 
   return (
     <div

@@ -38,9 +38,9 @@ export function ProbeDetail({
   systemName: string;
   onBuild: () => void;
 }) {
-  const cpu = CPUS[probe.components.cpu];
-  const prop = PROPULSIONS[probe.components.propulsion];
-  const reactor = REACTORS[probe.components.reactor];
+  const cpu = CPUS[probe.components.cpu]!;
+  const prop = PROPULSIONS[probe.components.propulsion]!;
+  const reactor = REACTORS[probe.components.reactor]!;
 
   const statusColor = "#4cd8a8";
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import type { SystemState, CpuType, PropulsionType, ReactorType } from "../../../simulation/state";
+import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { getAvailableComponents } from "../../../simulation/queries";
 import { CPUS, PROPULSIONS, REACTORS, totalProbeCost } from "../../../simulation/data/components";
@@ -95,7 +95,7 @@ function ComponentSection({
 }) {
   return (
     <Panel label={label} style={{ minWidth: 0 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8, overflowY: "auto" }}>
         {variants.map((v) => {
           const isSelected = v.id === selectedId;
           const isLocked = !v.unlocked;
@@ -424,12 +424,12 @@ export function BuildProbeModal({
 }) {
   const available = getAvailableComponents(system);
 
-  const [cpu, setCpu] = useState<CpuType>(available.cpus[0]?.type ?? "basic_cpu");
-  const [propulsion, setPropulsion] = useState<PropulsionType>(
-    available.propulsions[0]?.type ?? "basic_ion_drive",
+  const [cpu, setCpu] = useState<string>(available.cpus[0]?.type ?? "cpu_t1");
+  const [propulsion, setPropulsion] = useState<string>(
+    available.propulsions[0]?.type ?? "prop_t1",
   );
-  const [reactor, setReactor] = useState<ReactorType>(
-    available.reactors[0]?.type ?? "basic_reactor",
+  const [reactor, setReactor] = useState<string>(
+    available.reactors[0]?.type ?? "rct_t1",
   );
   const [targetSystemId, setTargetSystemId] = useState(targetSystems[0]?.id ?? "");
 
@@ -578,27 +578,27 @@ export function BuildProbeModal({
               accent="#4ddbff"
               variants={cpuVariants}
               selectedId={cpu}
-              onSelect={(id) => setCpu(id as CpuType)}
+              onSelect={setCpu}
             />
             <ComponentSection
               label="PROPULSION"
               accent="#5cc7ff"
               variants={propVariants}
               selectedId={propulsion}
-              onSelect={(id) => setPropulsion(id as PropulsionType)}
+              onSelect={setPropulsion}
             />
             <ComponentSection
               label="REACTOR"
               accent="#ffcb47"
               variants={reactorVariants}
               selectedId={reactor}
-              onSelect={(id) => setReactor(id as ReactorType)}
+              onSelect={setReactor}
             />
           </div>
           <BuildColumn
-            cpu={CPUS[cpu]}
-            propulsion={PROPULSIONS[propulsion]}
-            reactor={REACTORS[reactor]}
+            cpu={CPUS[cpu]!}
+            propulsion={PROPULSIONS[propulsion]!}
+            reactor={REACTORS[reactor]!}
             canAfford={canAfford}
             targetSystems={targetSystems}
             targetSystemId={targetSystemId}

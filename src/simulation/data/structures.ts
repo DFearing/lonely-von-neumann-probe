@@ -1,4 +1,5 @@
 import type { StructureType } from "../state";
+import { MAX_TIER } from "../state";
 
 export interface StructureDefinition {
   type: StructureType;
@@ -8,93 +9,135 @@ export interface StructureDefinition {
   productionRate: number;
   operatingCost: number;
   techGate: string | null;
+  solarScaling: boolean;
 }
 
-export const STRUCTURES: Record<string, StructureDefinition> = {
-  miner_1: {
-    type: "miner",
-    tier: 1,
-    name: "Miner",
-    cost: { materials: 30, energy: 10 },
-    productionRate: 20,
-    operatingCost: 0,
-    techGate: null,
-  },
+const MINER_NAMES = [
+  "Miner",
+  "Auger Drill",
+  "Subsurface Borer",
+  "Plasma Cutter",
+  "Seismic Extractor",
+  "Deep Core Drill",
+  "Molecular Sieve",
+  "Plasma Excavator",
+  "Gravitometric Miner",
+  "Nanoscale Harvester",
+  "Asteroid Cracker",
+  "Tidal Extractor",
+  "Dark Matter Dredge",
+  "Quantum Tunneler",
+  "Stellar Sampler",
+  "Neutronium Drill",
+  "Singularity Miner",
+  "Dimensional Borer",
+  "Void Collector",
+  "Omniscient Extractor",
+];
 
-  reactor_1: {
-    type: "reactor",
-    tier: 1,
-    name: "Basic Reactor",
-    cost: { materials: 10, energy: 2 },
-    productionRate: 10,
-    operatingCost: 1,
-    techGate: null,
-  },
-  reactor_2: {
-    type: "reactor",
-    tier: 2,
-    name: "Fusion Reactor",
-    cost: { materials: 30, energy: 6 },
-    productionRate: 15,
-    operatingCost: 0.8,
-    techGate: "fusion_efficiency",
-  },
-  reactor_3: {
-    type: "reactor",
-    tier: 3,
-    name: "Solar Harvester",
-    cost: { materials: 25, energy: 5 },
-    productionRate: 12,
-    operatingCost: 0.5,
-    techGate: "solar_harvesters",
-  },
-  reactor_4: {
-    type: "reactor",
-    tier: 4,
-    name: "Exotic Reactor",
-    cost: { materials: 100, energy: 25 },
-    productionRate: 25,
-    operatingCost: 0.6,
-    techGate: "exotic_power",
-  },
+const REACTOR_NAMES = [
+  "Basic Reactor",
+  "Fusion Reactor",
+  "Solar Harvester",
+  "Plasma Containment Cell",
+  "Antimatter Reactor",
+  "Zero-Point Generator",
+  "Stellar Wind Turbine",
+  "Solar Dynamo Array",
+  "Magnetohydrodynamic Plant",
+  "Neutrino Collector",
+  "Hawking Radiator",
+  "Dyson Filament Node",
+  "Quark-Gluon Reactor",
+  "Solar Corona Tap",
+  "Vacuum Energy Cell",
+  "Dark Energy Condenser",
+  "Cosmic String Generator",
+  "Entropic Engine",
+  "Brane Power Tap",
+  "Omnipotent Reactor",
+];
 
-  printer_1: {
-    type: "printer",
-    tier: 1,
-    name: "Basic 3D Printer",
-    cost: { materials: 30, energy: 10 },
-    productionRate: 1,
-    operatingCost: 0,
-    techGate: null,
-  },
-  printer_2: {
-    type: "printer",
-    tier: 2,
-    name: "Enhanced Printer",
-    cost: { materials: 80, energy: 25 },
-    productionRate: 1.5,
-    operatingCost: 0,
-    techGate: "faster_printing",
-  },
-  printer_3: {
-    type: "printer",
-    tier: 3,
-    name: "Advanced Printer",
-    cost: { materials: 200, energy: 60 },
-    productionRate: 2.5,
-    operatingCost: 0,
-    techGate: "complex_objects",
-  },
-  printer_4: {
-    type: "printer",
-    tier: 4,
-    name: "Automated Assembly",
-    cost: { materials: 500, energy: 150 },
-    productionRate: 4,
-    operatingCost: 0,
-    techGate: "automated_assembly",
-  },
-} as const satisfies Record<string, StructureDefinition>;
+const PRINTER_NAMES = [
+  "Basic 3D Printer",
+  "Enhanced Printer",
+  "Molecular Assembler",
+  "Nanoscale Printer",
+  "Swarm Fabricator",
+  "Atomic Assembler",
+  "Self-Healing Printer",
+  "Networked Fabricator",
+  "Quantum Lithographer",
+  "Programmable Matter Forge",
+  "Von Neumann Assembler",
+  "Femtoscale Printer",
+  "Phase-Shift Fabricator",
+  "Dimensional Printer",
+  "Reality Sculptor",
+  "Subspace Fabricator",
+  "Temporal Assembler",
+  "Planck-Scale Printer",
+  "Probability Forge",
+  "Omnifabricator",
+];
+
+const SOLAR_REACTOR_TIERS = new Set([3, 8, 14]);
+
+function generateStructures(): Record<string, StructureDefinition> {
+  const structures: Record<string, StructureDefinition> = {};
+
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    structures[`miner_${tier}`] = {
+      type: "miner",
+      tier,
+      name: MINER_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(30 * 1.18 ** (tier - 1)),
+        energy: Math.round(10 * 1.18 ** (tier - 1)),
+      },
+      productionRate: +(20 * (1 + 0.15 * (tier - 1))).toFixed(2),
+      operatingCost: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      techGate: tier === 1 ? null : `mining_t${tier}`,
+      solarScaling: false,
+    };
+  }
+
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    structures[`reactor_${tier}`] = {
+      type: "reactor",
+      tier,
+      name: REACTOR_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(10 * 1.18 ** (tier - 1)),
+        energy: Math.round(2 * 1.18 ** (tier - 1)),
+      },
+      productionRate: +(10 * (1 + 0.15 * (tier - 1))).toFixed(2),
+      operatingCost: +(1 * (1 + 0.08 * (tier - 1))).toFixed(2),
+      techGate: tier === 1 ? null : `energy_t${tier}`,
+      solarScaling: SOLAR_REACTOR_TIERS.has(tier),
+    };
+  }
+
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    structures[`printer_${tier}`] = {
+      type: "printer",
+      tier,
+      name: PRINTER_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(30 * 1.18 ** (tier - 1)),
+        energy: Math.round(10 * 1.18 ** (tier - 1)),
+      },
+      productionRate: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      operatingCost: +(0.5 * (1 + 0.10 * (tier - 1))).toFixed(2),
+      techGate: tier === 1 ? null : `manufacturing_t${tier}`,
+      solarScaling: false,
+    };
+  }
+
+  return structures;
+}
+
+export const STRUCTURES: Record<string, StructureDefinition> = generateStructures();
 
 export function structureKey(type: StructureType, tier: number): string {
   return `${type}_${tier}`;

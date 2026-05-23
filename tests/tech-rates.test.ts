@@ -20,7 +20,7 @@ function makeProbe(overrides?: Partial<ProbeState>): ProbeState {
   return {
     id: "probe_1",
     systemId: "test",
-    components: { cpu: "basic_cpu", propulsion: "basic_ion_drive", reactor: "basic_reactor" },
+    components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
     miningOutput: 5,
     computingOutput: 1,
     internalPrinterSpeed: 1,
@@ -66,9 +66,9 @@ describe("tech effects on resource rates", () => {
       expect(rates.materialsPerSecond).toBe((5 + 20) * 1.0);
     });
 
-    test("basic_mining_techniques gives 1.2x mining rate", () => {
+    test("mining_t1 gives 1.1x mining rate", () => {
       const system = makeSystem({
-        completedResearch: { basic_mining_techniques: true },
+        completedResearch: { mining_t1: true },
         structures: {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
@@ -77,16 +77,16 @@ describe("tech effects on resource rates", () => {
       });
 
       const rates = calculateRates(system);
-      expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 1.2);
+      expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 1.1);
     });
 
-    test("all 4 mining techs give 3.2x mining rate", () => {
+    test("mining t1-t4 stack to correct multiplier", () => {
       const system = makeSystem({
         completedResearch: {
-          basic_mining_techniques: true,
-          mineral_separation: true,
-          advanced_extraction: true,
-          automated_deep_mining: true,
+          mining_t1: true,
+          mining_t2: true,
+          mining_t3: true,
+          mining_t4: true,
         },
         structures: {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
@@ -96,13 +96,14 @@ describe("tech effects on resource rates", () => {
       });
 
       const rates = calculateRates(system);
-      expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 3.2);
+      const expectedMultiplier = 1.0 + 0.100 + 0.105 + 0.110 + 0.115;
+      expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * expectedMultiplier);
     });
 
     test("mining multiplier stacks with system richness", () => {
       const system = makeSystem({
         resourceRichness: 1.5,
-        completedResearch: { basic_mining_techniques: true },
+        completedResearch: { mining_t1: true },
         structures: {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
@@ -111,7 +112,7 @@ describe("tech effects on resource rates", () => {
       });
 
       const rates = calculateRates(system);
-      expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 1.2 * 1.5);
+      expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 1.1 * 1.5);
     });
   });
 });
