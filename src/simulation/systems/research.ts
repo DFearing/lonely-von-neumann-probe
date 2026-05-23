@@ -16,7 +16,7 @@ function tickSystemResearch(
     return { system, log: [] };
   }
 
-  const incompleteProjects = system.researchQueue.filter((p) => !p.completed);
+  const incompleteProjects = system.researchQueue.filter((p) => !p.completed && !p.paused);
   const activeProjects = incompleteProjects.slice(
     0,
     multipliers.maxConcurrentResearch,
@@ -100,7 +100,7 @@ function countActiveProjects(
   let total = 0;
   for (const [id, system] of Object.entries(systems)) {
     const multipliers = multipliersMap.get(id)!;
-    const incomplete = system.researchQueue.filter((p) => !p.completed);
+    const incomplete = system.researchQueue.filter((p) => !p.completed && !p.paused);
     total += Math.min(incomplete.length, multipliers.maxConcurrentResearch);
   }
   return total;

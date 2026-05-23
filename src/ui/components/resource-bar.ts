@@ -67,9 +67,8 @@ export function createResourceBar(): ResourceBar {
       energy.rateEl.textContent = formatRate(resourceRates.energyPerSecond);
       energy.rateEl.className = rateClass(resourceRates.energyPerSecond);
 
-      computing.valueEl.textContent = formatValue(resources.computingPower);
-      computing.rateEl.textContent = formatRate(resourceRates.computingPowerPerSecond);
-      computing.rateEl.className = rateClass(resourceRates.computingPowerPerSecond);
+      computing.valueEl.textContent = `${resourceRates.computingPowerPerSecond.toFixed(1)}/s`;
+      computing.rateEl.textContent = "";
     },
   };
 }

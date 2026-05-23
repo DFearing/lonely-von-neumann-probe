@@ -2,6 +2,7 @@ import type { PlayerAction } from "../simulation/actions";
 import type { GameState } from "../simulation/state";
 import { createInitialState } from "../simulation/state";
 import { tick } from "../simulation/tick";
+import { TICK_MS } from "../loop/game-loop";
 
 export interface InputLogEntry {
   tick: number;
@@ -58,7 +59,7 @@ export function createReplayController(
     const actionsForTick = inputLog.filter((entry) => entry.tick === currentTick + 1);
     state = tick(
       state,
-      0.1,
+      TICK_MS / 1000,
       actionsForTick.map((entry) => entry.action),
     );
     currentTick = state.tickCount;

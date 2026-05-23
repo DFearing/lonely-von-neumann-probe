@@ -246,6 +246,260 @@ describe("tick", () => {
     });
   });
 
+  describe("pause_research action", () => {
+    test("sets paused to true on the target project", () => {
+      const techId = "basic_mining_techniques";
+      const tech = TECH_TREE[techId]!;
+      const state = stateWithResources(
+        tech.initialCost.materials + 100,
+        tech.initialCost.energy + 100,
+      );
+
+      const startAction: PlayerAction = {
+        type: "start_research",
+        systemId: "sol",
+        techId,
+      };
+      const afterStart = tick(state, DT, [startAction]);
+      const project = afterStart.systems["sol"]!.researchQueue[0]!;
+      expect(project.paused).toBe(false);
+
+      const pauseAction: PlayerAction = {
+        type: "pause_research",
+        systemId: "sol",
+        projectId: project.id,
+      };
+      const afterPause = tick(afterStart, DT, [pauseAction]);
+      const pausedProject = afterPause.systems["sol"]!.researchQueue[0]!;
+
+      expect(pausedProject.paused).toBe(true);
+      expect(afterPause.systems["sol"]!.researchQueue).toHaveLength(1);
+    });
+
+    test("toggles paused back to false when called twice", () => {
+      const techId = "basic_mining_techniques";
+      const tech = TECH_TREE[techId]!;
+      const state = stateWithResources(
+        tech.initialCost.materials + 100,
+        tech.initialCost.energy + 100,
+      );
+
+      const afterStart = tick(state, DT, [
+        { type: "start_research", systemId: "sol", techId },
+      ]);
+      const projectId = afterStart.systems["sol"]!.researchQueue[0]!.id;
+
+      const pauseAction: PlayerAction = {
+        type: "pause_research",
+        systemId: "sol",
+        projectId,
+      };
+      const afterPause = tick(afterStart, DT, [pauseAction]);
+      expect(afterPause.systems["sol"]!.researchQueue[0]!.paused).toBe(true);
+
+      const afterUnpause = tick(afterPause, DT, [pauseAction]);
+      expect(afterUnpause.systems["sol"]!.researchQueue[0]!.paused).toBe(false);
+    });
+  });
+
+  describe("cancel_research action", () => {
+    test("refunds initial cost when progress is 0", () => {
+      const techId = "basic_mining_techniques";
+      const tech = TECH_TREE[techId]!;
+      const state = createInitialState(SEED);
+      const sol = state.systems["sol"]!;
+
+      const project = {
+        id: "research_test_cancel",
+        techId,
+        branchId: tech.branchId,
+        tier: tech.tier,
+        name: tech.name,
+        initialCost: { ...tech.initialCost },
+        continuousCost: tech.continuousCost,
+        progress: 0,
+        completed: false,
+        paused: true,
+      };
+
+      const materialsAfterDeduct = 500;
+      const energyAfterDeduct = 500;
+
+      const stateWithProject = {
+        ...state,
+        systems: {
+          ...state.systems,
+          sol: {
+            ...sol,
+            resources: {
+              ...sol.resources,
+              materials: materialsAfterDeduct,
+              energy: energyAfterDeduct,
+            },
+            researchQueue: [project],
+          },
+        },
+      };
+
+      const afterCancel = tick(stateWithProject, DT, [
+        { type: "cancel_research", systemId: "sol", projectId: project.id },
+      ]);
+
+      const solAfter = afterCancel.systems["sol"]!;
+      expect(solAfter.researchQueue).toHaveLength(0);
+      expect(solAfter.resources.materials).toBeGreaterThanOrEqual(
+        materialsAfterDeduct + tech.initialCost.materials,
+      );
+      expect(solAfter.resources.energy).toBeGreaterThanOrEqual(
+        energyAfterDeduct + tech.initialCost.energy,
+      );
+    });
+
+    test("does NOT refund when progress > 0", () => {
+      const techId = "basic_mining_techniques";
+      const tech = TECH_TREE[techId]!;
+      const state = createInitialState(SEED);
+      const sol = state.systems["sol"]!;
+
+      const project = {
+        id: "research_test_cancel_noprogress",
+        techId,
+        branchId: tech.branchId,
+        tier: tech.tier,
+        name: tech.name,
+        initialCost: { ...tech.initialCost },
+        continuousCost: tech.continuousCost,
+        progress: 0.5,
+        completed: false,
+        paused: true,
+      };
+
+      const materialsBeforeCancel = 200;
+      const energyBeforeCancel = 200;
+
+      const stateWithProject = {
+        ...state,
+        systems: {
+          ...state.systems,
+          sol: {
+            ...sol,
+            resources: {
+              ...sol.resources,
+              materials: materialsBeforeCancel,
+              energy: energyBeforeCancel,
+            },
+            researchQueue: [project],
+          },
+        },
+      };
+
+      const afterCancel = tick(stateWithProject, DT, [
+        { type: "cancel_research", systemId: "sol", projectId: project.id },
+      ]);
+
+      const solAfter = afterCancel.systems["sol"]!;
+      expect(solAfter.researchQueue).toHaveLength(0);
+
+      const maxMaterials =
+        materialsBeforeCancel +
+        solAfter.resourceRates.materialsPerSecond * DT;
+      expect(solAfter.resources.materials).toBeLessThanOrEqual(maxMaterials);
+    });
+  });
+
+  describe("reorder_research action", () => {
+    test("moves project from index 1 to index 0", () => {
+      const tech1 = TECH_TREE["basic_mining_techniques"]!;
+      const tech2 = TECH_TREE["basic_reactors"]!;
+      const state = stateWithResources(
+        tech1.initialCost.materials + tech2.initialCost.materials + 500,
+        tech1.initialCost.energy + tech2.initialCost.energy + 500,
+      );
+
+      let current = tick(state, DT, [
+        { type: "start_research", systemId: "sol", techId: "basic_mining_techniques" },
+      ]);
+      current = tick(current, DT, [
+        { type: "start_research", systemId: "sol", techId: "basic_reactors" },
+      ]);
+
+      const queue = current.systems["sol"]!.researchQueue;
+      expect(queue).toHaveLength(2);
+      expect(queue[0]!.techId).toBe("basic_mining_techniques");
+      expect(queue[1]!.techId).toBe("basic_reactors");
+
+      const secondProjectId = queue[1]!.id;
+      const afterReorder = tick(current, DT, [
+        {
+          type: "reorder_research",
+          systemId: "sol",
+          projectId: secondProjectId,
+          newIndex: 0,
+        },
+      ]);
+
+      const reorderedQueue = afterReorder.systems["sol"]!.researchQueue;
+      expect(reorderedQueue[0]!.techId).toBe("basic_reactors");
+      expect(reorderedQueue[1]!.techId).toBe("basic_mining_techniques");
+    });
+
+    test("clamps out-of-bounds newIndex to valid range", () => {
+      const tech = TECH_TREE["basic_mining_techniques"]!;
+      const state = stateWithResources(
+        tech.initialCost.materials + 500,
+        tech.initialCost.energy + 500,
+      );
+
+      const afterStart = tick(state, DT, [
+        { type: "start_research", systemId: "sol", techId: "basic_mining_techniques" },
+      ]);
+      const projectId = afterStart.systems["sol"]!.researchQueue[0]!.id;
+
+      const afterReorder = tick(afterStart, DT, [
+        {
+          type: "reorder_research",
+          systemId: "sol",
+          projectId,
+          newIndex: 999,
+        },
+      ]);
+
+      expect(afterReorder.systems["sol"]!.researchQueue).toHaveLength(1);
+      expect(afterReorder.systems["sol"]!.researchQueue[0]!.id).toBe(projectId);
+    });
+  });
+
+  describe("set_speed action", () => {
+    test("updates state.speed to the new value", () => {
+      const state = createInitialState(SEED);
+      expect(state.speed).toBe(1);
+
+      const next = tick(state, DT, [{ type: "set_speed", speed: 5 }]);
+      expect(next.speed).toBe(5);
+    });
+
+    test("speed persists across subsequent ticks", () => {
+      const state = createInitialState(SEED);
+      const fast = tick(state, DT, [{ type: "set_speed", speed: 10 }]);
+      const next = tick(fast, DT, []);
+
+      expect(next.speed).toBe(10);
+    });
+  });
+
+  describe("switch_system with invalid systemId", () => {
+    test("state is unchanged for a nonexistent system", () => {
+      const state = createInitialState(SEED);
+      expect(state.currentSystemId).toBe("sol");
+
+      const next = tick(state, DT, [
+        { type: "switch_system", systemId: "nonexistent_system" },
+      ]);
+
+      expect(next.currentSystemId).toBe("sol");
+    });
+  });
+
   describe("construction completion over multiple ticks", () => {
     test("running enough ticks completes a structure build", () => {
       const printerCost = STRUCTURES["printer_1"]!.cost;

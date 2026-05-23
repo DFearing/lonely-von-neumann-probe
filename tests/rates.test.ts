@@ -122,7 +122,15 @@ describe("calculateRates", () => {
   // ── Energy ──────────────────────────────────────────────────────
 
   describe("energy per second", () => {
-    test("single reactor with no operating costs", () => {
+    const PROBE_ENERGY = 9;
+
+    test("probe-only energy with basic reactor", () => {
+      const system = makeSystem();
+      const rates = calculateRates(system);
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY);
+    });
+
+    test("single reactor adds to probe energy", () => {
       const system = makeSystem({
         structures: {
           miners: [],
@@ -131,7 +139,7 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(10 - 1);
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY + 10 - 1);
     });
 
     test("solar harvester (tier 3) output scaled by resource richness", () => {
@@ -144,7 +152,7 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(12 * 1.5 - 0.5);
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY + 12 * 1.5 - 0.5);
     });
 
     test("non-solar reactors unaffected by richness", () => {
@@ -157,7 +165,7 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(10 - 1);
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY + 10 - 1);
     });
 
     test("operating costs include all active structure types", () => {
@@ -169,10 +177,10 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(20 - (2 + 3 + 1));
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY + 20 - (2 + 3 + 1));
     });
 
-    test("inactive reactors produce no energy and incur no operating cost", () => {
+    test("inactive structure reactors produce no energy and incur no operating cost", () => {
       const system = makeSystem({
         structures: {
           miners: [],
@@ -181,7 +189,7 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(0);
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY);
     });
 
     test("under-construction reactors do not produce energy", () => {
@@ -193,7 +201,7 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(-1);
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY - 1);
     });
 
     test("energy can go negative when operating costs exceed production", () => {
@@ -205,7 +213,20 @@ describe("calculateRates", () => {
         },
       });
       const rates = calculateRates(system);
-      expect(rates.energyPerSecond).toBe(5 - (15 + 3));
+      expect(rates.energyPerSecond).toBe(PROBE_ENERGY + 5 - (15 + 3));
+    });
+
+    test("no probe means no probe energy contribution", () => {
+      const system = makeSystem({
+        mainProbe: null,
+        structures: {
+          miners: [],
+          reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10, operatingCost: 1 })],
+          printers: [],
+        },
+      });
+      const rates = calculateRates(system);
+      expect(rates.energyPerSecond).toBe(10 - 1);
     });
   });
 
@@ -253,7 +274,7 @@ describe("calculateRates", () => {
       const system = makeSystem();
       const rates = calculateRates(system);
       expect(rates.materialsPerSecond).toBe(5);
-      expect(rates.energyPerSecond).toBe(0);
+      expect(rates.energyPerSecond).toBe(9);
       expect(rates.computingPowerPerSecond).toBe(1);
     });
   });
