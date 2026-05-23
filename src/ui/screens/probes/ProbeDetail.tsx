@@ -51,8 +51,8 @@ export function ProbeDetail({
   ];
 
   const telemetry = [
-    { k: "MINING", v: `${probe.miningOutput.toFixed(1)}/s`, acc: "#5cc7ff" },
-    { k: "COMPUTE", v: `${probe.computingOutput.toFixed(1)}/s`, acc: "#b08bff" },
+    { k: "MINING", v: `${probe.miningOutput.toFixed(1)} t/s`, acc: "#5cc7ff" },
+    { k: "COMPUTE", v: `${probe.computingOutput.toFixed(1)} TF/s`, acc: "#b08bff" },
     { k: "SPEED", v: `×${prop.travelSpeed.toFixed(1)}`, acc: "#4ddbff" },
   ];
 

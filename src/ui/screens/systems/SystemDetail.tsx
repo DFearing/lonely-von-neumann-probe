@@ -99,17 +99,17 @@ function ColonizedDetail({
       >
         <SysStat
           label="MATERIALS"
-          value={`${fmtRate(resourceRates.materialsPerSecond)}/s`}
+          value={`${fmtRate(resourceRates.materialsPerSecond)} t/s`}
           color="#5cc7ff"
         />
         <SysStat
           label="ENERGY"
-          value={`${fmtRate(resourceRates.energyPerSecond)}/s`}
+          value={`${fmtRate(resourceRates.energyPerSecond)} MW/s`}
           color="#ffcb47"
         />
         <SysStat
           label="COMPUTE"
-          value={`${resourceRates.computingPowerPerSecond.toFixed(1)}/s`}
+          value={`${resourceRates.computingPowerPerSecond.toFixed(1)} TF/s`}
           color="#b08bff"
         />
       </div>

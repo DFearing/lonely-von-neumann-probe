@@ -31,7 +31,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     icon: "⛏",
     description: "Extract Materials",
     techBranch: "mining",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} M/s`,
+    formatSummaryRate: (rate) => `+${rate.toFixed(1)} t/s`,
   },
   reactors: {
     structureType: "reactor",
@@ -40,7 +40,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     icon: "⚡",
     description: "Generate Energy",
     techBranch: "energy",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} E/s`,
+    formatSummaryRate: (rate) => `+${rate.toFixed(1)} MW/s`,
   },
   printers: {
     structureType: "printer",
@@ -115,17 +115,17 @@ function formatVariantSpec(
   category: CategoryId,
 ): string {
   if (category === "miners") {
-    return `+${def.productionRate.toFixed(1)} M/s`;
+    return `+${def.productionRate.toFixed(1)} t/s`;
   }
   if (category === "reactors") {
-    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} op` : "";
-    return `+${def.productionRate}/s${opCost}`;
+    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} MW op` : "";
+    return `+${def.productionRate} MW/s${opCost}`;
   }
   return `${def.productionRate.toFixed(1)}× speed`;
 }
 
 function formatVariantCost(def: StructureDefinition): string {
-  return `${fmt(def.cost.materials)}M · ${fmt(def.cost.energy)}E`;
+  return `${fmt(def.cost.materials)} t · ${fmt(def.cost.energy)} MW`;
 }
 
 export function StructureColumn({

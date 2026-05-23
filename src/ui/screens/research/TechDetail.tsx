@@ -167,9 +167,9 @@ export function TechDetail({
           marginBottom: 10,
         }}
       >
-        <KV k="COMPUTE" v={`${tech.continuousCost} CMP/s`} color="#b08bff" />
+        <KV k="COMPUTE" v={`${tech.continuousCost} TF/s`} color="#b08bff" />
         <KV k="DURATION" v={fmtYears(tech.researchTime)} />
-        <KV k="COST" v={`${fmt(tech.initialCost.materials)}M · ${fmt(tech.initialCost.energy)}E`} />
+        <KV k="COST" v={`${fmt(tech.initialCost.materials)} t · ${fmt(tech.initialCost.energy)} MW`} />
         <KV k="PREREQ" v={tech.tier === 1 ? "NONE" : `T${tech.tier - 1}`} />
       </div>
 

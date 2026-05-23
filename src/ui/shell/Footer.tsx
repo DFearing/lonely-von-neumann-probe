@@ -11,12 +11,14 @@ function StockpileCell({
   rate,
   cap,
   color,
+  unit,
 }: {
   label: string;
   value: number;
   rate: number;
   cap: number;
   color: string;
+  unit: string;
 }) {
   const pct = cap > 0 ? Math.min(100, (value / cap) * 100) : 0;
   return (
@@ -48,7 +50,7 @@ function StockpileCell({
           {label}
         </span>
         <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#3d5572" }}>
-          CAP {fmt(cap)}
+          CAP {fmt(cap)} {unit}
         </span>
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
@@ -68,7 +70,7 @@ function StockpileCell({
         <span
           style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#4cd8a8" }}
         >
-          {fmtRate(rate)}/s
+          {fmtRate(rate)} {unit}/s
         </span>
       </div>
       <div
@@ -195,7 +197,7 @@ function ComputeResearchCell({
         <span
           style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
         >
-          /s
+          TF/s
         </span>
       </div>
       <div
@@ -251,6 +253,7 @@ export function Footer({
         rate={system.resourceRates.materialsPerSecond}
         cap={matCap}
         color="#5cc7ff"
+        unit="t"
       />
       <div
         style={{
@@ -264,6 +267,7 @@ export function Footer({
           rate={system.resourceRates.energyPerSecond}
           cap={enCap}
           color="#ffcb47"
+          unit="MW"
         />
       </div>
       <div

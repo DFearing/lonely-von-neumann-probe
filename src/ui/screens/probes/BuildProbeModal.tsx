@@ -49,8 +49,8 @@ function buildCpuVariants(available: CpuDefinition[]): ComponentVariant[] {
   return Object.values(CPUS).map((c) => ({
     id: c.type,
     name: c.name,
-    costLabel: `${fmt(c.cost.materials)}M · ${fmt(c.cost.energy)}E`,
-    spec: `${c.computingOutput}× cmp · ${c.miningOutput}× mine`,
+    costLabel: `${fmt(c.cost.materials)} t · ${fmt(c.cost.energy)} MW`,
+    spec: `${c.computingOutput}× TF · ${c.miningOutput}× mine`,
     techGate: c.techGate,
     unlocked: availableTypes.has(c.type),
   }));
@@ -61,7 +61,7 @@ function buildPropVariants(available: PropulsionDefinition[]): ComponentVariant[
   return Object.values(PROPULSIONS).map((p) => ({
     id: p.type,
     name: p.name,
-    costLabel: `${fmt(p.cost.materials)}M · ${fmt(p.cost.energy)}E`,
+    costLabel: `${fmt(p.cost.materials)} t · ${fmt(p.cost.energy)} MW`,
     spec: `${p.travelSpeed}× speed`,
     techGate: p.techGate,
     unlocked: availableTypes.has(p.type),
@@ -73,8 +73,8 @@ function buildReactorVariants(available: ReactorDefinition[]): ComponentVariant[
   return Object.values(REACTORS).map((r) => ({
     id: r.type,
     name: r.name,
-    costLabel: `${fmt(r.cost.materials)}M · ${fmt(r.cost.energy)}E`,
-    spec: `${r.energyMultiplier}× E · ${r.operatingCostMultiplier}× op`,
+    costLabel: `${fmt(r.cost.materials)} t · ${fmt(r.cost.energy)} MW`,
+    spec: `${r.energyMultiplier}× MW · ${r.operatingCostMultiplier}× op`,
     techGate: r.techGate,
     unlocked: availableTypes.has(r.type),
   }));
@@ -240,10 +240,10 @@ function BuildColumn({
   const cost = totalProbeCost(cpu.type, propulsion.type, reactor.type);
 
   const perfRows = [
-    { k: "COMPUTE", v: `${cpu.computingOutput}× cmp`, acc: "#b08bff" },
-    { k: "MINING", v: `${cpu.miningOutput}× mine`, acc: "#5cc7ff" },
+    { k: "COMPUTE", v: `${cpu.computingOutput}× TF`, acc: "#b08bff" },
+    { k: "MINING", v: `${cpu.miningOutput}× t/s`, acc: "#5cc7ff" },
     { k: "TRAVEL", v: `${propulsion.travelSpeed}× speed`, acc: "#5cc7ff" },
-    { k: "ENERGY", v: `${reactor.energyMultiplier}× E`, acc: "#ffcb47" },
+    { k: "ENERGY", v: `${reactor.energyMultiplier}× MW`, acc: "#ffcb47" },
   ];
 
   return (
@@ -303,8 +303,8 @@ function BuildColumn({
           marginBottom: 12,
         }}
       >
-        <SpecCard k="MATERIALS" v={fmt(cost.materials, { decimals: 0 })} accent="#5cc7ff" />
-        <SpecCard k="ENERGY" v={fmt(cost.energy, { decimals: 0 })} accent="#ffcb47" />
+        <SpecCard k="MATERIALS" v={`${fmt(cost.materials, { decimals: 0 })} t`} accent="#5cc7ff" />
+        <SpecCard k="ENERGY" v={`${fmt(cost.energy, { decimals: 0 })} MW`} accent="#ffcb47" />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
