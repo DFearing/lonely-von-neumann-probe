@@ -36,11 +36,11 @@ function sumOperatingCosts(structures: readonly StructureInstance[]): number {
 export function calculateRates(system: SystemState): ResourceRates {
   const { structures, resourceRichness, mainProbe } = system;
 
-  const { miningMultiplier } = getTechMultipliers(system.completedResearch);
+  const multipliers = getTechMultipliers(system.completedResearch);
 
   const probeMining = mainProbe ? mainProbe.miningOutput : 0;
   const minerOutput = sumProductionRates(structures.miners);
-  const materialsPerSecond = (probeMining + minerOutput) * miningMultiplier * resourceRichness;
+  const materialsPerSecond = (probeMining + minerOutput) * multipliers.miningMultiplier * resourceRichness;
 
   let probeEnergy = 0;
   if (mainProbe) {
@@ -56,10 +56,12 @@ export function calculateRates(system: SystemState): ResourceRates {
   for (const reactor of structures.reactors) {
     if (isActiveAndComplete(reactor)) {
       const def = STRUCTURES[structureKey("reactor", reactor.tier)];
-      const multiplier = def?.solarScaling ? resourceRichness : 1;
-      structureReactorOutput += reactor.productionRate * multiplier;
+      const solarMultiplier = def?.solarScaling ? resourceRichness : 1;
+      structureReactorOutput += reactor.productionRate * solarMultiplier;
     }
   }
+  structureReactorOutput *= multipliers.energyMultiplier;
+
   const totalOperatingCost =
     sumOperatingCosts(structures.miners) +
     sumOperatingCosts(structures.reactors) +

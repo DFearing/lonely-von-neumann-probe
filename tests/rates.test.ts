@@ -142,12 +142,12 @@ describe("calculateRates", () => {
       expect(rates.energyPerSecond).toBe(PROBE_ENERGY + 10 - 1);
     });
 
-    test("solar harvester (tier 3) output scaled by resource richness", () => {
+    test("solar reactor (tier 5) output scaled by resource richness", () => {
       const system = makeSystem({
         resourceRichness: 1.5,
         structures: {
           miners: [],
-          reactors: [makeStructure({ type: "reactor", tier: 3, productionRate: 12, operatingCost: 0.5 })],
+          reactors: [makeStructure({ type: "reactor", tier: 5, productionRate: 12, operatingCost: 0.5 })],
           printers: [],
         },
       });

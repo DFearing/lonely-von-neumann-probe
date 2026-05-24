@@ -36,33 +36,55 @@ function makeResearchProject(techId: string): ResearchProject {
 describe("getTechStatus", () => {
   test("returns 'completed' for completed tech", () => {
     const system = solSystem({
-      completedResearch: { mining_t1: true },
+      completedResearch: { mining_efficiency_t1: true },
     });
-    expect(getTechStatus(system, "mining_t1")).toBe("completed");
+    expect(getTechStatus(system, "mining_efficiency_t1")).toBe("completed");
   });
 
   test("returns 'in_progress' for tech in the research queue", () => {
-    const project = makeResearchProject("mining_t1");
+    const project = makeResearchProject("mining_efficiency_t1");
     const system = solSystem({ researchQueue: [project] });
 
-    expect(getTechStatus(system, "mining_t1")).toBe("in_progress");
+    expect(getTechStatus(system, "mining_efficiency_t1")).toBe("in_progress");
   });
 
   test("returns 'available' when prerequisites are met but not started", () => {
     const system = solSystem({ completedResearch: {} });
-    expect(getTechStatus(system, "mining_t1")).toBe("available");
+    expect(getTechStatus(system, "mining_efficiency_t1")).toBe("available");
   });
 
   test("returns 'locked' when prerequisites are not met", () => {
     const system = solSystem({ completedResearch: {} });
-    expect(getTechStatus(system, "mining_t2")).toBe("locked");
+    expect(getTechStatus(system, "mining_efficiency_t2")).toBe("locked");
   });
 
   test("tier-2 tech becomes 'available' after tier-1 prerequisite is completed", () => {
     const system = solSystem({
-      completedResearch: { mining_t1: true },
+      completedResearch: { mining_efficiency_t1: true },
     });
-    expect(getTechStatus(system, "mining_t2")).toBe("available");
+    expect(getTechStatus(system, "mining_efficiency_t2")).toBe("available");
+  });
+
+  test("cross-branch prerequisite blocks until met", () => {
+    const system = solSystem({
+      completedResearch: {
+        mining_types_t1: true,
+        mining_types_t2: true,
+        mining_types_t3: true,
+      },
+    });
+    expect(getTechStatus(system, "mining_types_t4")).toBe("locked");
+
+    const withPrereq = solSystem({
+      completedResearch: {
+        mining_types_t1: true,
+        mining_types_t2: true,
+        mining_types_t3: true,
+        mining_efficiency_t2: true,
+        mining_efficiency_t1: true,
+      },
+    });
+    expect(getTechStatus(withPrereq, "mining_types_t4")).toBe("available");
   });
 });
 
@@ -82,13 +104,13 @@ describe("getAvailableStructures", () => {
 
   test("includes gated structure when its tech is completed", () => {
     const system = solSystem({
-      completedResearch: { energy_t2: true },
+      completedResearch: { energy_types_t4: true },
     });
     const available = getAvailableStructures(system);
     const reactor2 = available.find((d) => d.type === "reactor" && d.tier === 2);
 
     expect(reactor2).toBeDefined();
-    expect(reactor2!.techGate).toBe("energy_t2");
+    expect(reactor2!.techGate).toBe("energy_types_t4");
   });
 
   test("excludes gated structure when its tech is not completed", () => {
@@ -115,24 +137,31 @@ describe("getAvailableComponents", () => {
     expect(reactors[0]!.type).toBe("rct_t1");
   });
 
-  test("unlocks tier-2 components when probe_components_t2 is completed", () => {
+  test("unlocks tier-2 CPU when probe_cpu_t2 is completed", () => {
     const system = solSystem({
-      completedResearch: { probe_components_t2: true },
+      completedResearch: { probe_cpu_t2: true },
     });
-    const { cpus, propulsions } = getAvailableComponents(system);
+    const { cpus } = getAvailableComponents(system);
 
     const cpuTypes = cpus.map((c) => c.type);
     expect(cpuTypes).toContain("cpu_t1");
     expect(cpuTypes).toContain("cpu_t2");
+  });
+
+  test("unlocks tier-2 propulsion when probe_propulsion_t2 is completed", () => {
+    const system = solSystem({
+      completedResearch: { probe_propulsion_t2: true },
+    });
+    const { propulsions } = getAvailableComponents(system);
 
     const propTypes = propulsions.map((p) => p.type);
     expect(propTypes).toContain("prop_t1");
     expect(propTypes).toContain("prop_t2");
   });
 
-  test("unlocks rct_t2 reactor component when energy_t2 is completed", () => {
+  test("unlocks rct_t2 reactor component when probe_reactors_t2 is completed", () => {
     const system = solSystem({
-      completedResearch: { energy_t2: true },
+      completedResearch: { probe_reactors_t2: true },
     });
     const { reactors } = getAvailableComponents(system);
 

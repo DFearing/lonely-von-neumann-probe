@@ -113,7 +113,7 @@ export function tickResearch(state: GameState, dt: number): GameState {
   }
 
   const anyDistributed = Object.values(state.systems).some(
-    (sys) => sys.completedResearch["computing_t14"],
+    (sys) => sys.completedResearch["computing_architecture_t14"],
   );
 
   let pooledComputing: number | null = null;

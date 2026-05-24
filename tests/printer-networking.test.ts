@@ -60,7 +60,7 @@ function makeStateWithConstruction(
 }
 
 describe("printer networking", () => {
-  describe("without manufacturing_t8", () => {
+  describe("without manufacturing_efficiency_t8", () => {
     test("each project gets at most 1 printer", () => {
       const printers = [makePrinter("p1"), makePrinter("p2"), makePrinter("p3")];
       const projects = [makeProject("proj1"), makeProject("proj2")];
@@ -80,7 +80,7 @@ describe("printer networking", () => {
     });
   });
 
-  describe("with manufacturing_t8", () => {
+  describe("with manufacturing_efficiency_t8", () => {
     test("multiple printers assigned to the first project", () => {
       const printers = [makePrinter("p1"), makePrinter("p2"), makePrinter("p3")];
       const projects = [makeProject("proj1"), makeProject("proj2")];
@@ -88,7 +88,7 @@ describe("printer networking", () => {
       const state = makeStateWithConstruction({
         structures: { miners: [], reactors: [], printers },
         constructionQueue: projects,
-        completedResearch: { manufacturing_t8: true },
+        completedResearch: { manufacturing_efficiency_t8: true },
       });
 
       const result = tickConstruction(state, DT);
@@ -106,7 +106,7 @@ describe("printer networking", () => {
       const networkState = makeStateWithConstruction({
         structures: { miners: [], reactors: [], printers },
         constructionQueue: [project],
-        completedResearch: { manufacturing_t8: true },
+        completedResearch: { manufacturing_efficiency_t8: true },
       });
 
       const singlePrinter = [makePrinter("p1_solo")];
@@ -129,7 +129,7 @@ describe("printer networking", () => {
   });
 
   describe("manufacturing speed multiplier", () => {
-    test("manufacturing_t1 increases build speed", () => {
+    test("manufacturing_efficiency_t1 increases build speed", () => {
       const printers = [makePrinter("p1")];
       const project = makeProject("proj_base", ["p1"]);
       const projectBoosted = makeProject("proj_boosted", ["p1"]);
@@ -143,7 +143,7 @@ describe("printer networking", () => {
       const boostedState = makeStateWithConstruction({
         structures: { miners: [], reactors: [], printers },
         constructionQueue: [projectBoosted],
-        completedResearch: { manufacturing_t1: true },
+        completedResearch: { manufacturing_efficiency_t1: true },
       });
 
       const nextBase = tickConstruction(baseState, DT);

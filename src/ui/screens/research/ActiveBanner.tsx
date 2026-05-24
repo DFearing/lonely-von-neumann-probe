@@ -88,7 +88,7 @@ export function ActiveBanner({
               letterSpacing: "0.18em",
             }}
           >
-            ACTIVE · {project.branchId.toUpperCase()} · TIER {project.tier}
+            ACTIVE · {project.branchId.toUpperCase().replaceAll("_", " ")} · TIER {project.tier}
           </span>
         </div>
         <div
@@ -142,7 +142,7 @@ export function ActiveBanner({
           {fmtYears(remaining)}
         </span>
         <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
-          {computeRate.toFixed(1)} TF/s
+          @ {computeRate.toFixed(1)} TF/s
         </span>
       </div>
     </div>

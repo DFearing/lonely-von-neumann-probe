@@ -170,7 +170,7 @@ describe("tick", () => {
 
   describe("start_research action", () => {
     test("initial cost deducted and research project created", () => {
-      const techId = "mining_t1";
+      const techId = "mining_efficiency_t1";
       const tech = TECH_TREE[techId]!;
       const state = stateWithResources(
         tech.initialCost.materials + 100,
@@ -192,7 +192,7 @@ describe("tick", () => {
     });
 
     test("missing prerequisite prevents research from starting", () => {
-      const tier2TechId = "mining_t2";
+      const tier2TechId = "mining_efficiency_t2";
       const tech = TECH_TREE[tier2TechId]!;
       const state = stateWithResources(
         tech.initialCost.materials + 1000,
@@ -248,7 +248,7 @@ describe("tick", () => {
 
   describe("pause_research action", () => {
     test("sets paused to true on the target project", () => {
-      const techId = "mining_t1";
+      const techId = "mining_efficiency_t1";
       const tech = TECH_TREE[techId]!;
       const state = stateWithResources(
         tech.initialCost.materials + 100,
@@ -277,7 +277,7 @@ describe("tick", () => {
     });
 
     test("toggles paused back to false when called twice", () => {
-      const techId = "mining_t1";
+      const techId = "mining_efficiency_t1";
       const tech = TECH_TREE[techId]!;
       const state = stateWithResources(
         tech.initialCost.materials + 100,
@@ -304,7 +304,7 @@ describe("tick", () => {
 
   describe("cancel_research action", () => {
     test("refunds initial cost when progress is 0", () => {
-      const techId = "mining_t1";
+      const techId = "mining_efficiency_t1";
       const tech = TECH_TREE[techId]!;
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
@@ -356,7 +356,7 @@ describe("tick", () => {
     });
 
     test("does NOT refund when progress > 0", () => {
-      const techId = "mining_t1";
+      const techId = "mining_efficiency_t1";
       const tech = TECH_TREE[techId]!;
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
@@ -409,24 +409,24 @@ describe("tick", () => {
 
   describe("reorder_research action", () => {
     test("moves project from index 1 to index 0", () => {
-      const tech1 = TECH_TREE["mining_t1"]!;
-      const tech2 = TECH_TREE["energy_t1"]!;
+      const tech1 = TECH_TREE["mining_efficiency_t1"]!;
+      const tech2 = TECH_TREE["energy_production_t1"]!;
       const state = stateWithResources(
         tech1.initialCost.materials + tech2.initialCost.materials + 500,
         tech1.initialCost.energy + tech2.initialCost.energy + 500,
       );
 
       let current = tick(state, DT, [
-        { type: "start_research", systemId: "sol", techId: "mining_t1" },
+        { type: "start_research", systemId: "sol", techId: "mining_efficiency_t1" },
       ]);
       current = tick(current, DT, [
-        { type: "start_research", systemId: "sol", techId: "energy_t1" },
+        { type: "start_research", systemId: "sol", techId: "energy_production_t1" },
       ]);
 
       const queue = current.systems["sol"]!.researchQueue;
       expect(queue).toHaveLength(2);
-      expect(queue[0]!.techId).toBe("mining_t1");
-      expect(queue[1]!.techId).toBe("energy_t1");
+      expect(queue[0]!.techId).toBe("mining_efficiency_t1");
+      expect(queue[1]!.techId).toBe("energy_production_t1");
 
       const secondProjectId = queue[1]!.id;
       const afterReorder = tick(current, DT, [
@@ -439,19 +439,19 @@ describe("tick", () => {
       ]);
 
       const reorderedQueue = afterReorder.systems["sol"]!.researchQueue;
-      expect(reorderedQueue[0]!.techId).toBe("energy_t1");
-      expect(reorderedQueue[1]!.techId).toBe("mining_t1");
+      expect(reorderedQueue[0]!.techId).toBe("energy_production_t1");
+      expect(reorderedQueue[1]!.techId).toBe("mining_efficiency_t1");
     });
 
     test("clamps out-of-bounds newIndex to valid range", () => {
-      const tech = TECH_TREE["mining_t1"]!;
+      const tech = TECH_TREE["mining_efficiency_t1"]!;
       const state = stateWithResources(
         tech.initialCost.materials + 500,
         tech.initialCost.energy + 500,
       );
 
       const afterStart = tick(state, DT, [
-        { type: "start_research", systemId: "sol", techId: "mining_t1" },
+        { type: "start_research", systemId: "sol", techId: "mining_efficiency_t1" },
       ]);
       const projectId = afterStart.systems["sol"]!.researchQueue[0]!.id;
 

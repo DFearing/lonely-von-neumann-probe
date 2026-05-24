@@ -1,7 +1,7 @@
 import type { SystemState } from "../../../simulation/state";
 import { MAX_TIER } from "../../../simulation/state";
 import {
-  TECH_BRANCHES,
+  BRANCH_GROUPS,
   techsInBranch,
   type TechDefinition,
 } from "../../../simulation/data/tech-tree";
@@ -13,12 +13,18 @@ const BRANCH_META: Record<
   string,
   { label: string; color: string; icon: string }
 > = {
-  mining: { label: "Mining Efficiency", color: "#5cc7ff", icon: "⛏" },
-  energy: { label: "Energy Production", color: "#ffcb47", icon: "⚡" },
-  manufacturing: { label: "Manufacturing", color: "#4cd8a8", icon: "⊟" },
-  probe_components: { label: "Probe Components", color: "#4ddbff", icon: "◇" },
-  computing: { label: "Computing", color: "#b08bff", icon: "◊" },
-  communication: { label: "Communication", color: "#ff9966", icon: "⟑" },
+  mining_efficiency: { label: "Output", color: "#5cc7ff", icon: "⛏" },
+  mining_types: { label: "Structures", color: "#3aa8e0", icon: "⛏" },
+  energy_production: { label: "Output", color: "#ffcb47", icon: "⚡" },
+  energy_types: { label: "Structures", color: "#e0a830", icon: "⚡" },
+  manufacturing_efficiency: { label: "Output", color: "#4cd8a8", icon: "⊟" },
+  manufacturing_types: { label: "Structures", color: "#38b890", icon: "⊟" },
+  probe_cpu: { label: "Processor", color: "#4ddbff", icon: "◇" },
+  probe_propulsion: { label: "Propulsion", color: "#6bc0e0", icon: "▷" },
+  probe_reactors: { label: "Reactor", color: "#e8b830", icon: "⊙" },
+  computing_speed: { label: "Speed", color: "#b08bff", icon: "◊" },
+  computing_architecture: { label: "Architecture", color: "#9070e0", icon: "◊" },
+  communication: { label: "Range", color: "#ff9966", icon: "⟑" },
 };
 
 const STATUS_LOOK: Record<
@@ -47,6 +53,12 @@ const STATUS_LOOK: Record<
   },
 };
 
+function formatTechLabel(name: string): string {
+  const match = name.match(/^Research Phase (\d+)\/\d+ for .+$/);
+  if (match) return `Phase ${match[1]}`;
+  return name;
+}
+
 function TechNode({
   tech,
   status,
@@ -54,6 +66,7 @@ function TechNode({
   branchIcon,
   isSelected,
   onSelect,
+  queuePosition,
 }: {
   tech: TechDefinition;
   status: TechStatus;
@@ -61,8 +74,10 @@ function TechNode({
   branchIcon: string;
   isSelected: boolean;
   onSelect: () => void;
+  queuePosition: number | null;
 }) {
   const look = STATUS_LOOK[status];
+  const isCompleted = status === "completed";
 
   return (
     <div
@@ -71,64 +86,100 @@ function TechNode({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 6,
+        justifyContent: "flex-start",
+        gap: 8,
         cursor: "pointer",
-        padding: "8px 4px",
+        padding: "12px 2px 12px",
+        width: "100%",
+        height: 74,
+        boxSizing: "border-box",
+        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
-          background: look.bg,
-          border: `1.5px solid ${isSelected ? "#4ddbff" : look.ring}`,
-          boxShadow: isSelected
-            ? "0 0 0 3px rgba(77,219,255,0.18), 0 0 18px rgba(77,219,255,0.4)"
-            : status === "in_progress"
-              ? `0 0 12px ${look.ring}`
-              : "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "box-shadow .15s, border-color .15s, transform .15s",
-          transform: isSelected ? "scale(1.1)" : "scale(1)",
-        }}
-      >
-        <span
+      <div style={{ position: "relative" }}>
+        <div
           style={{
-            fontSize: 14,
-            color: branchColor,
-            opacity: status === "locked" ? 0.5 : 1,
-            textShadow:
-              status === "completed" || status === "in_progress"
-                ? `0 0 6px ${branchColor}80`
-                : "none",
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            background: isCompleted ? "rgba(76,216,168,0.35)" : look.bg,
+            border: `1.5px solid ${isSelected ? "#4ddbff" : isCompleted ? "#4cd8a8" : look.ring}`,
+            boxShadow: isSelected
+              ? "0 0 0 3px rgba(77,219,255,0.18), 0 0 18px rgba(77,219,255,0.4)"
+              : isCompleted
+                ? "0 0 8px rgba(76,216,168,0.4)"
+                : status === "in_progress"
+                  ? `0 0 12px ${look.ring}`
+                  : "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "box-shadow .15s, border-color .15s, transform .15s",
+            transform: isSelected ? "scale(1.1)" : "scale(1)",
           }}
         >
-          {branchIcon}
-        </span>
+          <span
+            style={{
+              fontSize: 14,
+              color: isCompleted ? "#4cd8a8" : branchColor,
+              opacity: status === "locked" ? 0.5 : 1,
+              textShadow:
+                isCompleted
+                  ? "0 0 6px rgba(76,216,168,0.6)"
+                  : status === "in_progress"
+                    ? `0 0 6px ${branchColor}80`
+                    : "none",
+            }}
+          >
+            {isCompleted ? "✓" : branchIcon}
+          </span>
+        </div>
+        {queuePosition !== null && (
+          <span
+            style={{
+              position: "absolute",
+              top: -4,
+              right: -6,
+              fontFamily: FONT_MONO,
+              fontSize: 8,
+              fontWeight: 700,
+              color: "#0a1929",
+              background: "#b08bff",
+              borderRadius: "50%",
+              width: 14,
+              height: 14,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            {queuePosition}
+          </span>
+        )}
       </div>
       <span
         style={{
           fontFamily: FONT_MONO,
           fontSize: 9,
           color:
-            status === "locked"
-              ? "#5d7a99"
-              : isSelected
-                ? "#d6e8f5"
-                : "#9ab4cf",
+            isCompleted
+              ? "#4cd8a8"
+              : status === "locked"
+                ? "#5d7a99"
+                : isSelected
+                  ? "#d6e8f5"
+                  : "#9ab4cf",
           textAlign: "center",
           letterSpacing: "0.04em",
-          lineHeight: 1.3,
-          maxWidth: 100,
+          lineHeight: 1.1,
+          maxWidth: "100%",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
       >
-        {tech.name}
+        {formatTechLabel(tech.name)}
       </span>
     </div>
   );
@@ -143,6 +194,11 @@ export function TechWeb({
   selectedTech: string | null;
   onSelect: (techId: string) => void;
 }) {
+  const queueMap = new Map<string, number>();
+  system.researchQueue.forEach((project, idx) => {
+    queueMap.set(project.techId, idx + 1);
+  });
+
   return (
     <Panel
       label="TECHNOLOGY"
@@ -167,7 +223,7 @@ export function TechWeb({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: `140px repeat(${MAX_TIER}, 80px)`,
+            gridTemplateColumns: `140px repeat(${MAX_TIER}, 100px)`,
             gap: 0,
             marginBottom: 8,
           }}
@@ -191,59 +247,88 @@ export function TechWeb({
           ))}
         </div>
 
-        {/* Branch rows */}
-        {TECH_BRANCHES.map((branchId, branchIdx) => {
-          const meta = BRANCH_META[branchId];
-          if (!meta) return null;
-          const techs = techsInBranch(branchId);
-          const bgOpacity = branchIdx % 2 === 0 ? 0.025 : 0.008;
-
-          return (
+        {/* Branch rows grouped */}
+        {BRANCH_GROUPS.map((group) => (
+          <div key={group.id}>
             <div
-              key={branchId}
               style={{
                 display: "grid",
-                gridTemplateColumns: `140px repeat(${MAX_TIER}, 80px)`,
+                gridTemplateColumns: `140px repeat(${MAX_TIER}, 100px)`,
                 gap: 0,
-                background: `rgba(${meta.color === "#5cc7ff" ? "92,199,255" : meta.color === "#ffcb47" ? "255,203,71" : meta.color === "#4cd8a8" ? "76,216,168" : meta.color === "#4ddbff" ? "77,219,255" : meta.color === "#b08bff" ? "176,139,255" : "255,153,102"},${bgOpacity})`,
-                alignItems: "center",
-                minHeight: 80,
+                padding: "10px 0 2px",
               }}
             >
-              {/* Branch label */}
               <div
                 style={{
                   fontFamily: FONT_MONO,
-                  fontSize: 10,
-                  color: meta.color,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#9ab4cf",
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   padding: "0 12px",
-                  whiteSpace: "nowrap",
                   textAlign: "right",
                 }}
               >
-                {meta.label}
+                {group.label}
               </div>
-
-              {/* Tech nodes */}
-              {techs.map((tech) => {
-                const status = getTechStatus(system, tech.id);
-                return (
-                  <TechNode
-                    key={tech.id}
-                    tech={tech}
-                    status={status}
-                    branchColor={meta.color}
-                    branchIcon={meta.icon}
-                    isSelected={selectedTech === tech.id}
-                    onSelect={() => onSelect(tech.id)}
-                  />
-                );
-              })}
             </div>
-          );
-        })}
+
+            {group.branches.map((branchId, branchIdx) => {
+              const meta = BRANCH_META[branchId];
+              if (!meta) return null;
+              const techs = techsInBranch(branchId);
+              const bgOpacity = branchIdx % 2 === 0 ? 0.025 : 0.008;
+
+              return (
+                <div
+                  key={branchId}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `140px repeat(${MAX_TIER}, 100px)`,
+                    gap: 0,
+                    background: `${meta.color}${Math.round(bgOpacity * 255).toString(16).padStart(2, "0")}`,
+                    alignItems: "center",
+                    minHeight: 64,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: 10,
+                      color: meta.color,
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                      padding: "0 12px",
+                      whiteSpace: "nowrap",
+                      textAlign: "right",
+                      position: "relative",
+                      top: -8,
+                    }}
+                  >
+                    {meta.label}
+                  </div>
+
+                  {techs.map((tech) => {
+                    const status = getTechStatus(system, tech.id);
+                    return (
+                      <TechNode
+                        key={tech.id}
+                        tech={tech}
+                        status={status}
+                        branchColor={meta.color}
+                        branchIcon={meta.icon}
+                        isSelected={selectedTech === tech.id}
+                        onSelect={() => onSelect(tech.id)}
+                        queuePosition={queueMap.get(tech.id) ?? null}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </Panel>
   );

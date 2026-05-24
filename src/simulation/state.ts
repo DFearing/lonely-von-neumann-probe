@@ -3,6 +3,7 @@ import type { GameSpeed } from "./actions";
 import { createRng } from "./rng";
 
 export const MAX_TIER = 20;
+export const MAX_STRUCTURE_TIER = 6;
 
 export type StructureType = "miner" | "reactor" | "printer";
 export type CpuType = string;

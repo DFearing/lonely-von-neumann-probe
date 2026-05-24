@@ -30,7 +30,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#5cc7ff",
     icon: "⛏",
     description: "Extract Materials",
-    techBranch: "mining",
+    techBranch: "mining_types",
     formatSummaryRate: (rate) => `+${rate.toFixed(1)} t/s`,
   },
   reactors: {
@@ -39,7 +39,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#ffcb47",
     icon: "⚡",
     description: "Generate Energy",
-    techBranch: "energy",
+    techBranch: "energy_types",
     formatSummaryRate: (rate) => `+${rate.toFixed(1)} MW/s`,
   },
   printers: {
@@ -48,7 +48,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#4cd8a8",
     icon: "⊟",
     description: "Build structures & probes",
-    techBranch: "manufacturing",
+    techBranch: "manufacturing_types",
     formatSummaryRate: (rate) => `${rate.toFixed(1)}× speed`,
   },
 };

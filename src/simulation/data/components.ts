@@ -29,7 +29,7 @@ export interface ReactorDefinition {
   techGate: string | null;
 }
 
-const CPU_NAMES = [
+export const CPU_NAMES = [
   "Basic CPU",
   "Enhanced CPU",
   "Advanced CPU",
@@ -52,7 +52,7 @@ const CPU_NAMES = [
   "Universal Mind",
 ];
 
-const PROPULSION_NAMES = [
+export const PROPULSION_NAMES = [
   "Basic Ion Drive",
   "Efficient Drive",
   "Advanced Drive",
@@ -75,7 +75,7 @@ const PROPULSION_NAMES = [
   "Transcendent Drive",
 ];
 
-const REACTOR_NAMES = [
+export const PROBE_REACTOR_NAMES = [
   "Basic Reactor",
   "Fusion Reactor",
   "Solar Harvester",
@@ -114,7 +114,7 @@ function generateCpus(): Record<string, CpuDefinition> {
       computingOutput: +(1 * 1.15 ** (tier - 1)).toFixed(2),
       miningOutput: +(5 * (1 + 0.08 * (tier - 1))).toFixed(2),
       printSpeed: +(1 * (1 + 0.06 * (tier - 1))).toFixed(2),
-      techGate: tier === 1 ? null : `probe_components_t${tier}`,
+      techGate: tier === 1 ? null : `probe_cpu_t${tier}`,
     };
   }
   return cpus;
@@ -133,7 +133,7 @@ function generatePropulsions(): Record<string, PropulsionDefinition> {
       },
       travelSpeed: +(1 * (1 + 0.10 * (tier - 1))).toFixed(2),
       autoReplicate: tier >= 16,
-      techGate: tier === 1 ? null : `probe_components_t${tier}`,
+      techGate: tier === 1 ? null : `probe_propulsion_t${tier}`,
     };
   }
   return propulsions;
@@ -145,7 +145,7 @@ function generateReactors(): Record<string, ReactorDefinition> {
     const id = `rct_t${tier}`;
     reactors[id] = {
       type: id,
-      name: REACTOR_NAMES[tier - 1]!,
+      name: PROBE_REACTOR_NAMES[tier - 1]!,
       cost: {
         materials: Math.round(10 * 1.20 ** (tier - 1)),
         energy: Math.round(2 * 1.20 ** (tier - 1)),
@@ -153,7 +153,7 @@ function generateReactors(): Record<string, ReactorDefinition> {
       energyMultiplier: +(1 * (1 + 0.08 * (tier - 1))).toFixed(2),
       operatingCostMultiplier: +(1 * 0.98 ** (tier - 1)).toFixed(2),
       solarScaling: SOLAR_REACTOR_TIERS.has(tier),
-      techGate: tier === 1 ? null : `energy_t${tier}`,
+      techGate: tier === 1 ? null : `probe_reactors_t${tier}`,
     };
   }
   return reactors;

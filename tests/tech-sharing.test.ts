@@ -55,7 +55,7 @@ describe("cross-system tech sharing", () => {
   describe("tech sharing on probe arrival", () => {
     test("destination gets origin completedResearch", () => {
       const state = stateWithProbeAndResearch({
-        originResearch: { mining_t1: true, computing_t1: true },
+        originResearch: { mining_efficiency_t1: true, computing_speed_t1: true },
         destResearch: {},
       });
       const rng = createRngFromState(state.rngState);
@@ -63,22 +63,22 @@ describe("cross-system tech sharing", () => {
       const next = tickNavigation(state, DT, rng);
       const dest = next.systems["alpha_centauri"]!;
 
-      expect(dest.completedResearch["mining_t1"]).toBe(true);
-      expect(dest.completedResearch["computing_t1"]).toBe(true);
+      expect(dest.completedResearch["mining_efficiency_t1"]).toBe(true);
+      expect(dest.completedResearch["computing_speed_t1"]).toBe(true);
     });
 
     test("existing destination research is merged (union)", () => {
       const state = stateWithProbeAndResearch({
-        originResearch: { mining_t1: true },
-        destResearch: { energy_t1: true },
+        originResearch: { mining_efficiency_t1: true },
+        destResearch: { energy_production_t1: true },
       });
       const rng = createRngFromState(state.rngState);
 
       const next = tickNavigation(state, DT, rng);
       const dest = next.systems["alpha_centauri"]!;
 
-      expect(dest.completedResearch["mining_t1"]).toBe(true);
-      expect(dest.completedResearch["energy_t1"]).toBe(true);
+      expect(dest.completedResearch["mining_efficiency_t1"]).toBe(true);
+      expect(dest.completedResearch["energy_production_t1"]).toBe(true);
     });
   });
 
@@ -92,16 +92,16 @@ describe("cross-system tech sharing", () => {
         ...state,
         systems: {
           ...state.systems,
-          sol: { ...sol, completedResearch: { mining_t1: true } },
-          alpha_centauri: { ...ac, completedResearch: { energy_t1: true } },
+          sol: { ...sol, completedResearch: { mining_efficiency_t1: true } },
+          alpha_centauri: { ...ac, completedResearch: { energy_production_t1: true } },
         },
       };
 
       const rng = createRngFromState(modified.rngState);
       const next = tickNavigation(modified, DT, rng);
 
-      expect(next.systems["sol"]!.completedResearch["energy_t1"]).toBeUndefined();
-      expect(next.systems["alpha_centauri"]!.completedResearch["mining_t1"]).toBeUndefined();
+      expect(next.systems["sol"]!.completedResearch["energy_production_t1"]).toBeUndefined();
+      expect(next.systems["alpha_centauri"]!.completedResearch["mining_efficiency_t1"]).toBeUndefined();
     });
 
     test("with tech on any system: all systems get the union of all completedResearch", () => {
@@ -117,17 +117,17 @@ describe("cross-system tech sharing", () => {
           sol: {
             ...sol,
             completedResearch: {
-              mining_t1: true,
+              mining_efficiency_t1: true,
               communication_t18: true,
             },
           },
           alpha_centauri: {
             ...ac,
-            completedResearch: { energy_t1: true },
+            completedResearch: { energy_production_t1: true },
           },
           barnards_star: {
             ...barnards,
-            completedResearch: { manufacturing_t1: true },
+            completedResearch: { manufacturing_efficiency_t1: true },
           },
         },
       };
@@ -137,9 +137,9 @@ describe("cross-system tech sharing", () => {
 
       for (const systemId of ["sol", "alpha_centauri", "barnards_star"]) {
         const sys = next.systems[systemId]!;
-        expect(sys.completedResearch["mining_t1"]).toBe(true);
-        expect(sys.completedResearch["energy_t1"]).toBe(true);
-        expect(sys.completedResearch["manufacturing_t1"]).toBe(true);
+        expect(sys.completedResearch["mining_efficiency_t1"]).toBe(true);
+        expect(sys.completedResearch["energy_production_t1"]).toBe(true);
+        expect(sys.completedResearch["manufacturing_efficiency_t1"]).toBe(true);
         expect(sys.completedResearch["communication_t18"]).toBe(true);
       }
     });

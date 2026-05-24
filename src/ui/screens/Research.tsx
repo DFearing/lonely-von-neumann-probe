@@ -80,7 +80,7 @@ export function Research() {
                 Select a technology to view details
               </div>
             )}
-            <ResearchQueue system={system} dispatch={dispatch} />
+            <ResearchQueue system={system} dispatch={dispatch} onSelect={setSelectedTech} selectedTech={selectedTech} />
           </div>
         </Panel>
       </div>
