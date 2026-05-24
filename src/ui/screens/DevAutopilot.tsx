@@ -1,16 +1,17 @@
-import { useState } from "react";
-import { useGameState, useDevJumpForward } from "../context";
+import { useEffect, useState } from "react";
+import { useGameState, useDevJumpForward, useLoop } from "../context";
 import { FONT_MONO, FONT_DISPLAY } from "../tokens";
 import { PROFILES } from "../../simulation/autopilot/profiles";
-import { simulateToYear } from "../../simulation/autopilot/runner";
+import { simulateWithProfile, yearsToTicks } from "../../simulation/autopilot/runner";
 
 export function DevAutopilot({ onClose }: { onClose: () => void }) {
   const state = useGameState();
   const jumpForward = useDevJumpForward();
+  const loop = useLoop();
   const currentYear = 2026 + Math.floor(state.elapsedSeconds);
 
   const [profileId, setProfileId] = useState(PROFILES[0]!.id);
-  const [targetYear, setTargetYear] = useState(currentYear + 100);
+  const [yearsToJump, setYearsToJump] = useState(500);
   const [result, setResult] = useState<{
     ticksRun: number;
     year: number;
@@ -21,13 +22,18 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
   } | null>(null);
   const [running, setRunning] = useState(false);
 
+  useEffect(() => {
+    if (!loop.isPaused()) loop.pause();
+  }, [loop]);
+
   function handleRun() {
     const profile = PROFILES.find((p) => p.id === profileId);
     if (!profile || !jumpForward) return;
 
     setRunning(true);
     setTimeout(() => {
-      const { finalState, ticksRun } = simulateToYear(state, profile, targetYear);
+      const targetTicks = yearsToTicks(yearsToJump);
+      const { finalState, ticksRun } = simulateWithProfile(state, profile, targetTicks);
 
       let systems = 0;
       let structures = 0;
@@ -90,37 +96,41 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
           <label style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#6b87a3", letterSpacing: "0.12em" }}>
             PROFILE
           </label>
-          <select
-            value={profileId}
-            onChange={(e) => setProfileId(e.target.value)}
-            style={{
-              display: "block",
-              width: "100%",
-              marginTop: 4,
-              padding: "8px 10px",
-              background: "rgba(110,200,255,0.06)",
-              border: "1px solid rgba(110,200,255,0.2)",
-              color: "#d6e8f5",
-              fontFamily: FONT_MONO,
-              fontSize: 13,
-              borderRadius: 2,
-            }}
-          >
-            {PROFILES.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+          <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+            {PROFILES.map((p) => {
+              const active = profileId === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setProfileId(p.id)}
+                  style={{
+                    fontFamily: FONT_MONO,
+                    fontSize: 11,
+                    letterSpacing: "0.08em",
+                    padding: "6px 12px",
+                    background: active ? "rgba(77,219,255,0.15)" : "rgba(110,200,255,0.04)",
+                    border: `1px solid ${active ? "rgba(77,219,255,0.5)" : "rgba(110,200,255,0.15)"}`,
+                    color: active ? "#4ddbff" : "#9ab4cf",
+                    cursor: "pointer",
+                    borderRadius: 2,
+                    fontWeight: active ? 600 : 400,
+                    transition: "all .15s",
+                  }}
+                >{p.name}</button>
+              );
+            })}
+          </div>
         </div>
 
         <div style={{ marginBottom: 20 }}>
           <label style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#6b87a3", letterSpacing: "0.12em" }}>
-            TARGET YEAR
+            YEARS TO ADVANCE
           </label>
           <input
             type="number"
-            value={targetYear}
-            onChange={(e) => setTargetYear(Number(e.target.value))}
-            min={currentYear + 1}
+            value={yearsToJump}
+            onChange={(e) => setYearsToJump(Math.max(1, Number(e.target.value)))}
+            min={1}
             style={{
               display: "block",
               width: "100%",
@@ -135,7 +145,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
             }}
           />
           <div style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#3d5572", marginTop: 4 }}>
-            Current: {currentYear} · Advancing {Math.max(0, targetYear - currentYear)} years
+            Current: {currentYear} · Target: {currentYear + yearsToJump}
           </div>
         </div>
 
@@ -174,7 +184,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
           >CLOSE</button>
           <button
             onClick={handleRun}
-            disabled={running || targetYear <= currentYear}
+            disabled={running || yearsToJump <= 0}
             style={{
               background: running ? "rgba(110,200,255,0.06)" : "rgba(77,219,255,0.12)",
               border: "1px solid rgba(77,219,255,0.4)",
