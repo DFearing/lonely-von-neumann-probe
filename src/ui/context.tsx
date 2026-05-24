@@ -12,6 +12,7 @@ interface GameContextValue {
   loop: GameLoop;
   dispatch: (action: PlayerAction) => void;
   onPrestige: (() => void) | null;
+  onDevJumpForward: ((state: GameState) => void) | null;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -19,16 +20,19 @@ const GameContext = createContext<GameContextValue | null>(null);
 export function GameProvider({
   loop,
   onPrestige,
+  onDevJumpForward,
   children,
 }: {
   loop: GameLoop;
   onPrestige?: () => void;
+  onDevJumpForward?: (state: GameState) => void;
   children: ReactNode;
 }) {
   const value: GameContextValue = {
     loop,
     dispatch: loop.dispatchAction,
     onPrestige: onPrestige ?? null,
+    onDevJumpForward: onDevJumpForward ?? null,
   };
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
@@ -67,4 +71,8 @@ export function useLoop(): GameLoop {
 
 export function usePrestige(): (() => void) | null {
   return useGameContext().onPrestige;
+}
+
+export function useDevJumpForward(): ((state: GameState) => void) | null {
+  return useGameContext().onDevJumpForward;
 }
