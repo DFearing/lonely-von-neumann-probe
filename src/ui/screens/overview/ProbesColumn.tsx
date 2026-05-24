@@ -1,4 +1,5 @@
-import type { GameState, SystemState } from "../../../simulation/state";
+import type { GameState, ProbeMode, SystemState } from "../../../simulation/state";
+import type { PlayerAction } from "../../../simulation/actions";
 import type { ViewId } from "../../shell/Sidebar";
 import { CPUS, PROPULSIONS, REACTORS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
@@ -21,6 +22,9 @@ function componentNames(components: {
 
 interface FleetProbe {
   id: string;
+  name: string;
+  mode: ProbeMode | null;
+  systemId: string | null;
   status: "station-keeping" | "in-transit";
   location: string;
   components: string;
@@ -35,6 +39,9 @@ function gatherFleet(state: GameState): FleetProbe[] {
     if (sys.mainProbe) {
       fleet.push({
         id: sys.mainProbe.id,
+        name: sys.mainProbe.name,
+        mode: sys.mainProbe.mode,
+        systemId: sys.id,
         status: "station-keeping",
         location: sys.name,
         components: componentNames(sys.mainProbe.components),
@@ -52,6 +59,9 @@ function gatherFleet(state: GameState): FleetProbe[] {
       const remainingYrs = remainingSec > 0 ? remainingSec : null;
       fleet.push({
         id: p.id,
+        name: p.name,
+        mode: null,
+        systemId: null,
         status: "in-transit",
         location: `→ ${destName}`,
         components: componentNames(p.components),
@@ -64,13 +74,48 @@ function gatherFleet(state: GameState): FleetProbe[] {
   return fleet;
 }
 
+function ProbeActionButton({
+  label,
+  accent,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  accent: string;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        flex: 1,
+        padding: "6px 0",
+        background: disabled ? "transparent" : `${accent}14`,
+        border: `1px solid ${disabled ? "rgba(110,200,255,0.12)" : `${accent}50`}`,
+        color: disabled ? "#3d5572" : accent,
+        fontFamily: FONT_MONO,
+        fontSize: 9,
+        letterSpacing: "0.18em",
+        cursor: disabled ? "not-allowed" : "pointer",
+        borderRadius: 2,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 export function ProbesColumn({
   state,
   system,
+  dispatch,
   onNavigate,
 }: {
   state: GameState;
   system: SystemState;
+  dispatch: (action: PlayerAction) => void;
   onNavigate: (view: ViewId) => void;
 }) {
   const fleet = gatherFleet(state);
@@ -166,9 +211,21 @@ export function ProbesColumn({
           </div>
           {buildingProbes.map((q) => {
             const pct = Math.min(100, q.progress * 100);
-            const totalBuildTime = q.totalCost.materials + q.totalCost.energy;
-            const remainingFraction = 1 - q.progress;
-            const remaining = Math.max(0, totalBuildTime * remainingFraction);
+            const probePrint = system.mainProbe?.mode === "printing"
+              ? system.mainProbe.internalPrinterSpeed
+              : 0;
+            let assignedSpeed = 0;
+            for (const pid of q.assignedPrinterIds) {
+              const p = system.structures.printers.find(
+                (s) => s.id === pid && s.active && s.constructionProgress >= 1,
+              );
+              if (p) assignedSpeed += p.productionRate;
+            }
+            const totalSpeed = probePrint + assignedSpeed;
+            const buildTime = q.totalCost.materials;
+            const remaining = totalSpeed > 0
+              ? Math.max(0, buildTime * (1 - q.progress) / totalSpeed)
+              : Infinity;
             return (
               <div key={q.id} style={{ marginBottom: 4 }}>
                 <div
@@ -281,7 +338,7 @@ export function ProbesColumn({
                     fontWeight: 500,
                   }}
                 >
-                  {p.id}
+                  {p.name}
                 </span>
               </span>
               {p.etaYrs != null && (
@@ -308,13 +365,83 @@ export function ProbesColumn({
             </div>
             <div
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontFamily: FONT_MONO,
+                fontSize: 9,
+                marginBottom: 2,
+              }}
+            >
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: "50%",
+                  background:
+                    p.status === "in-transit"
+                      ? ACCENT
+                      : p.mode === "gathering"
+                        ? "#5cc7ff"
+                        : p.mode === "printing"
+                          ? "#4cd8a8"
+                          : "#3d5572",
+                  boxShadow:
+                    p.mode !== "idle"
+                      ? `0 0 4px ${p.mode === "gathering" ? "#5cc7ff" : "#4cd8a8"}`
+                      : "none",
+                }}
+              />
+              <span
+                style={{
+                  color:
+                    p.mode === "gathering"
+                      ? "#5cc7ff"
+                      : p.mode === "printing"
+                        ? "#4cd8a8"
+                        : "#6b87a3",
+                }}
+              >
+                {p.status === "in-transit"
+                  ? "IN TRANSIT"
+                  : p.mode === "gathering"
+                    ? "GATHERING"
+                    : p.mode === "printing"
+                      ? "PRINTING"
+                      : "IDLE"}
+              </span>
+            </div>
+            <div
+              style={{
                 fontFamily: FONT_MONO,
                 fontSize: 9,
                 color: "#6b87a3",
               }}
             >
-              {p.status} &middot; {p.components}
+              {p.components}
             </div>
+            {p.status === "station-keeping" && p.systemId && (
+              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                <ProbeActionButton
+                  label={p.mode === "gathering" ? "STOP" : "GATHER"}
+                  accent={p.mode === "gathering" ? "#ff6b6b" : "#5cc7ff"}
+                  disabled={p.mode === "printing"}
+                  onClick={() =>
+                    dispatch({
+                      type: "set_probe_mode",
+                      systemId: p.systemId!,
+                      mode: p.mode === "gathering" ? "idle" : "gathering",
+                    })
+                  }
+                />
+                <ProbeActionButton
+                  label="EXPLORE"
+                  accent="#6b87a3"
+                  disabled={p.mode === "printing"}
+                  onClick={() => {}}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>

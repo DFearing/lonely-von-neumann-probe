@@ -22,6 +22,7 @@ function stateWithProbeAndResearch(
 
   const probe: ProbeInTransit = {
     id: "test_probe_1",
+    name: "Test Probe",
     components: {
       cpu: "cpu_t1",
       propulsion: "prop_t1",

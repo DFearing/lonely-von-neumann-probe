@@ -1,22 +1,31 @@
 import { useCurrentSystem } from "../context";
-import { fmt, fmtRate, fmtTime } from "../format";
+import { fmt, fmtRate, fmtYears } from "../format";
 import type { ViewId } from "./Sidebar";
 
 const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
 
-function StockpileCell({
-  label,
+function resourceColor(
+  supply: number,
+  demand: number,
+  baseColor: string,
+): string {
+  if (supply <= 0 && demand <= 0) return baseColor;
+  if (supply <= demand) return "#ff6b6b";
+  if (demand / supply > 0.7) return "#ffcb47";
+  return baseColor;
+}
+
+function MaterialsCell({
   value,
-  rate,
-  color,
-  unit,
+  supply,
+  demand,
 }: {
-  label: string;
   value: number;
-  rate: number;
-  color: string;
-  unit: string;
+  supply: number;
+  demand: number;
 }) {
+  const net = supply - demand;
+  const color = resourceColor(supply, demand, "#d6e8f5");
   return (
     <div
       style={{
@@ -29,27 +38,19 @@ function StockpileCell({
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: 12,
+          fontFamily: FONT_MONO,
+          fontSize: 11,
+          color: "#6b87a3",
+          letterSpacing: "0.18em",
           marginBottom: 6,
         }}
       >
-        <span
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 11,
-            color: "#6b87a3",
-            letterSpacing: "0.18em",
-          }}
-        >
-          {label}
-        </span>
+        NANO MATERIAL
       </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
         <span
           style={{
-            fontSize: 32,
+            fontSize: 38,
             fontWeight: 500,
             color,
             fontVariantNumeric: "tabular-nums",
@@ -61,9 +62,97 @@ function StockpileCell({
           {fmt(Math.floor(value))}
         </span>
         <span
-          style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#4cd8a8" }}
+          style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
         >
-          {fmtRate(rate)} {unit}/s
+          tons
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          fontFamily: FONT_MONO,
+          fontSize: 14,
+          marginTop: 4,
+        }}
+      >
+        <span style={{ color: net >= 0 ? "#4cd8a8" : "#ff6b6b" }}>
+          {fmtRate(net)} tons/year net
+        </span>
+        {demand > 0 && (
+          <span style={{ color: "#ff9966" }}>
+            ▼ {demand.toFixed(1)} maint
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EnergyCell({
+  supply,
+  demand,
+}: {
+  supply: number;
+  demand: number;
+}) {
+  const net = supply - demand;
+  const color = resourceColor(supply, demand, "#5cc7ff");
+  return (
+    <div
+      style={{
+        padding: "14px 24px",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: FONT_MONO,
+          fontSize: 11,
+          color: "#6b87a3",
+          letterSpacing: "0.18em",
+          marginBottom: 6,
+        }}
+      >
+        ENERGY
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <span
+          style={{
+            fontSize: 38,
+            fontWeight: 500,
+            color,
+            fontVariantNumeric: "tabular-nums",
+            fontFamily: FONT_MONO,
+            letterSpacing: "-0.02em",
+            textShadow: `0 0 12px ${color}40`,
+          }}
+        >
+          {fmtRate(net)}
+        </span>
+        <span
+          style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
+        >
+          MW net
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          fontFamily: FONT_MONO,
+          fontSize: 14,
+          marginTop: 4,
+        }}
+      >
+        <span style={{ color: "#4cd8a8" }}>
+          ▲ {supply.toFixed(1)} supply
+        </span>
+        <span style={{ color: demand > 0 ? "#ff9966" : "#3d5572" }}>
+          ▼ {demand.toFixed(1)} draw
         </span>
       </div>
     </div>
@@ -150,14 +239,14 @@ function ComputeResearchCell({
               flexShrink: 0,
             }}
           >
-            {fmtTime(eta)}
+            {fmtYears(eta)}
           </span>
         )}
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
         <span
           style={{
-            fontSize: 32,
+            fontSize: 38,
             fontWeight: 500,
             color: "#b08bff",
             fontVariantNumeric: "tabular-nums",
@@ -171,7 +260,7 @@ function ComputeResearchCell({
         <span
           style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
         >
-          TF/s
+          TFLOPS
         </span>
       </div>
       <div
@@ -218,12 +307,10 @@ export function Footer({
         alignItems: "center",
       }}
     >
-      <StockpileCell
-        label="MATERIALS"
+      <MaterialsCell
         value={system.resources.materials}
-        rate={system.resourceRates.materialsPerSecond}
-        color="#5cc7ff"
-        unit="t"
+        supply={system.resourceRates.materialsSupply}
+        demand={system.resourceRates.materialsDemand}
       />
       <div
         style={{
@@ -231,12 +318,9 @@ export function Footer({
           height: "100%",
         }}
       >
-        <StockpileCell
-          label="ENERGY"
-          value={system.resources.energy}
-          rate={system.resourceRates.energyPerSecond}
-          color="#ffcb47"
-          unit="MW"
+        <EnergyCell
+          supply={system.resourceRates.energySupply}
+          demand={system.resourceRates.energyDemand}
         />
       </div>
       <div

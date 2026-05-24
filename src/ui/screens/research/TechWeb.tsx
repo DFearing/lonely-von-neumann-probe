@@ -66,6 +66,7 @@ function TechNode({
   branchIcon,
   isSelected,
   onSelect,
+  onQueue,
   queuePosition,
 }: {
   tech: TechDefinition;
@@ -74,6 +75,7 @@ function TechNode({
   branchIcon: string;
   isSelected: boolean;
   onSelect: () => void;
+  onQueue: () => void;
   queuePosition: number | null;
 }) {
   const look = STATUS_LOOK[status];
@@ -82,6 +84,9 @@ function TechNode({
   return (
     <div
       onClick={onSelect}
+      onDoubleClick={() => {
+        if (status === "available") onQueue();
+      }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -189,10 +194,12 @@ export function TechWeb({
   system,
   selectedTech,
   onSelect,
+  onQueue,
 }: {
   system: SystemState;
   selectedTech: string | null;
   onSelect: (techId: string) => void;
+  onQueue: (techId: string) => void;
 }) {
   const queueMap = new Map<string, number>();
   system.researchQueue.forEach((project, idx) => {
@@ -320,6 +327,7 @@ export function TechWeb({
                         branchIcon={meta.icon}
                         isSelected={selectedTech === tech.id}
                         onSelect={() => onSelect(tech.id)}
+                        onQueue={() => onQueue(tech.id)}
                         queuePosition={queueMap.get(tech.id) ?? null}
                       />
                     );

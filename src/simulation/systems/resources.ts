@@ -8,7 +8,7 @@ function tickSystem(system: SystemState, dt: number): SystemState {
     ...system,
     resources: {
       materials: Math.max(0, system.resources.materials + rates.materialsPerSecond * dt),
-      energy: Math.max(0, system.resources.energy + rates.energyPerSecond * dt),
+      energy: rates.energyNet,
       computingPower: rates.computingPowerPerSecond,
     },
     resourceRates: rates,

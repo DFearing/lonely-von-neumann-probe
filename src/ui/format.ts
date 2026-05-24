@@ -25,6 +25,6 @@ export function fmtPercent(ratio: number): string {
 export function fmtYears(seconds: number): string {
   if (seconds <= 0) return "now";
   const years = seconds;
-  if (years < 1000) return Math.round(years) + " years";
-  return Math.round(years / 1000) + " ky";
+  if (years < 1000) return Math.round(years) + (Math.round(years) === 1 ? " year" : " years");
+  return fmt(Math.round(years / 1000)) + " thousand years";
 }

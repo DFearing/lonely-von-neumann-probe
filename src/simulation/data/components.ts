@@ -1,4 +1,4 @@
-import { MAX_TIER } from "../state";
+import { MAX_STRUCTURE_TIER } from "../state";
 
 export interface CpuDefinition {
   type: string;
@@ -24,97 +24,59 @@ export interface ReactorDefinition {
   name: string;
   cost: { materials: number; energy: number };
   energyMultiplier: number;
-  operatingCostMultiplier: number;
   solarScaling: boolean;
   techGate: string | null;
 }
 
 export const CPU_NAMES = [
   "Basic CPU",
-  "Enhanced CPU",
-  "Advanced CPU",
   "Neural Processor",
   "Quantum Core",
-  "Adaptive Processor",
   "Photonic CPU",
-  "Neuromorphic Core",
-  "Probabilistic Engine",
   "Quantum Supreme CPU",
-  "Hyperdimensional Core",
-  "Temporal Logic Unit",
-  "Consciousness Emulator",
-  "Distributed Mind",
-  "Omniscient Core",
-  "Reality Engine",
-  "Planck Processor",
-  "Entropic Computer",
-  "Dimensional Reasoner",
   "Universal Mind",
 ];
 
 export const PROPULSION_NAMES = [
   "Basic Ion Drive",
-  "Efficient Drive",
-  "Advanced Drive",
   "Plasma Thruster",
   "Fusion Torch",
   "Antimatter Drive",
-  "Solar Sail Array",
-  "Magnetoplasma Rocket",
-  "Bussard Ramjet",
-  "Alcubierre Bubble",
-  "Graviton Thruster",
   "Warp Field Drive",
-  "Subspace Engine",
-  "Dimensional Shifter",
-  "Temporal Drive",
-  "Von Neumann Drive",
-  "Singularity Thruster",
-  "Reality Anchor Drive",
-  "Omniscient Navigator",
   "Transcendent Drive",
 ];
 
 export const PROBE_REACTOR_NAMES = [
   "Basic Reactor",
   "Fusion Reactor",
-  "Solar Harvester",
-  "Plasma Cell",
   "Antimatter Core",
   "Zero-Point Module",
-  "Stellar Collector",
-  "Solar Dynamo",
-  "MHD Generator",
-  "Neutrino Cell",
-  "Hawking Cell",
-  "Dyson Fragment",
-  "Quark Reactor",
-  "Solar Siphon",
-  "Vacuum Cell",
   "Dark Energy Core",
-  "Cosmic String Tap",
-  "Entropic Core",
-  "Brane Tap",
   "Omnipotent Core",
 ];
 
-const SOLAR_REACTOR_TIERS = new Set([3, 8, 14]);
+const SOLAR_REACTOR_TIERS = new Set([3]);
+
+function componentTechGate(branchPrefix: string, tier: number): string | null {
+  if (tier === 1) return null;
+  return `${branchPrefix}_t${(tier - 1) * 4}`;
+}
 
 function generateCpus(): Record<string, CpuDefinition> {
   const cpus: Record<string, CpuDefinition> = {};
-  for (let tier = 1; tier <= MAX_TIER; tier++) {
+  for (let tier = 1; tier <= MAX_STRUCTURE_TIER; tier++) {
     const id = `cpu_t${tier}`;
     cpus[id] = {
       type: id,
       name: CPU_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(10 * 1.20 ** (tier - 1)),
-        energy: Math.round(2 * 1.20 ** (tier - 1)),
+        materials: Math.round(15 * 2.2 ** (tier - 1)),
+        energy: Math.round(3 * 2.2 ** (tier - 1)),
       },
       computingOutput: +(1 * 1.15 ** (tier - 1)).toFixed(2),
-      miningOutput: +(5 * (1 + 0.08 * (tier - 1))).toFixed(2),
-      printSpeed: +(1 * (1 + 0.06 * (tier - 1))).toFixed(2),
-      techGate: tier === 1 ? null : `probe_cpu_t${tier}`,
+      miningOutput: +(5 * (1 + 0.30 * (tier - 1))).toFixed(2),
+      printSpeed: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      techGate: componentTechGate("probe_cpu", tier),
     };
   }
   return cpus;
@@ -122,18 +84,18 @@ function generateCpus(): Record<string, CpuDefinition> {
 
 function generatePropulsions(): Record<string, PropulsionDefinition> {
   const propulsions: Record<string, PropulsionDefinition> = {};
-  for (let tier = 1; tier <= MAX_TIER; tier++) {
+  for (let tier = 1; tier <= MAX_STRUCTURE_TIER; tier++) {
     const id = `prop_t${tier}`;
     propulsions[id] = {
       type: id,
       name: PROPULSION_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(10 * 1.20 ** (tier - 1)),
-        energy: Math.round(2 * 1.20 ** (tier - 1)),
+        materials: Math.round(15 * 2.2 ** (tier - 1)),
+        energy: Math.round(3 * 2.2 ** (tier - 1)),
       },
-      travelSpeed: +(1 * (1 + 0.10 * (tier - 1))).toFixed(2),
-      autoReplicate: tier >= 16,
-      techGate: tier === 1 ? null : `probe_propulsion_t${tier}`,
+      travelSpeed: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
+      autoReplicate: tier >= 5,
+      techGate: componentTechGate("probe_propulsion", tier),
     };
   }
   return propulsions;
@@ -141,19 +103,18 @@ function generatePropulsions(): Record<string, PropulsionDefinition> {
 
 function generateReactors(): Record<string, ReactorDefinition> {
   const reactors: Record<string, ReactorDefinition> = {};
-  for (let tier = 1; tier <= MAX_TIER; tier++) {
+  for (let tier = 1; tier <= MAX_STRUCTURE_TIER; tier++) {
     const id = `rct_t${tier}`;
     reactors[id] = {
       type: id,
       name: PROBE_REACTOR_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(10 * 1.20 ** (tier - 1)),
-        energy: Math.round(2 * 1.20 ** (tier - 1)),
+        materials: Math.round(15 * 2.2 ** (tier - 1)),
+        energy: Math.round(3 * 2.2 ** (tier - 1)),
       },
-      energyMultiplier: +(1 * (1 + 0.08 * (tier - 1))).toFixed(2),
-      operatingCostMultiplier: +(1 * 0.98 ** (tier - 1)).toFixed(2),
+      energyMultiplier: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
       solarScaling: SOLAR_REACTOR_TIERS.has(tier),
-      techGate: tier === 1 ? null : `probe_reactors_t${tier}`,
+      techGate: componentTechGate("probe_reactors", tier),
     };
   }
   return reactors;

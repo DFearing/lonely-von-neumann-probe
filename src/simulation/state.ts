@@ -42,8 +42,12 @@ export interface SystemState {
     computingPower: number;
   };
   resourceRates: {
+    materialsSupply: number;
+    materialsDemand: number;
     materialsPerSecond: number;
-    energyPerSecond: number;
+    energySupply: number;
+    energyDemand: number;
+    energyNet: number;
     computingPowerPerSecond: number;
   };
   constructionQueue: ConstructionProject[];
@@ -53,8 +57,12 @@ export interface SystemState {
   sentProbes: ProbeInTransit[];
 }
 
+export type ProbeMode = "idle" | "gathering" | "printing";
+
 export interface ProbeState {
   id: string;
+  name: string;
+  mode: ProbeMode;
   systemId: string;
   components: {
     cpu: CpuType;
@@ -73,6 +81,7 @@ export interface StructureInstance {
   tier: number;
   productionRate: number;
   operatingCost: number;
+  maintenanceCost: number;
   active: boolean;
   constructionProgress: number;
 }
@@ -108,6 +117,7 @@ export interface ResearchProject {
 
 export interface ProbeInTransit {
   id: string;
+  name: string;
   components: {
     cpu: CpuType;
     propulsion: PropulsionType;
@@ -146,8 +156,12 @@ function emptySystemState(
     structures: { miners: [], reactors: [], printers: [] },
     resources: { materials: 0, energy: 0, computingPower: 0 },
     resourceRates: {
+      materialsSupply: 0,
+      materialsDemand: 0,
       materialsPerSecond: 0,
-      energyPerSecond: 0,
+      energySupply: 0,
+      energyDemand: 0,
+      energyNet: 0,
       computingPowerPerSecond: 0,
     },
     constructionQueue: [],
@@ -162,22 +176,23 @@ function randomRichness(rngFloat: number): number {
   return Math.round((0.5 + rngFloat * 1.5) * 100) / 100;
 }
 
-export function createInitialState(seed: number): GameState {
+export function createInitialState(seed: number, probeName = "Probe"): GameState {
   const rng = createRng(seed);
 
   const sol = emptySystemState("sol", "Sol", "yellow", 0, 1.0, true, true);
-  sol.resources.energy = 10;
   sol.mainProbe = {
     id: "probe_sol_0",
+    name: probeName,
+    mode: "idle",
     systemId: "sol",
     components: {
       cpu: "cpu_t1",
       propulsion: "prop_t1",
       reactor: "rct_t1",
     },
-    miningOutput: 5,
+    miningOutput: 1,
     computingOutput: 1,
-    internalPrinterSpeed: 1,
+    internalPrinterSpeed: 0.5,
     autoReplicating: false,
   };
 
@@ -250,7 +265,7 @@ export function createInitialState(seed: number): GameState {
     log: [
       {
         tick: 0,
-        message: "Probe activated in Sol system. Beginning resource survey.",
+        message: `${probeName} activated in Sol system. Beginning resource survey.`,
         category: "milestone",
       },
     ],

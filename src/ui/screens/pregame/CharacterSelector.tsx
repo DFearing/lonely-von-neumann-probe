@@ -155,6 +155,111 @@ export function PreGameLogo() {
   );
 }
 
+function DeleteConfirmModal({
+  probeName,
+  onConfirm,
+  onCancel,
+}: {
+  probeName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        background: "rgba(2,6,14,0.80)",
+        backdropFilter: "blur(3px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 400,
+          background: "linear-gradient(180deg, #0a1224 0%, #06101e 100%)",
+          border: "1px solid rgba(255,100,100,0.30)",
+          boxShadow: "0 0 40px rgba(255,100,100,0.12)",
+          padding: 28,
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 12,
+            color: "#ff6b6b",
+            letterSpacing: "0.20em",
+            marginBottom: 16,
+          }}
+        >
+          ⚠ DELETE MISSION
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_DISPLAY,
+            fontSize: 14,
+            color: "#d6e8f5",
+            marginBottom: 8,
+          }}
+        >
+          Permanently delete <span style={{ color: "#4ddbff", fontWeight: 600 }}>{probeName}</span>?
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            color: "#6b87a3",
+            marginBottom: 24,
+          }}
+        >
+          This cannot be undone.
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1,
+              padding: "12px 0",
+              background: "transparent",
+              border: "1px solid rgba(110,200,255,0.22)",
+              color: "#9ab4cf",
+              fontFamily: FONT_MONO,
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              cursor: "pointer",
+            }}
+          >
+            CANCEL
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              flex: 1,
+              padding: "12px 0",
+              background: "rgba(255,100,100,0.12)",
+              border: "1px solid rgba(255,100,100,0.50)",
+              color: "#ff6b6b",
+              fontFamily: FONT_MONO,
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            DELETE
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OperatorRow({
   slot,
   onSelect,
@@ -165,6 +270,7 @@ function OperatorRow({
   onDelete: () => void;
 }) {
   const [hover, setHover] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const elapsed = Date.now() - slot.timestamp;
   const lastPlayed = formatElapsed(elapsed);
@@ -174,87 +280,99 @@ function OperatorRow({
       : `${slot.systemCount} SYSTEMS`;
 
   return (
-    <div
-      onClick={onSelect}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        padding: "14px 16px",
-        background: hover ? "rgba(77,219,255,0.10)" : "rgba(8,16,30,0.5)",
-        border: `1px solid ${hover ? "#4ddbff" : "rgba(110,200,255,0.16)"}`,
-        cursor: "pointer",
-        display: "grid",
-        gridTemplateColumns: "auto 1fr auto auto",
-        alignItems: "center",
-        gap: 14,
-        transition: "background .15s, border-color .15s",
-      }}
-    >
-      <span
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: "50%",
-          background: "#4cd8a8",
-          boxShadow: "0 0 6px #4cd8a8",
-        }}
-      />
-      <div style={{ minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#d6e8f5",
-            letterSpacing: "0.04em",
+    <>
+      {confirming && (
+        <DeleteConfirmModal
+          probeName={slot.probeName}
+          onConfirm={() => {
+            setConfirming(false);
+            onDelete();
           }}
-        >
-          {slot.probeName}
-        </div>
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 10,
-            color: "#6b87a3",
-            marginTop: 4,
-            letterSpacing: "0.14em",
-          }}
-        >
-          YEAR {slot.year} {"·"} {systemLabel} {"·"}{" "}
-          {slot.structureCount} STRUCTURES
-        </div>
-      </div>
+          onCancel={() => setConfirming(false)}
+        />
+      )}
       <div
+        onClick={onSelect}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
         style={{
-          fontFamily: FONT_MONO,
-          fontSize: 9,
-          color: "#6b87a3",
-          letterSpacing: "0.18em",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {lastPlayed}
-      </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          if (confirm(`Delete operator ${slot.probeName}?`)) onDelete();
-        }}
-        style={{
-          background: "transparent",
-          border: "1px solid rgba(110,200,255,0.18)",
-          color: "#6b87a3",
-          padding: "5px 10px",
-          fontFamily: FONT_MONO,
-          fontSize: 9,
-          letterSpacing: "0.20em",
+          padding: "14px 16px",
+          background: hover ? "rgba(77,219,255,0.10)" : "rgba(8,16,30,0.5)",
+          border: `1px solid ${hover ? "#4ddbff" : "rgba(110,200,255,0.16)"}`,
           cursor: "pointer",
-          borderRadius: 2,
+          display: "grid",
+          gridTemplateColumns: "auto 1fr auto auto",
+          alignItems: "center",
+          gap: 14,
+          transition: "background .15s, border-color .15s",
         }}
       >
-        DEL
-      </button>
-    </div>
+        <span
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            background: "#4cd8a8",
+            boxShadow: "0 0 6px #4cd8a8",
+          }}
+        />
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#d6e8f5",
+              letterSpacing: "0.04em",
+            }}
+          >
+            {slot.probeName}
+          </div>
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              color: "#6b87a3",
+              marginTop: 4,
+              letterSpacing: "0.14em",
+            }}
+          >
+            YEAR {slot.year} {"·"} {systemLabel} {"·"}{" "}
+            {slot.structureCount} STRUCTURES
+          </div>
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 9,
+            color: "#6b87a3",
+            letterSpacing: "0.18em",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {lastPlayed}
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirming(true);
+          }}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(110,200,255,0.18)",
+            color: "#6b87a3",
+            padding: "5px 10px",
+            fontFamily: FONT_MONO,
+            fontSize: 9,
+            letterSpacing: "0.20em",
+            cursor: "pointer",
+            borderRadius: 2,
+          }}
+        >
+          DEL
+        </button>
+      </div>
+    </>
   );
 }
 

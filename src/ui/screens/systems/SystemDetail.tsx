@@ -99,17 +99,17 @@ function ColonizedDetail({
       >
         <SysStat
           label="MATERIALS"
-          value={`${fmtRate(resourceRates.materialsPerSecond)} t/s`}
+          value={`${fmtRate(resourceRates.materialsPerSecond)} tons/year`}
           color="#5cc7ff"
         />
         <SysStat
           label="ENERGY"
-          value={`${fmtRate(resourceRates.energyPerSecond)} MW/s`}
+          value={`${fmtRate(resourceRates.energySupply)} MW supply · ${fmtRate(resourceRates.energyDemand)} demand`}
           color="#ffcb47"
         />
         <SysStat
           label="COMPUTE"
-          value={`${resourceRates.computingPowerPerSecond.toFixed(1)} TF/s`}
+          value={`${resourceRates.computingPowerPerSecond.toFixed(1)} TFLOPS`}
           color="#b08bff"
         />
       </div>
@@ -186,7 +186,7 @@ function ColonizedDetail({
             }}
           >
             <span style={{ color: "#d6e8f5", fontSize: 13 }}>
-              {system.mainProbe.id}
+              {system.mainProbe.name}
             </span>
             <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#4cd8a8" }}>
               ● station-keeping
@@ -271,7 +271,7 @@ function UnvisitedDetail({
         <SysStat label="TRAVEL @1×" value={fmtTime(travelTime)} />
         <SysStat
           label="TECH-SHARE"
-          value={`${fmt(system.distanceFromOrigin, { decimals: 2 })} yr`}
+          value={`${fmt(system.distanceFromOrigin, { decimals: 2 })} years`}
         />
       </div>
 

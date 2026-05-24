@@ -11,6 +11,8 @@ function createArrivingProbe(
   const propDef = PROPULSIONS[probe.components.propulsion];
   return {
     id: probe.id,
+    name: probe.name,
+    mode: "idle",
     systemId,
     components: probe.components,
     miningOutput: cpuDef?.miningOutput ?? 5,
@@ -132,8 +134,12 @@ function tickSystemNavigation(
           structures: { miners: [], reactors: [], printers: [] },
           resources: { materials: 0, energy: 0, computingPower: 0 },
           resourceRates: {
+            materialsSupply: 0,
+            materialsDemand: 0,
             materialsPerSecond: 0,
-            energyPerSecond: 0,
+            energySupply: 0,
+            energyDemand: 0,
+            energyNet: 0,
             computingPowerPerSecond: 0,
           },
           constructionQueue: [],

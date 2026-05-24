@@ -41,6 +41,13 @@ export function Research() {
           system={system}
           selectedTech={selectedTech}
           onSelect={setSelectedTech}
+          onQueue={(techId) =>
+            dispatch({
+              type: "start_research",
+              systemId: system.id,
+              techId,
+            })
+          }
         />
 
         <Panel

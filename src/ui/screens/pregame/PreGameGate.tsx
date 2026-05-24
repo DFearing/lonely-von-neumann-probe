@@ -50,7 +50,7 @@ export function PreGameGate() {
 
   function handleNewMission(probeName: string) {
     const seed = Date.now() % 1_000_000;
-    const state = createInitialState(seed);
+    const state = createInitialState(seed, probeName);
     const gameLoop = createGameLoop(state);
     const slotKey = `save_${Date.now()}`;
 

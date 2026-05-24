@@ -1,6 +1,6 @@
 import { MAX_TIER } from "../state";
-import { MINER_NAMES, STRUCTURE_REACTOR_NAMES, PRINTER_NAMES } from "./structures";
-import { CPU_NAMES, PROPULSION_NAMES, PROBE_REACTOR_NAMES } from "./components";
+import { STRUCTURES, MINER_NAMES, STRUCTURE_REACTOR_NAMES, PRINTER_NAMES } from "./structures";
+import { CPUS, PROPULSIONS, REACTORS, CPU_NAMES, PROPULSION_NAMES, PROBE_REACTOR_NAMES } from "./components";
 
 export interface TechDefinition {
   id: string;
@@ -128,72 +128,9 @@ const TECH_NAMES: Record<TechBranchId, string[]> = {
     "Omnifabrication Efficiency",
   ],
   manufacturing_types: generateStructurePathNames(PRINTER_NAMES),
-  probe_cpu: [
-    "Enhanced Processors",
-    "Multi-Core Architecture",
-    "Neural Coprocessors",
-    "Quantum Logic Units",
-    "Adaptive Processing Cores",
-    "Photonic CPU Arrays",
-    "Neuromorphic Processors",
-    "Probabilistic Engines",
-    "Quantum Supreme Cores",
-    "Hyperdimensional Processors",
-    "Temporal Logic Units",
-    "Consciousness Emulators",
-    "Distributed Mind Cores",
-    "Omniscient Processors",
-    "Reality Computation Engines",
-    "Planck-Time Processors",
-    "Entropic Computing Cores",
-    "Dimensional Reasoning Units",
-    "Universal Mind Processors",
-    "Transcendent CPU Arrays",
-  ],
-  probe_propulsion: [
-    "Improved Ion Drives",
-    "Plasma Thrusters",
-    "Fusion Drives",
-    "Antimatter Engines",
-    "Solar Sail Arrays",
-    "Magnetoplasma Rockets",
-    "Bussard Ramjets",
-    "Alcubierre Field Generators",
-    "Graviton Thruster Arrays",
-    "Warp Field Drives",
-    "Subspace Engines",
-    "Dimensional Shifters",
-    "Temporal Drives",
-    "Von Neumann Propulsion",
-    "Singularity Thrusters",
-    "Reality Anchor Drives",
-    "Omniscient Navigation Cores",
-    "Transcendent Drive Arrays",
-    "Universal Propulsion Nexus",
-    "Cosmic Translocation Engines",
-  ],
-  probe_reactors: [
-    "Compact Reactors",
-    "Miniature Fusion Cells",
-    "Micro-Stellarators",
-    "Antimatter Micro-Cores",
-    "Zero-Point Modules",
-    "Stellar Collector Cells",
-    "Solar Dynamo Cores",
-    "MHD Micro-Generators",
-    "Neutrino Micro-Cells",
-    "Hawking Radiation Cells",
-    "Dyson Fragment Cores",
-    "Quark Micro-Reactors",
-    "Solar Siphon Modules",
-    "Vacuum Energy Cells",
-    "Dark Energy Micro-Cores",
-    "Cosmic String Taps",
-    "Entropic Micro-Cores",
-    "Brane Tap Modules",
-    "Omnipotent Micro-Cores",
-    "Universal Power Cells",
-  ],
+  probe_cpu: generateStructurePathNames(CPU_NAMES),
+  probe_propulsion: generateStructurePathNames(PROPULSION_NAMES),
+  probe_reactors: generateStructurePathNames(PROBE_REACTOR_NAMES),
   computing_speed: [
     "Clock Rate Optimization",
     "Pipeline Deepening",
@@ -276,7 +213,10 @@ function generateEffects(branchId: string, tier: number): string[] {
       if (tier % 4 === 0) {
         const structureTier = tier / 4 + 1;
         const name = MINER_NAMES[structureTier - 1] ?? `Tier ${structureTier} Miner`;
-        return [`Unlock ${name}`];
+        const def = STRUCTURES[`miner_${structureTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`+${def.productionRate} tons/year mining, ${def.operatingCost} MW demand`);
+        return effects;
       }
       const nextUnlockTier = Math.ceil(tier / 4) * 4;
       const nextStructureTier = nextUnlockTier / 4 + 1;
@@ -291,7 +231,10 @@ function generateEffects(branchId: string, tier: number): string[] {
       if (tier % 4 === 0) {
         const structureTier = tier / 4 + 1;
         const name = STRUCTURE_REACTOR_NAMES[structureTier - 1] ?? `Tier ${structureTier} Reactor`;
-        return [`Unlock ${name}`];
+        const def = STRUCTURES[`reactor_${structureTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`+${def.productionRate} MW supply`);
+        return effects;
       }
       const nextUnlockTier = Math.ceil(tier / 4) * 4;
       const nextStructureTier = nextUnlockTier / 4 + 1;
@@ -306,7 +249,10 @@ function generateEffects(branchId: string, tier: number): string[] {
       if (tier % 4 === 0) {
         const structureTier = tier / 4 + 1;
         const name = PRINTER_NAMES[structureTier - 1] ?? `Tier ${structureTier} Printer`;
-        return [`Unlock ${name}`];
+        const def = STRUCTURES[`printer_${structureTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`${def.productionRate} BP, ${def.operatingCost} MW demand`);
+        return effects;
       }
       const nextUnlockTier = Math.ceil(tier / 4) * 4;
       const nextStructureTier = nextUnlockTier / 4 + 1;
@@ -314,16 +260,46 @@ function generateEffects(branchId: string, tier: number): string[] {
       return [`Research phase toward ${nextName}`];
     }
     case "probe_cpu": {
-      const name = CPU_NAMES[tier - 1] ?? `Tier ${tier} CPU`;
-      return [`Unlock ${name}`];
+      if (tier % 4 === 0) {
+        const componentTier = tier / 4 + 1;
+        const name = CPU_NAMES[componentTier - 1] ?? `Tier ${componentTier} CPU`;
+        const def = CPUS[`cpu_t${componentTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`${def.computingOutput} TFLOPS, ${def.miningOutput} tons/year gather, ${def.printSpeed}× print`);
+        return effects;
+      }
+      const nextTier = Math.ceil(tier / 4) * 4;
+      const nextComponentTier = nextTier / 4 + 1;
+      const nextName = CPU_NAMES[nextComponentTier - 1] ?? `Tier ${nextComponentTier} CPU`;
+      return [`Research phase toward ${nextName}`];
     }
     case "probe_propulsion": {
-      const name = PROPULSION_NAMES[tier - 1] ?? `Tier ${tier} propulsion`;
-      return [`Unlock ${name}`];
+      if (tier % 4 === 0) {
+        const componentTier = tier / 4 + 1;
+        const name = PROPULSION_NAMES[componentTier - 1] ?? `Tier ${componentTier} propulsion`;
+        const def = PROPULSIONS[`prop_t${componentTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`${def.travelSpeed} ly/year travel${def.autoReplicate ? ", auto-replicate" : ""}`);
+        return effects;
+      }
+      const nextTier = Math.ceil(tier / 4) * 4;
+      const nextComponentTier = nextTier / 4 + 1;
+      const nextName = PROPULSION_NAMES[nextComponentTier - 1] ?? `Tier ${nextComponentTier} propulsion`;
+      return [`Research phase toward ${nextName}`];
     }
     case "probe_reactors": {
-      const name = PROBE_REACTOR_NAMES[tier - 1] ?? `Tier ${tier} probe reactor`;
-      return [`Unlock ${name}`];
+      if (tier % 4 === 0) {
+        const componentTier = tier / 4 + 1;
+        const name = PROBE_REACTOR_NAMES[componentTier - 1] ?? `Tier ${componentTier} reactor`;
+        const def = REACTORS[`rct_t${componentTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`${def.energyMultiplier}× MW output`);
+        return effects;
+      }
+      const nextTier = Math.ceil(tier / 4) * 4;
+      const nextComponentTier = nextTier / 4 + 1;
+      const nextName = PROBE_REACTOR_NAMES[nextComponentTier - 1] ?? `Tier ${nextComponentTier} reactor`;
+      return [`Research phase toward ${nextName}`];
     }
     case "computing_speed": {
       const bonus = 6 + 0.4 * (tier - 1);
@@ -357,13 +333,13 @@ function generateUnlocks(branchId: string, tier: number): string[] {
       if (tier % 4 === 0) return [`printer_${tier / 4 + 1}`];
       return [];
     case "probe_cpu":
-      if (tier >= 2) return [`cpu_t${tier}`];
+      if (tier % 4 === 0) return [`cpu_t${tier / 4 + 1}`];
       return [];
     case "probe_propulsion":
-      if (tier >= 2) return [`prop_t${tier}`];
+      if (tier % 4 === 0) return [`prop_t${tier / 4 + 1}`];
       return [];
     case "probe_reactors":
-      if (tier >= 2) return [`rct_t${tier}`];
+      if (tier % 4 === 0) return [`rct_t${tier / 4 + 1}`];
       return [];
     default:
       return [];
@@ -411,11 +387,11 @@ function generateTechTree(): Record<string, TechDefinition> {
         tier,
         name: names[tier - 1]!,
         initialCost: {
-          materials: Math.round(25 * 1.22 ** (tier - 1)),
-          energy: Math.round(5 * 1.25 ** (tier - 1)),
+          materials: Math.round(40 * 1.22 ** (tier - 1)),
+          energy: Math.round(10 * 1.25 ** (tier - 1)),
         },
-        continuousCost: Math.round(5 * 1.18 ** (tier - 1)),
-        researchTime: Math.round(60 * 1.20 ** (tier - 1)),
+        continuousCost: Math.round(3 * 1.18 ** (tier - 1)),
+        researchTime: Math.round(120 * 1.20 ** (tier - 1)),
         effects: generateEffects(branchId, tier),
         unlocks: generateUnlocks(branchId, tier),
         prerequisites: generatePrerequisites(branchId, tier),

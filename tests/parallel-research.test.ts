@@ -56,7 +56,7 @@ describe("parallel research mechanics", () => {
 
       const state = makeGameStateWithResearch({
         researchQueue: [project1, project2],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
         completedResearch: {},
       });
 
@@ -80,7 +80,7 @@ describe("parallel research mechanics", () => {
 
       const state = makeGameStateWithResearch({
         researchQueue: [project1, project2],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 20 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 20 },
         completedResearch: { computing_architecture_t4: true },
       });
 
@@ -104,13 +104,13 @@ describe("parallel research mechanics", () => {
 
       const parallelState = makeGameStateWithResearch({
         researchQueue: [project1, project2],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: computingPower },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: computingPower },
         completedResearch: { computing_architecture_t4: true },
       });
 
       const serialState = makeGameStateWithResearch({
         researchQueue: [{ ...project1 }],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: computingPower / 2 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: computingPower / 2 },
         completedResearch: {},
       });
 
@@ -146,13 +146,13 @@ describe("parallel research mechanics", () => {
           sol: {
             ...sol,
             researchQueue: [project1],
-            resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+            resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
             completedResearch: { computing_architecture_t14: true },
           },
           alpha_centauri: {
             ...ac,
             researchQueue: [{ ...project2 }],
-            resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 5 },
+            resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 5 },
             completedResearch: { computing_architecture_t14: true },
           },
         },
@@ -187,13 +187,13 @@ describe("parallel research mechanics", () => {
           sol: {
             ...sol,
             researchQueue: [project1],
-            resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+            resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
             completedResearch: { computing_architecture_t14: true },
           },
           alpha_centauri: {
             ...ac,
             researchQueue: [{ ...project2 }],
-            resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 5 },
+            resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 5 },
             completedResearch: { computing_architecture_t14: true },
           },
         },
@@ -201,7 +201,7 @@ describe("parallel research mechanics", () => {
 
       const singleSystemState = makeGameStateWithResearch({
         researchQueue: [{ ...project1 }],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 15 / 2 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 15 / 2 },
         completedResearch: {},
       });
 
@@ -227,7 +227,7 @@ describe("parallel research mechanics", () => {
 
       const state = makeGameStateWithResearch({
         researchQueue: [project],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 0 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 0 },
         completedResearch: {},
       });
 
@@ -254,7 +254,8 @@ describe("parallel research mechanics", () => {
         researchQueue: [project],
         resourceRates: {
           materialsPerSecond: 0,
-          energyPerSecond: 0,
+          materialsSupply: 0, materialsDemand: 0,
+          energySupply: 0, energyDemand: 0, energyNet: 0,
           computingPowerPerSecond: computingPower,
         },
         completedResearch: {},
@@ -281,13 +282,13 @@ describe("parallel research mechanics", () => {
 
       const baseState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
         completedResearch: {},
       });
 
       const boostedState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
         completedResearch: { computing_speed_t1: true },
       });
 
@@ -306,13 +307,13 @@ describe("parallel research mechanics", () => {
 
       const baseState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
         completedResearch: {},
       });
 
       const maxState = makeGameStateWithResearch({
         researchQueue: [{ ...project }],
-        resourceRates: { materialsPerSecond: 0, energyPerSecond: 0, computingPowerPerSecond: 10 },
+        resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 10 },
         completedResearch: { computing_speed_t1: true, computing_speed_t3: true },
       });
 
