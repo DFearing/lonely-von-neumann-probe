@@ -80,7 +80,7 @@ export function ProbeRow({
             letterSpacing: "0.04em",
           }}
         >
-          {probe.id}
+          {probe.name}
         </span>
         <span style={{ color: "#3d5572" }}>·</span>
         <span
@@ -200,7 +200,7 @@ export function TransitProbeRow({
             letterSpacing: "0.04em",
           }}
         >
-          {probe.id}
+          {probe.name}
         </span>
         <span style={{ color: "#3d5572" }}>·</span>
         <span

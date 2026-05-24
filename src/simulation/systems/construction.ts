@@ -10,11 +10,8 @@ import { PROPULSIONS } from "../data/components";
 import { KNOWN_SYSTEMS } from "../data/star-systems";
 import { getTechMultipliers } from "../tech-effects";
 
-const STRUCTURE_BUILD_TIME = 8;
-const PROBE_BUILD_TIME = 20;
-
 function buildTimeForProject(project: ConstructionProject): number {
-  return project.targetConfig === null ? STRUCTURE_BUILD_TIME : PROBE_BUILD_TIME;
+  return project.totalCost.materials;
 }
 
 function totalPrintSpeed(
@@ -72,6 +69,7 @@ function completeStructure(
     tier: def.tier,
     productionRate: def.productionRate,
     operatingCost: def.operatingCost,
+    maintenanceCost: def.maintenanceCost,
     active: true,
     constructionProgress: 1,
   };
@@ -128,6 +126,7 @@ function completeProbe(
 
   const probe: ProbeInTransit = {
     id: `${system.id}_probe_${tickCount}`,
+    name: `Probe-${tickCount}`,
     components: {
       cpu: config.cpu,
       propulsion: config.propulsion,
@@ -204,12 +203,17 @@ function tickSystemConstruction(
   let updatedSystem = system;
   const updatedQueue: ConstructionProject[] = [];
 
+  const probePrintSpeed = updatedSystem.mainProbe?.mode === "printing"
+    ? updatedSystem.mainProbe.internalPrinterSpeed
+    : 0;
+
   for (const project of updatedSystem.constructionQueue) {
-    const speed = totalPrintSpeed(
+    const structurePrintSpeed = totalPrintSpeed(
       project.assignedPrinterIds,
       updatedSystem.structures.printers,
       multipliers.manufacturingSpeedMultiplier,
     );
+    const speed = probePrintSpeed + structurePrintSpeed;
 
     if (speed <= 0) {
       updatedQueue.push(project);
@@ -265,10 +269,13 @@ function tickSystemConstruction(
     multipliers.printerNetworking,
   );
 
-  return {
-    system: { ...updatedSystem, constructionQueue: finalQueue },
-    log,
-  };
+  const finishedSystem = { ...updatedSystem, constructionQueue: finalQueue };
+
+  if (finalQueue.length === 0 && finishedSystem.mainProbe?.mode === "printing") {
+    finishedSystem.mainProbe = { ...finishedSystem.mainProbe, mode: "idle" };
+  }
+
+  return { system: finishedSystem, log };
 }
 
 export function tickConstruction(state: GameState, dt: number): GameState {

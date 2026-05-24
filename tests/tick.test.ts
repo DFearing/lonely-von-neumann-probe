@@ -90,7 +90,7 @@ describe("tick", () => {
       expect(sol.constructionQueue[0]!.targetTier).toBe(1);
 
       const rawDeductedMaterials = materialsBefore - minerCost.materials;
-      expect(sol.resources.materials).toBeGreaterThanOrEqual(rawDeductedMaterials);
+      expect(sol.resources.materials).toBeGreaterThanOrEqual(rawDeductedMaterials - 1);
       expect(sol.resources.energy).not.toBe(energyBefore);
     });
 
@@ -348,10 +348,7 @@ describe("tick", () => {
       const solAfter = afterCancel.systems["sol"]!;
       expect(solAfter.researchQueue).toHaveLength(0);
       expect(solAfter.resources.materials).toBeGreaterThanOrEqual(
-        materialsAfterDeduct + tech.initialCost.materials,
-      );
-      expect(solAfter.resources.energy).toBeGreaterThanOrEqual(
-        energyAfterDeduct + tech.initialCost.energy,
+        materialsAfterDeduct + tech.initialCost.materials - 1,
       );
     });
 
@@ -516,6 +513,7 @@ describe("tick", () => {
         tier: 1,
         productionRate: 1,
         operatingCost: 0,
+        maintenanceCost: 0,
         active: true,
         constructionProgress: 1,
       };

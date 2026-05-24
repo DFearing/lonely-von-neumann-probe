@@ -19,24 +19,21 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
         minHeight: 0,
       }}
     >
-      <ProbesColumn state={state} system={system} onNavigate={onNavigate} />
+      <ProbesColumn state={state} system={system} dispatch={dispatch} onNavigate={onNavigate} />
       <StructureColumn
         system={system}
         category="miners"
         dispatch={dispatch}
-        onNavigate={onNavigate}
       />
       <StructureColumn
         system={system}
         category="reactors"
         dispatch={dispatch}
-        onNavigate={onNavigate}
       />
       <StructureColumn
         system={system}
         category="printers"
         dispatch={dispatch}
-        onNavigate={onNavigate}
       />
     </div>
   );

@@ -45,38 +45,35 @@ interface ComponentVariant {
 }
 
 function buildCpuVariants(available: CpuDefinition[]): ComponentVariant[] {
-  const availableTypes = new Set(available.map((c) => c.type));
-  return Object.values(CPUS).map((c) => ({
+  return available.map((c) => ({
     id: c.type,
     name: c.name,
-    costLabel: `${fmt(c.cost.materials)} t · ${fmt(c.cost.energy)} MW`,
-    spec: `${c.computingOutput}× TF · ${c.miningOutput}× mine`,
+    costLabel: `${fmt(c.cost.materials)} tons · ${fmt(c.cost.energy)} MW`,
+    spec: `${c.computingOutput} TFLOPS · ${c.miningOutput} tons/year gather`,
     techGate: c.techGate,
-    unlocked: availableTypes.has(c.type),
+    unlocked: true,
   }));
 }
 
 function buildPropVariants(available: PropulsionDefinition[]): ComponentVariant[] {
-  const availableTypes = new Set(available.map((p) => p.type));
-  return Object.values(PROPULSIONS).map((p) => ({
+  return available.map((p) => ({
     id: p.type,
     name: p.name,
-    costLabel: `${fmt(p.cost.materials)} t · ${fmt(p.cost.energy)} MW`,
+    costLabel: `${fmt(p.cost.materials)} tons · ${fmt(p.cost.energy)} MW`,
     spec: `${p.travelSpeed}× speed`,
     techGate: p.techGate,
-    unlocked: availableTypes.has(p.type),
+    unlocked: true,
   }));
 }
 
 function buildReactorVariants(available: ReactorDefinition[]): ComponentVariant[] {
-  const availableTypes = new Set(available.map((r) => r.type));
-  return Object.values(REACTORS).map((r) => ({
+  return available.map((r) => ({
     id: r.type,
     name: r.name,
-    costLabel: `${fmt(r.cost.materials)} t · ${fmt(r.cost.energy)} MW`,
-    spec: `${r.energyMultiplier}× MW · ${r.operatingCostMultiplier}× op`,
+    costLabel: `${fmt(r.cost.materials)} tons · ${fmt(r.cost.energy)} MW`,
+    spec: `${r.energyMultiplier}× MW output`,
     techGate: r.techGate,
-    unlocked: availableTypes.has(r.type),
+    unlocked: true,
   }));
 }
 
@@ -241,7 +238,7 @@ function BuildColumn({
 
   const perfRows = [
     { k: "COMPUTE", v: `${cpu.computingOutput}× TF`, acc: "#b08bff" },
-    { k: "MINING", v: `${cpu.miningOutput}× t/s`, acc: "#5cc7ff" },
+    { k: "MINING", v: `${cpu.miningOutput}× tons/year`, acc: "#5cc7ff" },
     { k: "TRAVEL", v: `${propulsion.travelSpeed}× speed`, acc: "#5cc7ff" },
     { k: "ENERGY", v: `${reactor.energyMultiplier}× MW`, acc: "#ffcb47" },
   ];
@@ -303,7 +300,7 @@ function BuildColumn({
           marginBottom: 12,
         }}
       >
-        <SpecCard k="MATERIALS" v={`${fmt(cost.materials, { decimals: 0 })} t`} accent="#5cc7ff" />
+        <SpecCard k="MATERIALS" v={`${fmt(cost.materials, { decimals: 0 })} tons`} accent="#5cc7ff" />
         <SpecCard k="ENERGY" v={`${fmt(cost.energy, { decimals: 0 })} MW`} accent="#ffcb47" />
       </div>
 
@@ -434,9 +431,7 @@ export function BuildProbeModal({
   const [targetSystemId, setTargetSystemId] = useState(targetSystems[0]?.id ?? "");
 
   const cost = totalProbeCost(cpu, propulsion, reactor);
-  const canAfford =
-    system.resources.materials >= cost.materials &&
-    system.resources.energy >= cost.energy;
+  const canAfford = system.resources.materials >= cost.materials;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

@@ -17,6 +17,7 @@ function stateWithProbeInTransit(
 
   const probe: ProbeInTransit = {
     id: "test_probe_1",
+    name: "Test Probe",
     components: {
       cpu: "cpu_t1",
       propulsion: "prop_t1",
@@ -196,6 +197,7 @@ describe("tickNavigation", () => {
             sentProbes: [
               {
                 id: "arriving_probe",
+                name: "Arriving Probe",
                 components: {
                   cpu: "cpu_t1" as const,
                   propulsion: "prop_t1" as const,

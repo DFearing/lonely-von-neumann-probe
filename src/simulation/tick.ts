@@ -33,24 +33,20 @@ function updateSystem(
 
 function canAfford(
   system: SystemState,
-  cost: { materials: number; energy: number },
+  cost: { materials: number },
 ): boolean {
-  return (
-    system.resources.materials >= cost.materials &&
-    system.resources.energy >= cost.energy
-  );
+  return system.resources.materials >= cost.materials;
 }
 
 function deductResources(
   system: SystemState,
-  cost: { materials: number; energy: number },
+  cost: { materials: number },
 ): SystemState {
   return {
     ...system,
     resources: {
       ...system.resources,
       materials: system.resources.materials - cost.materials,
-      energy: system.resources.energy - cost.energy,
     },
   };
 }
@@ -84,6 +80,7 @@ function applyBuildStructure(
   const updated = deductResources(system, def.cost);
   return updateSystem(state, action.systemId, {
     ...updated,
+    mainProbe: updated.mainProbe ? { ...updated.mainProbe, mode: "printing" } : null,
     constructionQueue: [...updated.constructionQueue, project],
   });
 }
@@ -105,7 +102,6 @@ function applyCancelConstruction(
     resources: {
       ...system.resources,
       materials: system.resources.materials + project.remainingCost.materials,
-      energy: system.resources.energy + project.remainingCost.energy,
     },
     constructionQueue: system.constructionQueue.filter(
       (p) => p.id !== action.projectId,
@@ -238,7 +234,6 @@ function applyCancelResearch(
         ...system.resources,
         materials:
           system.resources.materials + project.initialCost.materials,
-        energy: system.resources.energy + project.initialCost.energy,
       },
     };
   }
@@ -276,6 +271,19 @@ function applyReorderResearch(
   });
 }
 
+function applySetProbeMode(
+  state: GameState,
+  action: Extract<PlayerAction, { type: "set_probe_mode" }>,
+): GameState {
+  const system = getSystem(state, action.systemId);
+  if (!system?.mainProbe) return state;
+
+  return updateSystem(state, action.systemId, {
+    ...system,
+    mainProbe: { ...system.mainProbe, mode: action.mode },
+  });
+}
+
 function applyAction(state: GameState, action: PlayerAction): GameState {
   switch (action.type) {
     case "build_structure":
@@ -292,6 +300,8 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       return applyCancelResearch(state, action);
     case "reorder_research":
       return applyReorderResearch(state, action);
+    case "set_probe_mode":
+      return applySetProbeMode(state, action);
     case "switch_system": {
       const sys = state.systems[action.systemId];
       return sys ? { ...state, currentSystemId: action.systemId } : state;

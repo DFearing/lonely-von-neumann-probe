@@ -1,11 +1,10 @@
 import type { GameState, LogEntry, SystemState } from "../state";
 import type { Rng } from "../rng";
 
-type EventType = "resource_cache" | "energy_surge" | "signal_detected" | "asteroid_impact";
+type EventType = "resource_cache" | "signal_detected" | "asteroid_impact";
 
 const EVENT_TYPES: readonly EventType[] = [
   "resource_cache",
-  "energy_surge",
   "signal_detected",
   "asteroid_impact",
 ];
@@ -32,23 +31,6 @@ function applyEvent(
         log: {
           tick: tickCount,
           message: `Resource cache discovered in ${system.name}: +${bonus} materials`,
-          category: "info",
-        },
-      };
-    }
-    case "energy_surge": {
-      const bonus = rng.nextInt(5, 25);
-      return {
-        system: {
-          ...system,
-          resources: {
-            ...system.resources,
-            energy: system.resources.energy + bonus,
-          },
-        },
-        log: {
-          tick: tickCount,
-          message: `Energy surge detected in ${system.name}: +${bonus} energy`,
           category: "info",
         },
       };

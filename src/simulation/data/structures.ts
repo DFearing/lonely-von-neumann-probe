@@ -8,6 +8,7 @@ export interface StructureDefinition {
   cost: { materials: number; energy: number };
   productionRate: number;
   operatingCost: number;
+  maintenanceCost: number;
   techGate: string | null;
   solarScaling: boolean;
 }
@@ -31,7 +32,7 @@ export const STRUCTURE_REACTOR_NAMES = [
 ];
 
 export const PRINTER_NAMES = [
-  "Basic 3D Printer",
+  "Basic Printer",
   "Enhanced Printer",
   "Nanoscale Printer",
   "Atomic Assembler",
@@ -55,11 +56,12 @@ function generateStructures(): Record<string, StructureDefinition> {
       tier,
       name: MINER_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(30 * 2.0 ** (tier - 1)),
-        energy: Math.round(10 * 2.0 ** (tier - 1)),
+        materials: Math.round(50 * 2.2 ** (tier - 1)),
+        energy: Math.round(10 * 2.2 ** (tier - 1)),
       },
-      productionRate: +(20 * (1 + 0.30 * (tier - 1))).toFixed(2),
-      operatingCost: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      productionRate: +(3 * (1 + 0.30 * (tier - 1))).toFixed(2),
+      operatingCost: +(0.5 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      maintenanceCost: +(0.15 * (1 + 0.15 * (tier - 1))).toFixed(3),
       techGate: structureTechGate("mining_types", tier),
       solarScaling: false,
     };
@@ -71,11 +73,12 @@ function generateStructures(): Record<string, StructureDefinition> {
       tier,
       name: STRUCTURE_REACTOR_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(10 * 2.0 ** (tier - 1)),
-        energy: Math.round(2 * 2.0 ** (tier - 1)),
+        materials: Math.round(30 * 2.2 ** (tier - 1)),
+        energy: Math.round(5 * 2.2 ** (tier - 1)),
       },
-      productionRate: +(10 * (1 + 0.30 * (tier - 1))).toFixed(2),
-      operatingCost: +(1 * (1 + 0.08 * (tier - 1))).toFixed(2),
+      productionRate: +(3 * (1 + 0.30 * (tier - 1))).toFixed(2),
+      operatingCost: 0,
+      maintenanceCost: +(0.08 * (1 + 0.15 * (tier - 1))).toFixed(3),
       techGate: structureTechGate("energy_types", tier),
       solarScaling: SOLAR_REACTOR_TIERS.has(tier),
     };
@@ -87,11 +90,12 @@ function generateStructures(): Record<string, StructureDefinition> {
       tier,
       name: PRINTER_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(30 * 2.0 ** (tier - 1)),
-        energy: Math.round(10 * 2.0 ** (tier - 1)),
+        materials: Math.round(80 * 2.2 ** (tier - 1)),
+        energy: Math.round(15 * 2.2 ** (tier - 1)),
       },
-      productionRate: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      productionRate: +(0.8 * (1 + 0.12 * (tier - 1))).toFixed(2),
       operatingCost: +(0.5 * (1 + 0.10 * (tier - 1))).toFixed(2),
+      maintenanceCost: +(0.2 * (1 + 0.15 * (tier - 1))).toFixed(3),
       techGate: structureTechGate("manufacturing_types", tier),
       solarScaling: false,
     };

@@ -137,9 +137,9 @@ describe("getAvailableComponents", () => {
     expect(reactors[0]!.type).toBe("rct_t1");
   });
 
-  test("unlocks tier-2 CPU when probe_cpu_t2 is completed", () => {
+  test("unlocks tier-2 CPU when probe_cpu_t4 is completed", () => {
     const system = solSystem({
-      completedResearch: { probe_cpu_t2: true },
+      completedResearch: { probe_cpu_t4: true },
     });
     const { cpus } = getAvailableComponents(system);
 
@@ -148,9 +148,9 @@ describe("getAvailableComponents", () => {
     expect(cpuTypes).toContain("cpu_t2");
   });
 
-  test("unlocks tier-2 propulsion when probe_propulsion_t2 is completed", () => {
+  test("unlocks tier-2 propulsion when probe_propulsion_t4 is completed", () => {
     const system = solSystem({
-      completedResearch: { probe_propulsion_t2: true },
+      completedResearch: { probe_propulsion_t4: true },
     });
     const { propulsions } = getAvailableComponents(system);
 
@@ -159,9 +159,9 @@ describe("getAvailableComponents", () => {
     expect(propTypes).toContain("prop_t2");
   });
 
-  test("unlocks rct_t2 reactor component when probe_reactors_t2 is completed", () => {
+  test("unlocks rct_t2 reactor component when probe_reactors_t4 is completed", () => {
     const system = solSystem({
-      completedResearch: { probe_reactors_t2: true },
+      completedResearch: { probe_reactors_t4: true },
     });
     const { reactors } = getAvailableComponents(system);
 

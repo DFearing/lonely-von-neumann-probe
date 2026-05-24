@@ -162,7 +162,11 @@ export function TechDetail({
           lineHeight: 1.4,
         }}
       >
-        {tech.effects.join("; ")}
+        {(tech.effects.length > 1 ? tech.effects.slice(1) : tech.effects).map((effect, i) => (
+          <div key={i} style={i > 0 ? { marginTop: 4 } : undefined}>
+            {effect}
+          </div>
+        ))}
       </div>
 
       <div

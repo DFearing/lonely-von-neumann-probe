@@ -9,6 +9,7 @@ function makeStructure(overrides: Partial<StructureInstance> & Pick<StructureIns
     tier: 1,
     productionRate: 10,
     operatingCost: 0,
+    maintenanceCost: 0,
     active: true,
     constructionProgress: 1,
     ...overrides,
@@ -44,32 +45,51 @@ describe("tickResources", () => {
   });
 
   test("accumulates materials over time using dt", () => {
-    const state = stateWithSystem({ resources: { materials: 100, energy: 100, computingPower: 0 } });
+    const base = createInitialState(42);
+    const sol = base.systems["sol"]!;
+    const state = stateWithSystem({
+      resources: { materials: 100, energy: 0, computingPower: 0 },
+      mainProbe: { ...sol.mainProbe!, mode: "gathering" },
+    });
     const next = tickResources(state, 2);
-    const sol = next.systems["sol"]!;
-    expect(sol.resources.materials).toBe(100 + 5 * 2);
+    const nextSol = next.systems["sol"]!;
+    expect(nextSol.resources.materials).toBeCloseTo(100 + 0.9 * 2);
   });
 
-  test("clamps resources to minimum 0", () => {
+  test("materials never go below 0", () => {
     const state = stateWithSystem({
-      resources: { materials: 0, energy: 1, computingPower: 0 },
+      resources: { materials: 0, energy: 0, computingPower: 0 },
+      mainProbe: null,
+      structures: { miners: [], reactors: [], printers: [] },
+    });
+    const next = tickResources(state, 10);
+    const sol = next.systems["sol"]!;
+    expect(sol.resources.materials).toBe(0);
+  });
+
+  test("energy reflects net supply/demand, can be negative", () => {
+    const state = stateWithSystem({
       structures: {
         miners: [makeStructure({ type: "miner", operatingCost: 100 })],
         reactors: [],
         printers: [],
       },
     });
-    const next = tickResources(state, 10);
+    const next = tickResources(state, 1);
     const sol = next.systems["sol"]!;
-    expect(sol.resources.energy).toBe(0);
+    expect(sol.resources.energy).toBeLessThan(0);
   });
 
   test("updates resourceRates on the system", () => {
-    const state = createInitialState(42);
+    const base = createInitialState(42);
+    const sol = base.systems["sol"]!;
+    const state = stateWithSystem({
+      mainProbe: { ...sol.mainProbe!, mode: "gathering" },
+    });
     const next = tickResources(state, 1);
-    const sol = next.systems["sol"]!;
-    expect(sol.resourceRates.materialsPerSecond).toBe(5);
-    expect(sol.resourceRates.computingPowerPerSecond).toBe(1);
+    const nextSol = next.systems["sol"]!;
+    expect(nextSol.resourceRates.materialsPerSecond).toBeCloseTo(0.9);
+    expect(nextSol.resourceRates.computingPowerPerSecond).toBe(1);
   });
 
   test("ticks all systems independently", () => {
@@ -90,11 +110,10 @@ describe("tickResources", () => {
     expect(next.paused).toBe(state.paused);
   });
 
-  test("dt of 0 produces no change in resources", () => {
+  test("dt of 0 produces no change in materials", () => {
     const state = createInitialState(42);
     const next = tickResources(state, 0);
     const sol = next.systems["sol"]!;
     expect(sol.resources.materials).toBe(state.systems["sol"]!.resources.materials);
-    expect(sol.resources.energy).toBe(state.systems["sol"]!.resources.energy);
   });
 });

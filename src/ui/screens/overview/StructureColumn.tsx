@@ -1,10 +1,10 @@
-import type { SystemState, StructureType } from "../../../simulation/state";
+import { useState } from "react";
+import type { SystemState, StructureInstance, StructureType } from "../../../simulation/state";
+import type { ResourceRates } from "../../../simulation/rates";
 import type { PlayerAction } from "../../../simulation/actions";
-import type { ViewId } from "../../shell/Sidebar";
 import { STRUCTURES } from "../../../simulation/data/structures";
 import type { StructureDefinition } from "../../../simulation/data/structures";
-import { getAvailableStructures, getTechStatus } from "../../../simulation/queries";
-import { TECH_TREE, techsInBranch } from "../../../simulation/data/tech-tree";
+import { getAvailableStructures } from "../../../simulation/queries";
 import { calculateRates } from "../../../simulation/rates";
 import { Panel } from "../../components/Panel";
 import { HeaderAddButton } from "./HeaderAddButton";
@@ -19,7 +19,6 @@ interface CategoryConfig {
   accent: string;
   icon: string;
   description: string;
-  techBranch: string;
   formatSummaryRate: (rate: number) => string;
 }
 
@@ -30,8 +29,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#5cc7ff",
     icon: "⛏",
     description: "Extract Materials",
-    techBranch: "mining_types",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} t/s`,
+    formatSummaryRate: (rate) => `+${rate.toFixed(1)} tons/year`,
   },
   reactors: {
     structureType: "reactor",
@@ -39,7 +37,6 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#ffcb47",
     icon: "⚡",
     description: "Generate Energy",
-    techBranch: "energy_types",
     formatSummaryRate: (rate) => `+${rate.toFixed(1)} MW/s`,
   },
   printers: {
@@ -48,42 +45,9 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#4cd8a8",
     icon: "⊟",
     description: "Build structures & probes",
-    techBranch: "manufacturing_types",
-    formatSummaryRate: (rate) => `${rate.toFixed(1)}× speed`,
+    formatSummaryRate: (rate) => `${rate.toFixed(1)} BP`,
   },
 };
-
-function getNextUpgradeTech(
-  system: SystemState,
-  branchId: string,
-): { name: string; status: string; effect: string } | null {
-  const techs = techsInBranch(branchId);
-  for (const tech of techs) {
-    const status = getTechStatus(system, tech.id);
-    if (status === "in_progress") {
-      return {
-        name: tech.name,
-        status: "researching",
-        effect: tech.effects[0] ?? "",
-      };
-    }
-    if (status === "available") {
-      return {
-        name: tech.name,
-        status: "available",
-        effect: tech.effects[0] ?? "",
-      };
-    }
-    if (status === "locked") {
-      return {
-        name: tech.name,
-        status: "locked",
-        effect: tech.effects[0] ?? "",
-      };
-    }
-  }
-  return null;
-}
 
 function computeSummaryRate(
   system: SystemState,
@@ -94,7 +58,7 @@ function computeSummaryRate(
     case "miners":
       return rates.materialsPerSecond;
     case "reactors":
-      return rates.energyPerSecond;
+      return rates.energyNet;
     case "printers": {
       let total = 0;
       for (const p of system.structures.printers) {
@@ -115,29 +79,454 @@ function formatVariantSpec(
   category: CategoryId,
 ): string {
   if (category === "miners") {
-    return `+${def.productionRate.toFixed(1)} t/s`;
+    return `+${def.productionRate.toFixed(1)} tons/year`;
   }
   if (category === "reactors") {
     const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} MW op` : "";
     return `+${def.productionRate} MW/s${opCost}`;
   }
-  return `${def.productionRate.toFixed(1)}× speed`;
+  return `${def.productionRate.toFixed(1)} BP`;
 }
 
-function formatVariantCost(def: StructureDefinition): string {
-  return `${fmt(def.cost.materials)} t · ${fmt(def.cost.energy)} MW`;
+function simulateWithStructure(
+  system: SystemState,
+  def: StructureDefinition,
+): ResourceRates {
+  const fakeStructure: StructureInstance = {
+    id: "_preview",
+    type: def.type,
+    tier: def.tier,
+    productionRate: def.productionRate,
+    operatingCost: def.operatingCost,
+    maintenanceCost: def.maintenanceCost,
+    active: true,
+    constructionProgress: 1,
+  };
+  const key = `${def.type}s` as keyof typeof system.structures;
+  const preview: SystemState = {
+    ...system,
+    structures: {
+      ...system.structures,
+      [key]: [...system.structures[key], fakeStructure],
+    },
+  };
+  return calculateRates(preview);
+}
+
+function DeltaRow({
+  label,
+  before,
+  after,
+  unit,
+  accent,
+}: {
+  label: string;
+  before: number;
+  after: number;
+  unit: string;
+  accent: string;
+}) {
+  const delta = after - before;
+  const sign = delta >= 0 ? "+" : "";
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        fontFamily: FONT_MONO,
+        fontSize: 10,
+      }}
+    >
+      <span style={{ color: "#6b87a3" }}>{label}</span>
+      <span>
+        <span style={{ color: "#6b87a3" }}>{before.toFixed(1)}</span>
+        <span style={{ color: "#3d5572" }}> → </span>
+        <span style={{ color: "#d6e8f5" }}>{after.toFixed(1)} {unit}</span>
+        <span style={{ color: delta >= 0 ? accent : "#ff6b6b", marginLeft: 8 }}>
+          {sign}{delta.toFixed(1)}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function ConsumeBar({
+  label,
+  cost,
+  available,
+  ok,
+}: {
+  label: string;
+  cost: number;
+  available: number;
+  ok: boolean;
+}) {
+  const pct = Math.min(100, available > 0 ? (cost / available) * 100 : 100);
+  const color = ok ? "#4cd8a8" : "#ff9966";
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+        <span style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.18em", color: "#6b87a3" }}>{label}</span>
+        <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#9ab4cf" }}>
+          <span style={{ color }}>{fmt(cost)}</span>
+          <span style={{ color: "#3d5572" }}> / </span>
+          <span>{fmt(Math.floor(available))}</span>
+        </span>
+      </div>
+      <div style={{ position: "relative", height: 4, background: "rgba(110,200,255,0.06)" }}>
+        <div
+          style={{
+            position: "absolute",
+            inset: "0 auto 0 0",
+            width: `${pct}%`,
+            background: color,
+            opacity: 0.85,
+            boxShadow: ok ? `0 0 6px ${color}40` : "none",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ affordable }: { affordable: boolean }) {
+  const label = affordable ? "READY" : "INSUFFICIENT";
+  const color = affordable ? "#4cd8a8" : "#ff9966";
+  return (
+    <span
+      style={{
+        fontFamily: FONT_MONO,
+        fontSize: 9,
+        letterSpacing: "0.16em",
+        color,
+        padding: "2px 8px",
+        border: `1px solid ${color}55`,
+        background: `${color}10`,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function BuildStructureModal({
+  system,
+  category,
+  config,
+  allDefs,
+  availableForType,
+  dispatch,
+  onClose,
+}: {
+  system: SystemState;
+  category: CategoryId;
+  config: CategoryConfig;
+  allDefs: StructureDefinition[];
+  availableForType: StructureDefinition[];
+  dispatch: (action: PlayerAction) => void;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState(availableForType[0]?.tier ?? 1);
+  const selectedDef = allDefs.find((d) => d.tier === selected);
+  const currentRates = calculateRates(system);
+  const currentBP = computeSummaryRate(system, "printers");
+
+  const selAffordable = selectedDef
+    ? system.resources.materials >= selectedDef.cost.materials
+    : false;
+  const canBuild = selAffordable;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        background: "rgba(2,6,14,0.72)",
+        backdropFilter: "blur(2px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 32,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(600px, 100%)",
+          maxHeight: "85vh",
+          background: "linear-gradient(180deg, rgba(13,24,46,0.85) 0%, rgba(8,16,30,0.85) 100%)",
+          border: `1px solid ${config.accent}22`,
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+        }}
+      >
+        {/* Corner ticks */}
+        {(["tl", "tr", "bl", "br"] as const).map((c) => {
+          const base = { position: "absolute" as const, width: 10, height: 10 };
+          const pos = {
+            tl: { top: 0, left: 0, borderTop: `2px solid ${config.accent}`, borderLeft: `2px solid ${config.accent}` },
+            tr: { top: 0, right: 0, borderTop: `2px solid ${config.accent}`, borderRight: `2px solid ${config.accent}` },
+            bl: { bottom: 0, left: 0, borderBottom: `2px solid ${config.accent}`, borderLeft: `2px solid ${config.accent}` },
+            br: { bottom: 0, right: 0, borderBottom: `2px solid ${config.accent}`, borderRight: `2px solid ${config.accent}` },
+          }[c];
+          return <div key={c} style={{ ...base, ...pos }} />;
+        })}
+
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 18px 12px",
+            borderBottom: `1px solid ${config.accent}1a`,
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+            <span style={{ color: config.accent, fontSize: 14, textShadow: `0 0 8px ${config.accent}80` }}>
+              {config.icon}
+            </span>
+            <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.22em", color: config.accent }}>
+              BUILD {config.label.slice(0, -1).toUpperCase()}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              letterSpacing: "0.18em",
+              color: "#9ab4cf",
+              background: "transparent",
+              border: "1px solid #3d557280",
+              padding: "4px 10px",
+              borderRadius: 2,
+              cursor: "pointer",
+            }}
+          >
+            ESC
+          </button>
+        </div>
+
+        {/* Resources strip */}
+        <div
+          style={{
+            padding: "10px 18px",
+            display: "flex",
+            alignItems: "center",
+            gap: 18,
+            borderBottom: `1px dashed ${config.accent}14`,
+            fontFamily: FONT_MONO,
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontSize: 9, letterSpacing: "0.18em", color: "#6b87a3" }}>READY</span>
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }}>
+            <span style={{ fontSize: 9, letterSpacing: "0.16em", color: "#6b87a3" }}>NANO MAT</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#5cc7ff" }}>{fmt(Math.floor(system.resources.materials))}</span>
+            <span style={{ fontSize: 9, color: "#6b87a3" }}>tons</span>
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 9, letterSpacing: "0.18em", color: "#6b87a3" }}>
+            {availableForType.filter((d) => system.resources.materials >= d.cost.materials).length} / {availableForType.length} BUILDABLE
+          </span>
+        </div>
+
+        {/* Rows */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
+          {allDefs.filter((d) => availableForType.some((a) => a.type === d.type && a.tier === d.tier)).map((def) => {
+            const affordable = system.resources.materials >= def.cost.materials;
+            const isSelected = def.tier === selected;
+            const afterRates = simulateWithStructure(system, def);
+
+            return (
+              <div
+                key={`${def.type}_${def.tier}`}
+                onClick={() => setSelected(def.tier)}
+                style={{
+                  padding: "12px 18px",
+                  background: isSelected ? `${config.accent}0a` : "transparent",
+                  borderLeft: isSelected ? `2px solid ${config.accent}` : "2px solid transparent",
+                  cursor: "pointer",
+                  transition: "background .12s, border-color .12s",
+                }}
+              >
+                {/* Name + status */}
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "inline-flex", alignItems: "baseline", gap: 10 }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#d6e8f5" }}>
+                      {def.name}
+                    </span>
+                    <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: config.accent }}>
+                      {formatVariantSpec(def, category)}
+                    </span>
+                  </div>
+                  <StatusBadge affordable={affordable} />
+                </div>
+
+                {/* Consumption bar */}
+                <div style={{ marginBottom: 8 }}>
+                  <ConsumeBar
+                    label="NANO MATERIAL"
+                    cost={def.cost.materials}
+                    available={system.resources.materials}
+                    ok={affordable}
+                  />
+                </div>
+
+                {/* Stats row */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr",
+                    fontFamily: FONT_MONO,
+                    fontSize: 10,
+                    borderTop: `1px dashed ${config.accent}10`,
+                    paddingTop: 8,
+                  }}
+                >
+                  <span>
+                    <span style={{ color: "#6b87a3", letterSpacing: "0.16em" }}>BUILD </span>
+                    <span style={{ color: "#b08bff" }}>
+                      {currentBP > 0 ? fmtTime(def.cost.materials / currentBP) : "—"}
+                    </span>
+                  </span>
+                  <span>
+                    <span style={{ color: "#6b87a3", letterSpacing: "0.16em" }}>BP·S </span>
+                    <span style={{ color: "#9ab4cf" }}>{fmt(def.cost.materials)}</span>
+                  </span>
+                  <span>
+                    <span style={{ color: "#6b87a3", letterSpacing: "0.16em" }}>DRAW </span>
+                    <span style={{ color: def.operatingCost > 0 ? "#ff9966" : "#6b87a3" }}>
+                      {def.operatingCost > 0 ? `${def.operatingCost.toFixed(1)} MW` : "none"}
+                    </span>
+                  </span>
+                </div>
+
+                {/* Delta block when selected */}
+                {isSelected && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      padding: "10px 12px",
+                      background: `${config.accent}08`,
+                      border: `1px solid ${config.accent}24`,
+                    }}
+                  >
+                    <div style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.22em", color: "#6b87a3", marginBottom: 8 }}>
+                      AFTER CONSTRUCTION
+                    </div>
+                    {category === "miners" && (
+                      <DeltaRow
+                        label="Nano Material"
+                        before={currentRates.materialsPerSecond}
+                        after={afterRates.materialsPerSecond}
+                        unit="tons/year"
+                        accent={config.accent}
+                      />
+                    )}
+                    {category === "reactors" && (
+                      <DeltaRow
+                        label="Energy supply"
+                        before={currentRates.energySupply}
+                        after={afterRates.energySupply}
+                        unit="MW"
+                        accent={config.accent}
+                      />
+                    )}
+                    {category === "printers" && (
+                      <DeltaRow
+                        label="Build power"
+                        before={computeSummaryRate(system, "printers")}
+                        after={computeSummaryRate(system, "printers") + def.productionRate}
+                        unit="BP"
+                        accent={config.accent}
+                      />
+                    )}
+                    {def.operatingCost > 0 && (
+                      <DeltaRow
+                        label="Energy demand"
+                        before={currentRates.energyDemand}
+                        after={afterRates.energyDemand}
+                        unit="MW"
+                        accent="#ff9966"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer CTA */}
+        {selectedDef && (
+          <div
+            style={{
+              padding: "14px 18px",
+              borderTop: `1px solid ${config.accent}1a`,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <div style={{ flex: 1, fontFamily: FONT_MONO, fontSize: 11, color: "#9ab4cf" }}>
+              <span style={{ color: "#6b87a3" }}>SELECTED · </span>
+              <span style={{ color: "#d6e8f5" }}>{selectedDef.name}</span>
+              <span style={{ color: "#3d5572" }}> · </span>
+              <span style={{ color: canBuild ? "#4cd8a8" : "#ff9966" }}>
+                {canBuild ? `${fmt(selectedDef.cost.materials)} tons` : "INSUFFICIENT"}
+              </span>
+            </div>
+            <button
+              disabled={!canBuild}
+              onClick={() => {
+                if (!canBuild || !selectedDef) return;
+                dispatch({
+                  type: "build_structure",
+                  systemId: system.id,
+                  structureType: config.structureType,
+                  tier: selectedDef.tier,
+                });
+                onClose();
+              }}
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                letterSpacing: "0.18em",
+                padding: "10px 22px",
+                background: canBuild ? `${config.accent}18` : "transparent",
+                border: `1px solid ${canBuild ? `${config.accent}99` : `${config.accent}44`}`,
+                color: canBuild ? config.accent : "#6b87a3",
+                opacity: canBuild ? 1 : 0.7,
+                borderRadius: 2,
+                cursor: canBuild ? "pointer" : "not-allowed",
+                boxShadow: canBuild ? `0 0 12px ${config.accent}30` : "none",
+              }}
+            >
+              CONSTRUCT →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function StructureColumn({
   system,
   category,
   dispatch,
-  onNavigate,
 }: {
   system: SystemState;
   category: CategoryId;
   dispatch: (action: PlayerAction) => void;
-  onNavigate: (view: ViewId) => void;
 }) {
   const config = CATEGORY_CONFIGS[category];
   const instances = system.structures[category];
@@ -154,20 +543,7 @@ export function StructureColumn({
     (c) => c.targetType === config.structureType,
   );
 
-  const upgrade = getNextUpgradeTech(system, config.techBranch);
-
-  const handleBuild = () => {
-    const firstAvailable = allDefs.find((d) =>
-      availableForType.some((a) => a.type === d.type && a.tier === d.tier),
-    );
-    if (!firstAvailable) return;
-    dispatch({
-      type: "build_structure",
-      systemId: system.id,
-      structureType: config.structureType,
-      tier: firstAvailable.tier,
-    });
-  };
+  const [showBuild, setShowBuild] = useState(false);
 
   return (
     <Panel
@@ -190,7 +566,7 @@ export function StructureColumn({
           <span>{config.label}</span>
         </span>
       }
-      right={<HeaderAddButton accent={config.accent} onClick={handleBuild} />}
+      right={<HeaderAddButton accent={config.accent} onClick={() => setShowBuild(!showBuild)} />}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -217,6 +593,24 @@ export function StructureColumn({
         >
           {completed.length} OWNED &middot; {config.formatSummaryRate(summaryRate)}
         </div>
+        {(category === "miners" || category === "printers") && (() => {
+          let draw = 0;
+          for (const s of instances) {
+            if (s.active) draw += s.operatingCost;
+          }
+          return draw > 0 ? (
+            <div
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 10,
+                color: "#ffcb47",
+                marginTop: 4,
+              }}
+            >
+              ⚡ {draw.toFixed(1)} MW draw
+            </div>
+          ) : null;
+        })()}
         <div
           style={{
             fontFamily: FONT_MONO,
@@ -227,34 +621,20 @@ export function StructureColumn({
         >
           {config.description}
         </div>
-        {upgrade && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              marginTop: 8,
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-            }}
-          >
-            <span
-              style={{
-                width: 5,
-                height: 5,
-                background:
-                  upgrade.status === "researching" ? "#b08bff" : "#3d5572",
-                boxShadow:
-                  upgrade.status === "researching"
-                    ? "0 0 4px #b08bff"
-                    : "none",
-              }}
-            />
-            <span style={{ color: "#9ab4cf" }}>{upgrade.name}</span>
-            <span style={{ color: "#4cd8a8" }}>{upgrade.effect}</span>
-          </div>
-        )}
       </div>
+
+      {/* Build modal */}
+      {showBuild && (
+        <BuildStructureModal
+          system={system}
+          category={category}
+          config={config}
+          allDefs={allDefs}
+          availableForType={availableForType}
+          dispatch={dispatch}
+          onClose={() => setShowBuild(false)}
+        />
+      )}
 
       {/* Building now */}
       {building.length > 0 && (
@@ -280,8 +660,21 @@ export function StructureColumn({
             const pct = Math.min(100, q.progress * 100);
             const tierDef = allDefs.find((d) => d.tier === q.targetTier);
             const label = tierDef ? tierDef.name : config.structureType;
-            const totalBuildTime = q.totalCost.materials + q.totalCost.energy;
-            const remaining = Math.max(0, totalBuildTime * (1 - q.progress));
+            const probePrint = system.mainProbe?.mode === "printing"
+              ? system.mainProbe.internalPrinterSpeed
+              : 0;
+            let assignedSpeed = 0;
+            for (const pid of q.assignedPrinterIds) {
+              const p = system.structures.printers.find(
+                (s) => s.id === pid && s.active && s.constructionProgress >= 1,
+              );
+              if (p) assignedSpeed += p.productionRate;
+            }
+            const totalSpeed = probePrint + assignedSpeed;
+            const buildTime = q.totalCost.materials;
+            const remaining = totalSpeed > 0
+              ? Math.max(0, buildTime * (1 - q.progress) / totalSpeed)
+              : Infinity;
             return (
               <div key={q.id} style={{ marginBottom: 4 }}>
                 <div
@@ -342,7 +735,7 @@ export function StructureColumn({
         </div>
       )}
 
-      {/* Variant cards */}
+      {/* Owned structures */}
       <div
         style={{
           display: "flex",
@@ -353,20 +746,16 @@ export function StructureColumn({
           overflow: "auto",
         }}
       >
-        {allDefs.map((def) => {
-          const unlocked = availableForType.some(
-            (a) => a.type === def.type && a.tier === def.tier,
-          );
-          const locked = !unlocked;
+        {completed.map((inst) => {
+          const def = allDefs.find((d) => d.tier === inst.tier);
+          if (!def) return null;
           return (
             <div
-              key={`${def.type}_${def.tier}`}
+              key={inst.id}
               style={{
                 padding: "8px 10px",
-                background: locked ? "transparent" : `${config.accent}06`,
-                border: `1px solid ${locked ? "rgba(110,200,255,0.08)" : `${config.accent}30`}`,
-                opacity: locked ? 0.6 : 1,
-                transition: "background .15s, border-color .15s",
+                background: `${config.accent}06`,
+                border: `1px solid ${config.accent}30`,
               }}
             >
               <div
@@ -382,63 +771,34 @@ export function StructureColumn({
                 >
                   {def.name}
                 </span>
-                {locked && (
-                  <span
-                    style={{
-                      fontFamily: FONT_MONO,
-                      fontSize: 8,
-                      color: "#3d5572",
-                      letterSpacing: "0.14em",
-                    }}
-                  >
-                    &#9676; LOCKED
-                  </span>
-                )}
+                <span
+                  style={{
+                    fontFamily: FONT_MONO,
+                    fontSize: 8,
+                    color: inst.active ? "#4cd8a8" : "#6b87a3",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  {inst.active ? "● ACTIVE" : "○ IDLE"}
+                </span>
               </div>
               <div
                 style={{
                   display: "flex",
-                  alignItems: "baseline",
                   justifyContent: "space-between",
+                  fontFamily: FONT_MONO,
+                  fontSize: 10,
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: 10,
-                    color: config.accent,
-                  }}
-                >
+                <span style={{ color: config.accent }}>
                   {formatVariantSpec(def, category)}
                 </span>
-                <span
-                  style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: 9,
-                    color: "#6b87a3",
-                  }}
-                >
-                  {formatVariantCost(def)}
-                </span>
-              </div>
-              {locked && def.techGate && (
-                <div
-                  style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: 9,
-                    color: "#6b87a3",
-                    marginTop: 4,
-                  }}
-                >
-                  tech:{" "}
-                  <span
-                    style={{ color: "#9ab4cf", cursor: "pointer" }}
-                    onClick={() => onNavigate("research")}
-                  >
-                    {TECH_TREE[def.techGate]?.name ?? def.techGate.replace(/_/g, " ")}
+                {inst.operatingCost > 0 && (
+                  <span style={{ color: "#ffcb47" }}>
+                    ⚡ {inst.operatingCost.toFixed(1)} MW
                   </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           );
         })}
