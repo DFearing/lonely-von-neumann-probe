@@ -114,15 +114,6 @@ function generateStructures(): Record<string, StructureDefinition> {
     };
   }
 
-  const stationTechGates = [
-    "computing_architecture_t7",
-    "computing_architecture_t10",
-    "computing_architecture_t13",
-    "computing_architecture_t16",
-    "computing_architecture_t19",
-    "computing_architecture_t20",
-  ];
-
   for (let tier = 1; tier <= MAX_STRUCTURE_TIER; tier++) {
     structures[`station_${tier}`] = {
       type: "station",
@@ -136,7 +127,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       operatingCost: +(1.0 * Math.pow(1.20, tier - 1)).toFixed(2),
       maintenanceCost: +(0.08 * (1 + 0.15 * (tier - 1))).toFixed(3),
       computeDemand: 0,
-      techGate: stationTechGates[tier - 1]!,
+      techGate: tier === 1 ? "station_types_t1" : structureTechGate("station_types", tier),
       solarScaling: false,
     };
   }

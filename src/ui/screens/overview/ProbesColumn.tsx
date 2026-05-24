@@ -1,24 +1,16 @@
+import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faRocket, faCircleHalfStroke, faPause, faGem, faIndustry, faCompass, faChevronDown, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import type { GameState, ProbeMode, SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import type { ViewId } from "../../shell/Sidebar";
-import { CPUS, PROPULSIONS, REACTORS } from "../../../simulation/data/components";
+import { CPUS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { fmtTime, fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
 const ACCENT = "#4ddbff";
-
-function componentNames(components: {
-  cpu: string;
-  propulsion: string;
-  reactor: string;
-}): string {
-  const cpuName = CPUS[components.cpu]?.name ?? components.cpu;
-  const propName = PROPULSIONS[components.propulsion]?.name ?? components.propulsion;
-  const reactorName = REACTORS[components.reactor]?.name ?? components.reactor;
-  return `${cpuName} · ${propName} · ${reactorName}`;
-}
 
 interface FleetProbe {
   id: string;
@@ -27,9 +19,11 @@ interface FleetProbe {
   systemId: string | null;
   status: "station-keeping" | "in-transit";
   location: string;
-  components: string;
   dotColor: string;
   etaYrs: number | null;
+  miningOutput: number;
+  computingOutput: number;
+  printerSpeed: number;
 }
 
 function gatherFleet(state: GameState): FleetProbe[] {
@@ -44,9 +38,11 @@ function gatherFleet(state: GameState): FleetProbe[] {
         systemId: sys.id,
         status: "station-keeping",
         location: sys.name,
-        components: componentNames(sys.mainProbe.components),
         dotColor: "#4cd8a8",
         etaYrs: null,
+        miningOutput: sys.mainProbe.miningOutput,
+        computingOutput: sys.mainProbe.computingOutput,
+        printerSpeed: sys.mainProbe.internalPrinterSpeed,
       });
     }
   }
@@ -57,6 +53,7 @@ function gatherFleet(state: GameState): FleetProbe[] {
       const destName = destSystem ? destSystem.name : p.destinationSystemId;
       const remainingSec = Math.max(0, p.travelTimeSeconds - p.elapsedSeconds);
       const remainingYrs = remainingSec > 0 ? remainingSec : null;
+      const cpuDef = CPUS[p.components.cpu];
       fleet.push({
         id: p.id,
         name: p.name,
@@ -64,9 +61,11 @@ function gatherFleet(state: GameState): FleetProbe[] {
         systemId: null,
         status: "in-transit",
         location: `→ ${destName}`,
-        components: componentNames(p.components),
         dotColor: ACCENT,
         etaYrs: remainingYrs,
+        miningOutput: cpuDef?.miningOutput ?? 0,
+        computingOutput: cpuDef?.computingOutput ?? 0,
+        printerSpeed: cpuDef?.printSpeed ?? 0,
       });
     }
   }
@@ -74,36 +73,114 @@ function gatherFleet(state: GameState): FleetProbe[] {
   return fleet;
 }
 
-function ProbeActionButton({
-  label,
-  accent,
-  disabled,
-  onClick,
+
+const ACTION_OPTIONS = [
+  { mode: "gathering" as ProbeMode, label: "GATHER", icon: faGem, accent: "#5cc7ff" },
+  { mode: "printing" as ProbeMode, label: "PRINT", icon: faIndustry, accent: "#4cd8a8" },
+  { mode: null, label: "EXPLORE", icon: faCompass, accent: "#6b87a3" },
+] as const;
+
+function ProbeActions({
+  mode,
+  onSetMode,
 }: {
-  label: string;
-  accent: string;
-  disabled?: boolean;
-  onClick: () => void;
+  mode: ProbeMode | null;
+  onSetMode: (mode: ProbeMode) => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isActive = mode !== null && mode !== "idle";
+
   return (
-    <button
-      disabled={disabled}
-      onClick={onClick}
-      style={{
-        flex: 1,
-        padding: "6px 0",
-        background: disabled ? "transparent" : `${accent}14`,
-        border: `1px solid ${disabled ? "rgba(110,200,255,0.12)" : `${accent}50`}`,
-        color: disabled ? "#3d5572" : accent,
-        fontFamily: FONT_MONO,
-        fontSize: 9,
-        letterSpacing: "0.18em",
-        cursor: disabled ? "not-allowed" : "pointer",
-        borderRadius: 2,
-      }}
-    >
-      {label}
-    </button>
+    <div style={{ display: "flex", gap: 6, marginTop: 8, position: "relative" }}>
+      <div style={{ flex: 1, position: "relative" }}>
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          style={{
+            width: "100%",
+            padding: "6px 0",
+            background: "rgba(77,219,255,0.08)",
+            border: "1px solid rgba(77,219,255,0.30)",
+            color: "#9ab4cf",
+            fontFamily: FONT_MONO,
+            fontSize: 9,
+            letterSpacing: "0.18em",
+            cursor: "pointer",
+            borderRadius: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+          }}
+        >
+          ACTION <FontAwesomeIcon icon={faChevronDown} style={{ fontSize: 7 }} />
+        </button>
+        {menuOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              marginTop: 2,
+              background: "rgba(8,16,30,0.95)",
+              border: "1px solid rgba(110,200,255,0.20)",
+              borderRadius: 2,
+              zIndex: 20,
+              overflow: "hidden",
+            }}
+          >
+            {ACTION_OPTIONS.map((opt) => (
+              <button
+                key={opt.mode}
+                onClick={() => {
+                  if (opt.mode) onSetMode(opt.mode);
+                  setMenuOpen(false);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  width: "100%",
+                  padding: "7px 10px",
+                  background: opt.mode !== null && mode === opt.mode ? `${opt.accent}18` : "transparent",
+                  border: "none",
+                  borderBottom: "1px solid rgba(110,200,255,0.08)",
+                  color: opt.mode !== null && mode === opt.mode ? opt.accent : "#9ab4cf",
+                  fontFamily: FONT_MONO,
+                  fontSize: 9,
+                  letterSpacing: "0.14em",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                <FontAwesomeIcon icon={opt.icon} style={{ width: 10 }} />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <button
+        disabled={!isActive}
+        onClick={() => onSetMode("idle")}
+        style={{
+          width: 28,
+          padding: "6px 0",
+          background: isActive ? "rgba(255,107,107,0.10)" : "transparent",
+          border: `1px solid ${isActive ? "rgba(255,107,107,0.40)" : "rgba(110,200,255,0.12)"}`,
+          color: isActive ? "#ff6b6b" : "#3d5572",
+          fontFamily: FONT_MONO,
+          fontSize: 9,
+          cursor: isActive ? "pointer" : "not-allowed",
+          borderRadius: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <FontAwesomeIcon icon={faPause} />
+      </button>
+    </div>
   );
 }
 
@@ -131,17 +208,10 @@ export function ProbesColumn({
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <span
             style={{
-              width: 18,
-              height: 18,
-              color: ACCENT,
-              fontSize: 13,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textShadow: `0 0 6px ${ACCENT}60`,
+              fontSize: 16,
             }}
           >
-            &#9671;
+            <FontAwesomeIcon icon={faRocket} />
           </span>
           <span>PROBES</span>
         </span>
@@ -207,7 +277,7 @@ export function ProbesColumn({
               marginBottom: 8,
             }}
           >
-            &#9680; BUILDING NOW
+            <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> BUILDING NOW
           </div>
           {buildingProbes.map((q) => {
             const pct = Math.min(100, q.progress * 100);
@@ -301,7 +371,7 @@ export function ProbesColumn({
           <div
             key={p.id}
             style={{
-              padding: "8px 10px",
+              padding: "12px 14px",
               background: `${ACCENT}06`,
               border: `1px solid ${ACCENT}30`,
             }}
@@ -323,8 +393,8 @@ export function ProbesColumn({
               >
                 <span
                   style={{
-                    width: 6,
-                    height: 6,
+                    width: 8,
+                    height: 8,
                     borderRadius: "50%",
                     background: p.dotColor,
                     boxShadow: `0 0 4px ${p.dotColor}`,
@@ -333,7 +403,7 @@ export function ProbesColumn({
                 <span
                   style={{
                     fontFamily: FONT_MONO,
-                    fontSize: 12,
+                    fontSize: 14,
                     color: "#d6e8f5",
                     fontWeight: 500,
                   }}
@@ -356,7 +426,7 @@ export function ProbesColumn({
             <div
               style={{
                 fontFamily: FONT_MONO,
-                fontSize: 10,
+                fontSize: 12,
                 color: "#9ab4cf",
                 marginBottom: 2,
               }}
@@ -369,14 +439,14 @@ export function ProbesColumn({
                 alignItems: "center",
                 gap: 6,
                 fontFamily: FONT_MONO,
-                fontSize: 9,
+                fontSize: 11,
                 marginBottom: 2,
               }}
             >
               <span
                 style={{
-                  width: 5,
-                  height: 5,
+                  width: 7,
+                  height: 7,
                   borderRadius: "50%",
                   background:
                     p.status === "in-transit"
@@ -411,36 +481,40 @@ export function ProbesColumn({
                       : "IDLE"}
               </span>
             </div>
-            <div
-              style={{
-                fontFamily: FONT_MONO,
-                fontSize: 9,
-                color: "#6b87a3",
-              }}
-            >
-              {p.components}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 6,
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              marginTop: 6,
+              paddingTop: 6,
+              borderTop: "1px dashed rgba(110,200,255,0.08)",
+            }}>
+              <span style={{ color: "#5cc7ff" }}>
+                <FontAwesomeIcon icon={faGem} style={{ marginRight: 4, fontSize: 9 }} />
+                {p.miningOutput.toFixed(1)}
+              </span>
+              <span style={{ color: "#b08bff" }}>
+                <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4, fontSize: 9 }} />
+                {p.computingOutput.toFixed(1)}
+              </span>
+              <span style={{ color: "#4cd8a8" }}>
+                <FontAwesomeIcon icon={faIndustry} style={{ marginRight: 4, fontSize: 9 }} />
+                {p.printerSpeed.toFixed(1)}
+              </span>
             </div>
             {p.status === "station-keeping" && p.systemId && (
-              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                <ProbeActionButton
-                  label={p.mode === "gathering" ? "STOP" : "GATHER"}
-                  accent={p.mode === "gathering" ? "#ff6b6b" : "#5cc7ff"}
-                  disabled={p.mode === "printing"}
-                  onClick={() =>
-                    dispatch({
-                      type: "set_probe_mode",
-                      systemId: p.systemId!,
-                      mode: p.mode === "gathering" ? "idle" : "gathering",
-                    })
-                  }
-                />
-                <ProbeActionButton
-                  label="EXPLORE"
-                  accent="#6b87a3"
-                  disabled={p.mode === "printing"}
-                  onClick={() => {}}
-                />
-              </div>
+              <ProbeActions
+                mode={p.mode}
+                onSetMode={(mode) =>
+                  dispatch({
+                    type: "set_probe_mode",
+                    systemId: p.systemId!,
+                    mode,
+                  })
+                }
+              />
             )}
           </div>
         ))}

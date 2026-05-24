@@ -1,10 +1,11 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FONT_MONO } from "../../tokens";
 
 export function HeaderAddButton({
-  accent,
   onClick,
 }: {
-  accent: string;
+  accent?: string;
   onClick: () => void;
 }) {
   return (
@@ -13,9 +14,9 @@ export function HeaderAddButton({
       style={{
         width: 22,
         height: 22,
-        background: `${accent}10`,
-        border: `1px solid ${accent}60`,
-        color: accent,
+        background: "rgba(110,200,255,0.06)",
+        border: "1px solid rgba(110,200,255,0.30)",
+        color: "#9ab4cf",
         fontFamily: FONT_MONO,
         fontSize: 14,
         lineHeight: 1,
@@ -27,7 +28,7 @@ export function HeaderAddButton({
         padding: 0,
       }}
     >
-      +
+      <FontAwesomeIcon icon={faPlus} style={{ fontSize: 10 }} />
     </button>
   );
 }

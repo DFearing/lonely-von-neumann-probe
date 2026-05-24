@@ -90,8 +90,8 @@ describe("getTechMultipliers", () => {
       expect(m.distributedIntelligence).toBe(true);
     });
 
-    test("communication_t18 enables zero latency communication", () => {
-      const m = getTechMultipliers({ communication_t18: true });
+    test("communication_speed_t20 enables zero latency communication", () => {
+      const m = getTechMultipliers({ communication_speed_t20: true });
       expect(m.zeroLatencyCommunication).toBe(true);
     });
   });

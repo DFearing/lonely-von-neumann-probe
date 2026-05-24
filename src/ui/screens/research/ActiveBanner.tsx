@@ -142,7 +142,7 @@ export function ActiveBanner({
           {fmtYears(remaining)}
         </span>
         <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
-          @ {computeRate.toFixed(1)} TFLOPS
+          @ {computeRate.toFixed(1)} Teraflops
         </span>
       </div>
     </div>

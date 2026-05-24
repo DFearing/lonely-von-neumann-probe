@@ -54,9 +54,9 @@ export function Panel({
           <div
             style={{
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 10,
+              fontSize: 12,
               letterSpacing: "0.22em",
-              color: "#6b87a3",
+              color: "#9ab4cf",
             }}
           >
             {label}

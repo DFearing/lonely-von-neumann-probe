@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useGameState, useDispatch } from "../context";
 import type { ProbeState, ProbeInTransit } from "../../simulation/state";
 import { FONT_MONO } from "../tokens";
@@ -97,7 +99,7 @@ export function Probes() {
                 padding: 0,
               }}
             >
-              +
+              <FontAwesomeIcon icon={faPlus} />
             </button>
           </>
         }

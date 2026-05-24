@@ -104,12 +104,12 @@ function ColonizedDetail({
         />
         <SysStat
           label="ENERGY"
-          value={`${fmtRate(resourceRates.energySupply)} MW supply · ${fmtRate(resourceRates.energyDemand)} demand`}
+          value={`${fmtRate(resourceRates.energySupply)} Megawatts supply · ${fmtRate(resourceRates.energyDemand)} demand`}
           color="#ffcb47"
         />
         <SysStat
           label="COMPUTE"
-          value={`${resourceRates.computingPowerPerSecond.toFixed(1)} TFLOPS`}
+          value={`${resourceRates.computingPowerPerSecond.toFixed(1)} Teraflops`}
           color="#b08bff"
         />
       </div>
