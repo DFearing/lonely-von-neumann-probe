@@ -10,6 +10,8 @@ import { Research } from "../screens/Research";
 import { SoundSettings } from "../screens/SoundSettings";
 import { useSoundEvents } from "../../audio/use-sound-events";
 import { Log } from "../screens/Log";
+import { Prestige } from "../screens/Prestige";
+import { usePrestige } from "../context";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
 
@@ -30,6 +32,8 @@ function Screen({
   view: ViewId;
   onNavigate: (view: ViewId) => void;
 }) {
+  const onPrestige = usePrestige();
+
   switch (view) {
     case "overview":
       return <Overview onNavigate={onNavigate} />;
@@ -41,6 +45,8 @@ function Screen({
       return <Research />;
     case "log":
       return <Log />;
+    case "prestige":
+      return <Prestige onBeginNewMission={onPrestige ?? (() => {})} />;
   }
 }
 

@@ -6,6 +6,7 @@ import { App } from "../../shell/App";
 import { LVNPGateContext } from "../../shell/Sidebar";
 import { createInitialState } from "../../../simulation/state";
 import { createGameLoop, catchUp } from "../../../loop/game-loop";
+import { performPrestige } from "../../../simulation/prestige";
 import {
   listSaves,
   loadGameSlot,
@@ -25,6 +26,16 @@ export function PreGameGate() {
     if (slotInfo) {
       saveGameSlot(slotInfo.key, gameLoop.getState(), slotInfo.probeName);
     }
+  }
+
+  function attachSaveListener(gameLoop: GameLoop, info: { key: string; probeName: string }) {
+    let saveCounter = 0;
+    gameLoop.onStateChange(() => {
+      saveCounter++;
+      if (saveCounter % 100 === 0 || gameLoop.getState().paused) {
+        saveGameSlot(info.key, gameLoop.getState(), info.probeName);
+      }
+    });
   }
 
   function startGame(gameLoop: GameLoop) {
@@ -52,15 +63,7 @@ export function PreGameGate() {
 
     const info = { key: slot.key, probeName: slot.probeName };
     setSlotInfo(info);
-
-    let saveCounter = 0;
-    gameLoop.onStateChange(() => {
-      saveCounter++;
-      if (saveCounter % 100 === 0 || gameLoop.getState().paused) {
-        saveGameSlot(info.key, gameLoop.getState(), info.probeName);
-      }
-    });
-
+    attachSaveListener(gameLoop, info);
     startGame(gameLoop);
   }
 
@@ -73,22 +76,31 @@ export function PreGameGate() {
     const info = { key: slotKey, probeName };
     setSlotInfo(info);
     saveGameSlot(slotKey, state, probeName);
-
-    let saveCounter = 0;
-    gameLoop.onStateChange(() => {
-      saveCounter++;
-      if (saveCounter % 100 === 0 || gameLoop.getState().paused) {
-        saveGameSlot(info.key, gameLoop.getState(), info.probeName);
-      }
-    });
-
+    attachSaveListener(gameLoop, info);
     startGame(gameLoop);
+  }
+
+  function handlePrestige() {
+    if (!loop || !slotInfo) return;
+
+    const currentState = loop.getState();
+    loop.stop();
+
+    const seed = Date.now() % 1_000_000;
+    const newState = performPrestige(currentState, seed, slotInfo.probeName);
+    const newLoop = createGameLoop(newState);
+
+    saveGameSlot(slotInfo.key, newState, slotInfo.probeName);
+    attachSaveListener(newLoop, slotInfo);
+
+    setLoop(newLoop);
+    newLoop.start();
   }
 
   if (phase === "play" && loop) {
     return (
       <LVNPGateContext.Provider value={{ onBack: handleBackToSelect }}>
-        <GameProvider loop={loop}>
+        <GameProvider loop={loop} onPrestige={handlePrestige}>
           <App />
         </GameProvider>
       </LVNPGateContext.Provider>

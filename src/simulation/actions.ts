@@ -16,4 +16,6 @@ export type PlayerAction =
   | { type: "switch_system"; systemId: string }
   | { type: "set_speed"; speed: GameSpeed }
   | { type: "pause" }
-  | { type: "unpause" };
+  | { type: "unpause" }
+  | { type: "purchase_prestige_upgrade"; upgradeId: string }
+  | { type: "enter_black_hole" };

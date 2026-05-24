@@ -95,6 +95,14 @@ function wrapSystem(system: SystemState): GameState {
     speed: 1,
     log: [],
     paused: false,
+    prestige: {
+      totalPrestigePoints: 0,
+      availablePrestigePoints: 0,
+      upgrades: { mining_mastery: 0, fusion_mastery: 0, nano_assembly: 0, quantum_insight: 0, material_reserves: 0, swift_start: 0 },
+      timesPrestiged: 0,
+      blackHoleDiscovered: false,
+    },
+    prestigeTriggered: false,
   };
 }
 

@@ -1,4 +1,4 @@
-import type { SystemState } from "./state";
+import type { GameState, SystemState } from "./state";
 import { TECH_TREE, techsInBranch } from "./data/tech-tree";
 import type { TechDefinition } from "./data/tech-tree";
 import { STRUCTURES } from "./data/structures";
@@ -114,4 +114,14 @@ export function getMissingPrerequisites(
     tier: t.tier,
     name: t.name,
   }));
+}
+
+export function isBlackHoleVisible(state: GameState): boolean {
+  return Object.values(state.systems).some(
+    (sys) => sys.completedResearch["computing_architecture_t4"] === true,
+  );
+}
+
+export function getBlackHoleSystemId(): string {
+  return "cygnus_x1";
 }

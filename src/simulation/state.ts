@@ -1,6 +1,8 @@
 import type { RngState } from "./rng";
 import type { GameSpeed } from "./actions";
+import type { PrestigeState } from "./prestige";
 import { createRng } from "./rng";
+import { createPrestigeState } from "./prestige";
 import { CPUS } from "./data/components";
 
 export { MAX_TIER, MAX_STRUCTURE_TIER } from "./constants";
@@ -20,6 +22,8 @@ export interface GameState {
   speed: GameSpeed;
   log: LogEntry[];
   paused: boolean;
+  prestige: PrestigeState;
+  prestigeTriggered: boolean;
 }
 
 export interface SystemState {
@@ -294,5 +298,7 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
       },
     ],
     paused: false,
+    prestige: createPrestigeState(),
+    prestigeTriggered: false,
   };
 }

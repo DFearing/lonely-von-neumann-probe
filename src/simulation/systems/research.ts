@@ -4,6 +4,7 @@ import type {
 } from "../state";
 import { TECH_TREE } from "../data/tech-tree";
 import { getTechMultipliers, type TechMultipliers } from "../tech-effects";
+import { getPrestigeMultipliers } from "../prestige";
 
 function tickSystemResearch(
   system: SystemState,
@@ -11,6 +12,7 @@ function tickSystemResearch(
   tickCount: number,
   perProjectComputing: number | null,
   multipliers: TechMultipliers,
+  prestigeResearchMultiplier: number,
 ): { system: SystemState; log: GameState["log"] } {
   if (system.researchQueue.length === 0) {
     return { system, log: [] };
@@ -48,7 +50,7 @@ function tickSystemResearch(
     const effectiveRate =
       requiredComputing > 0 ? availableComputing / requiredComputing : 1;
 
-    const progressIncrement = (effectiveRate * dt) / techDef.researchTime;
+    const progressIncrement = (effectiveRate * dt * prestigeResearchMultiplier) / techDef.researchTime;
     const newProgress = Math.min(project.progress + progressIncrement, 1);
 
     if (newProgress >= 1) {
@@ -79,6 +81,10 @@ function tickSystemResearch(
       return p;
     });
 
+  const shouldDiscoverBlackHole =
+    newlyCompleted["computing_architecture_t4"] === true &&
+    !system.discoveredSystems.includes("cygnus_x1");
+
   return {
     system: {
       ...system,
@@ -87,6 +93,9 @@ function tickSystemResearch(
         ...system.completedResearch,
         ...newlyCompleted,
       },
+      discoveredSystems: shouldDiscoverBlackHole
+        ? [...system.discoveredSystems, "cygnus_x1"]
+        : system.discoveredSystems,
     },
     log,
   };
@@ -106,6 +115,7 @@ function countActiveProjects(
 }
 
 export function tickResearch(state: GameState, dt: number): GameState {
+  const prestigeResearchMultiplier = getPrestigeMultipliers(state.prestige).researchSpeedMultiplier;
   const multipliersMap = new Map<string, TechMultipliers>();
   for (const [id, system] of Object.entries(state.systems)) {
     multipliersMap.set(id, getTechMultipliers(system.completedResearch));
@@ -133,7 +143,7 @@ export function tickResearch(state: GameState, dt: number): GameState {
   let changed = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    const result = tickSystemResearch(system, dt, state.tickCount, pooledComputing, multipliersMap.get(id)!);
+    const result = tickSystemResearch(system, dt, state.tickCount, pooledComputing, multipliersMap.get(id)!, prestigeResearchMultiplier);
     newSystems[id] = result.system;
     if (result.log.length > 0) {
       newLog = [...newLog, ...result.log];

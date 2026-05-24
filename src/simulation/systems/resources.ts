@@ -1,4 +1,5 @@
 import type { GameState, SystemState, StructureInstance, ProbeState, LogEntry } from "../state";
+import type { PrestigeState } from "../prestige";
 import { calculateRates, PROBE_MAINTENANCE } from "../rates";
 
 const HEALTH_DRAIN_RATE = 0.01;
@@ -66,8 +67,8 @@ function updateProbeHealth(
   return { ...probe, health: newHealth };
 }
 
-function tickSystem(system: SystemState, dt: number): SystemState {
-  const rates = calculateRates(system);
+function tickSystem(system: SystemState, dt: number, prestige: PrestigeState): SystemState {
+  const rates = calculateRates(system, prestige);
   const clampedMaterials = Math.max(0, system.resources.materials + rates.materialsPerSecond * dt);
   const shouldDrain = clampedMaterials <= 0 && rates.materialsPerSecond < 0;
   const shouldRecover = !shouldDrain && clampedMaterials >= 0;
@@ -187,7 +188,7 @@ export function tickResources(state: GameState, dt: number): GameState {
   let logChanged = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    const updated = tickSystem(system, dt);
+    const updated = tickSystem(system, dt, state.prestige);
     updatedSystems[id] = updated;
 
     const crossings = detectHealthThresholdCrossings(system, updated, state.tickCount);

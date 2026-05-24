@@ -11,20 +11,24 @@ import type { GameLoop } from "../loop/game-loop";
 interface GameContextValue {
   loop: GameLoop;
   dispatch: (action: PlayerAction) => void;
+  onPrestige: (() => void) | null;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({
   loop,
+  onPrestige,
   children,
 }: {
   loop: GameLoop;
+  onPrestige?: () => void;
   children: ReactNode;
 }) {
   const value: GameContextValue = {
     loop,
     dispatch: loop.dispatchAction,
+    onPrestige: onPrestige ?? null,
   };
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
@@ -59,4 +63,8 @@ export function useCurrentSystem() {
 
 export function useLoop(): GameLoop {
   return useGameContext().loop;
+}
+
+export function usePrestige(): (() => void) | null {
+  return useGameContext().onPrestige;
 }
