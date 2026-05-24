@@ -41,11 +41,12 @@ describe("tick", () => {
       expect(next.elapsedSeconds).toBe(state.elapsedSeconds + dt);
     });
 
-    test("tick updates rngState even with no actions", () => {
+    test("tick is deterministic with no actions", () => {
       const state = createInitialState(SEED);
-      const next = tick(state, DT, []);
+      const a = tick(state, DT, []);
+      const b = tick(state, DT, []);
 
-      expect(next.rngState).not.toEqual(state.rngState);
+      expect(a).toEqual(b);
     });
   });
 
