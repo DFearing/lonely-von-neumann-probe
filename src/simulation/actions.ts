@@ -11,6 +11,7 @@ export type PlayerAction =
   | { type: "cancel_research"; systemId: string; projectId: string }
   | { type: "reorder_research"; systemId: string; projectId: string; newIndex: number }
   | { type: "toggle_structure"; systemId: string; structureId: string }
+  | { type: "destroy_structure"; systemId: string; structureId: string }
   | { type: "set_probe_mode"; systemId: string; mode: ProbeMode }
   | { type: "switch_system"; systemId: string }
   | { type: "set_speed"; speed: GameSpeed }

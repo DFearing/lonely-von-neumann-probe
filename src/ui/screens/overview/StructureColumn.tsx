@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip, faPause, faPlay, faTrash } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState, StructureInstance, StructureType } from "../../../simulation/state";
 import type { ResourceRates } from "../../../simulation/rates";
 import type { PlayerAction } from "../../../simulation/actions";
 import { STRUCTURES } from "../../../simulation/data/structures";
 import type { StructureDefinition } from "../../../simulation/data/structures";
+import { structureKey } from "../../../simulation/data/structures";
 import { getAvailableStructures } from "../../../simulation/queries";
 import { calculateRates } from "../../../simulation/rates";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
+import { Tooltip } from "../../components/Tooltip";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { fmt, fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
@@ -561,6 +563,7 @@ export function StructureColumn({
   );
 
   const [showBuild, setShowBuild] = useState(false);
+  const [destroyConfirmId, setDestroyConfirmId] = useState<string | null>(null);
 
   return (
     <Panel
@@ -756,6 +759,10 @@ export function StructureColumn({
         {completed.map((inst) => {
           const def = allDefs.find((d) => d.tier === inst.tier);
           if (!def) return null;
+          const key = structureKey(inst.type, inst.tier);
+          const structureDef = STRUCTURES[key];
+          const refundAmount = structureDef ? Math.floor(structureDef.cost.materials * 0.5) : 0;
+          const isConfirming = destroyConfirmId === inst.id;
           return (
             <div
               key={inst.id}
@@ -763,8 +770,70 @@ export function StructureColumn({
                 padding: "12px 14px",
                 background: `${config.accent}06`,
                 border: `1px solid ${inst.active ? `${config.accent}30` : "rgba(110,200,255,0.10)"}`,
+                position: "relative",
               }}
             >
+              {isConfirming && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(8,16,30,0.92)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    zIndex: 2,
+                  }}
+                >
+                  <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: "#d6e8f5" }}>
+                    Destroy {def.name}?
+                  </span>
+                  <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#5fd9c4" }}>
+                    Recovers {fmt(refundAmount)} tons
+                  </span>
+                  <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                    <button
+                      onClick={() => {
+                        dispatch({
+                          type: "destroy_structure",
+                          systemId: system.id,
+                          structureId: inst.id,
+                        });
+                        setDestroyConfirmId(null);
+                      }}
+                      style={{
+                        fontFamily: FONT_MONO,
+                        fontSize: 11,
+                        letterSpacing: "0.14em",
+                        padding: "5px 14px",
+                        background: "rgba(255,107,107,0.15)",
+                        border: "1px solid rgba(255,107,107,0.5)",
+                        color: "#ff6b6b",
+                        cursor: "pointer",
+                      }}
+                    >
+                      CONFIRM
+                    </button>
+                    <button
+                      onClick={() => setDestroyConfirmId(null)}
+                      style={{
+                        fontFamily: FONT_MONO,
+                        fontSize: 11,
+                        letterSpacing: "0.14em",
+                        padding: "5px 14px",
+                        background: "transparent",
+                        border: "1px solid rgba(110,200,255,0.2)",
+                        color: "#6b87a3",
+                        cursor: "pointer",
+                      }}
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              )}
               <div
                 style={{
                   display: "flex",
@@ -795,9 +864,11 @@ export function StructureColumn({
                   >
                     <FontAwesomeIcon icon={inst.active ? faPause : faPlay} />
                   </button>
-                  <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
-                    {def.name}
-                  </span>
+                  <Tooltip content={structureDef?.description ?? def.name}>
+                    <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
+                      {def.name}
+                    </span>
+                  </Tooltip>
                 </span>
                 <span
                   style={{
@@ -826,29 +897,48 @@ export function StructureColumn({
                 <span style={{ color: config.accent }} title="Production output">
                   {formatVariantSpec(def, category)}
                 </span>
-                <span style={{ color: "#6b87a3" }} title="Material upkeep per year">
-                  <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />{inst.maintenanceCost.toFixed(2)} T/year
+                <span style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
+                  {inst.maintenanceCost > 0 && (
+                    <span style={{ color: "#5fd9c4" }}>{inst.maintenanceCost.toFixed(2)} T/yr</span>
+                  )}
+                  {inst.maintenanceCost > 0 && inst.operatingCost > 0 && (
+                    <span style={{ color: "#6b87a3" }}> · </span>
+                  )}
+                  {inst.operatingCost > 0 && (
+                    <span style={{ color: "#6aa9ff" }}>{inst.operatingCost.toFixed(1)} MW/yr</span>
+                  )}
+                  {(inst.maintenanceCost > 0 || inst.operatingCost > 0) && inst.computeDemand > 0 && (
+                    <span style={{ color: "#6b87a3" }}> · </span>
+                  )}
+                  {inst.computeDemand > 0 && (
+                    <span style={{ color: "#b08bff" }}>{inst.computeDemand.toFixed(2)} TFLOPS/yr</span>
+                  )}
                 </span>
               </div>
-              <div style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: "#6aa9ff",
-                marginTop: 4,
-              }} title="Energy demand per year">
-                <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />
-                {inst.operatingCost.toFixed(1)} MW demand
               </div>
-              <div style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: "#b08bff",
-                marginTop: 2,
-              }} title="Computing power demand per year">
-                <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />
-                {inst.computeDemand.toFixed(2)} TFLOPS demand
-              </div>
-              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDestroyConfirmId(inst.id);
+                }}
+                title="Destroy structure"
+                style={{
+                  position: "absolute",
+                  bottom: 8,
+                  right: 8,
+                  background: "transparent",
+                  border: "none",
+                  color: "#3d5572",
+                  cursor: "pointer",
+                  padding: 2,
+                  fontSize: 10,
+                  transition: "color 0.15s",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ff6b6b"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3d5572"; }}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
             </div>
           );
         })}

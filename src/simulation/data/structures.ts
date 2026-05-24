@@ -5,6 +5,7 @@ export interface StructureDefinition {
   type: StructureType;
   tier: number;
   name: string;
+  description: string;
   cost: { materials: number; energy: number };
   productionRate: number;
   operatingCost: number;
@@ -23,6 +24,15 @@ export const MINER_NAMES = [
   "Asteroid Cracker",
 ];
 
+const MINER_DESCRIPTIONS = [
+  "Standard extraction rig for surface-level ore deposits.",
+  "Rotary bore system reaching mid-depth mineral veins.",
+  "High-energy beam cuts through dense rock formations.",
+  "Reaches deep planetary mantle for rare minerals.",
+  "Uses gravity pulses to extract buried resources.",
+  "Breaks apart asteroid bodies for bulk processing.",
+];
+
 export const STRUCTURE_REACTOR_NAMES = [
   "Basic Reactor",
   "Fusion Reactor",
@@ -30,6 +40,15 @@ export const STRUCTURE_REACTOR_NAMES = [
   "Zero-Point Generator",
   "Solar Dynamo Array",
   "Hawking Radiator",
+];
+
+const REACTOR_DESCRIPTIONS = [
+  "Fission-based power plant providing steady baseline energy.",
+  "Hydrogen fusion core with improved energy density.",
+  "Matter-antimatter annihilation for massive power output.",
+  "Extracts energy from quantum vacuum fluctuations.",
+  "Stellar-powered electromagnetic generators. Output scales with star type.",
+  "Harvests radiation from contained micro black holes.",
 ];
 
 export const PRINTER_NAMES = [
@@ -41,6 +60,15 @@ export const PRINTER_NAMES = [
   "Von Neumann Assembler",
 ];
 
+const PRINTER_DESCRIPTIONS = [
+  "Layer-by-layer additive manufacturing for simple components.",
+  "Multi-material printing with improved precision.",
+  "Molecular-level assembly for advanced structures.",
+  "Atom-by-atom construction of complex devices.",
+  "Quantum-precise fabrication of exotic materials.",
+  "Self-improving assembler approaching theoretical limits.",
+];
+
 export const STATION_NAMES = [
   "Relay Hub",
   "Compute Cluster",
@@ -48,6 +76,15 @@ export const STATION_NAMES = [
   "Quantum Mainframe",
   "Dyson Brain",
   "Matrioshka Core",
+];
+
+const STATION_DESCRIPTIONS = [
+  "Basic communication and data processing facility.",
+  "Networked processors for parallel computation.",
+  "Neuromorphic computing array for complex analysis.",
+  "Quantum computing center for exponential processing.",
+  "Star-scale computing megastructure.",
+  "Nested computational shells maximizing stellar output.",
 ];
 
 const SOLAR_REACTOR_TIERS = new Set([5]);
@@ -65,6 +102,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       type: "miner",
       tier,
       name: MINER_NAMES[tier - 1]!,
+      description: MINER_DESCRIPTIONS[tier - 1]!,
       cost: {
         materials: Math.round(50 * 2.2 ** (tier - 1)),
         energy: Math.round(10 * 2.2 ** (tier - 1)),
@@ -83,6 +121,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       type: "reactor",
       tier,
       name: STRUCTURE_REACTOR_NAMES[tier - 1]!,
+      description: REACTOR_DESCRIPTIONS[tier - 1]!,
       cost: {
         materials: Math.round(30 * 2.2 ** (tier - 1)),
         energy: Math.round(5 * 2.2 ** (tier - 1)),
@@ -101,6 +140,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       type: "printer",
       tier,
       name: PRINTER_NAMES[tier - 1]!,
+      description: PRINTER_DESCRIPTIONS[tier - 1]!,
       cost: {
         materials: Math.round(80 * 2.2 ** (tier - 1)),
         energy: Math.round(15 * 2.2 ** (tier - 1)),
@@ -119,6 +159,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       type: "station",
       tier,
       name: STATION_NAMES[tier - 1]!,
+      description: STATION_DESCRIPTIONS[tier - 1]!,
       cost: {
         materials: Math.round(60 * 2.2 ** (tier - 1)),
         energy: Math.round(12 * 2.2 ** (tier - 1)),
