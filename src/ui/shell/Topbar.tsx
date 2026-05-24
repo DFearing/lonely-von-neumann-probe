@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faGear, faArrowRightFromBracket, faForwardFast } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useGameState, useCurrentSystem, useLoop } from "../context";
 import { FONT_MONO } from "../tokens";
@@ -24,7 +24,7 @@ const SPEED_LABELS: Record<GameSpeed, string> = DEV_MODE
   ? { 1: "1×", 10: "10×", 100: "100×", 1000: "1000×" }
   : { 1: "1×", 2: "2×", 3: "3×", 4: "4×", 5: "5×" };
 
-export function Topbar({ onOpenSettings, onBack }: { onOpenSettings?: () => void; onBack?: (() => void) | null }) {
+export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSettings?: () => void; onBack?: (() => void) | null; onOpenAutopilot?: () => void }) {
   const state = useGameState();
   const system = useCurrentSystem();
   const loop = useLoop();
@@ -169,6 +169,7 @@ export function Topbar({ onOpenSettings, onBack }: { onOpenSettings?: () => void
         />
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        {onOpenAutopilot && <TopbarIconButton icon={faForwardFast} title="Autopilot" onClick={onOpenAutopilot} />}
         {onOpenSettings && <TopbarIconButton icon={faGear} title="Settings" onClick={onOpenSettings} />}
         {onBack && <TopbarIconButton icon={faArrowRightFromBracket} title="Switch operator" onClick={onBack} />}
       </div>

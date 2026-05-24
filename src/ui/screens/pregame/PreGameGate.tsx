@@ -5,6 +5,7 @@ import { GameProvider } from "../../context";
 import { App } from "../../shell/App";
 import { LVNPGateContext } from "../../shell/Sidebar";
 import { createInitialState } from "../../../simulation/state";
+import type { GameState } from "../../../simulation/state";
 import { createGameLoop, catchUp } from "../../../loop/game-loop";
 import { performPrestige } from "../../../simulation/prestige";
 import {
@@ -97,10 +98,22 @@ export function PreGameGate() {
     newLoop.start();
   }
 
+  function handleDevJumpForward(newState: GameState) {
+    if (!loop || !slotInfo) return;
+    loop.stop();
+
+    const newLoop = createGameLoop(newState);
+    saveGameSlot(slotInfo.key, newState, slotInfo.probeName);
+    attachSaveListener(newLoop, slotInfo);
+
+    setLoop(newLoop);
+    newLoop.start();
+  }
+
   if (phase === "play" && loop) {
     return (
       <LVNPGateContext.Provider value={{ onBack: handleBackToSelect }}>
-        <GameProvider loop={loop} onPrestige={handlePrestige}>
+        <GameProvider loop={loop} onPrestige={handlePrestige} onDevJumpForward={handleDevJumpForward}>
           <App />
         </GameProvider>
       </LVNPGateContext.Provider>

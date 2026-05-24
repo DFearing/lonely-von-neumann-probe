@@ -13,6 +13,7 @@ import { Log } from "../screens/Log";
 import { Prestige } from "../screens/Prestige";
 import { usePrestige, useGameState, useLoop } from "../context";
 import { Printers } from "../screens/Printers";
+import { DevAutopilot } from "../screens/DevAutopilot";
 import { DEV_MODE } from "../../simulation/dev";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
@@ -58,6 +59,7 @@ function Screen({
 export function App() {
   const [view, setView] = useState<ViewId>("overview");
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const [showDevAutopilot, setShowDevAutopilot] = useState(false);
   const onPrestige = usePrestige();
   const state = useGameState();
   const loop = useLoop();
@@ -101,7 +103,11 @@ export function App() {
       />
 
       <Brand onNavigate={setView} />
-      <Topbar onOpenSettings={() => setShowSoundSettings(true)} onBack={gate.onBack} />
+      <Topbar
+        onOpenSettings={() => setShowSoundSettings(true)}
+        onBack={gate.onBack}
+        {...(DEV_MODE ? { onOpenAutopilot: () => setShowDevAutopilot(true) } : {})}
+      />
       <Sidebar activeView={view} onNavigate={setView} />
 
       <div
@@ -139,6 +145,10 @@ export function App() {
 
       {showSoundSettings && (
         <SoundSettings onClose={() => setShowSoundSettings(false)} />
+      )}
+
+      {DEV_MODE && showDevAutopilot && (
+        <DevAutopilot onClose={() => setShowDevAutopilot(false)} />
       )}
     </div>
   );

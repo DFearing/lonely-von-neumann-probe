@@ -73,7 +73,7 @@ function generateCpus(): Record<string, CpuDefinition> {
         materials: Math.round(15 * 2.2 ** (tier - 1)),
         energy: Math.round(3 * 2.2 ** (tier - 1)),
       },
-      computingOutput: +(1 * 1.15 ** (tier - 1)).toFixed(2),
+      computingOutput: +(0.5 * 1.45 ** (tier - 1)).toFixed(2),
       miningOutput: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
       printSpeed: +(0.5 * (1 + 0.12 * (tier - 1))).toFixed(2),
       techGate: componentTechGate("computing_architecture", tier),
