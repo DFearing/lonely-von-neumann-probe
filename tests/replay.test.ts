@@ -16,7 +16,7 @@ describe("createInputRecorder", () => {
     const recorder = createInputRecorder();
 
     const action1: PlayerAction = { type: "pause" };
-    const action2: PlayerAction = { type: "set_speed", speed: 5 };
+    const action2: PlayerAction = { type: "set_speed", speed: 10 };
     recorder.record(1, action1);
     recorder.record(3, action2);
 
@@ -60,7 +60,7 @@ describe("createReplayController", () => {
 
   test("replay with actions produces same final state as manual play", () => {
     const actions: PlayerAction[] = [
-      { type: "set_speed", speed: 2 },
+      { type: "set_speed", speed: 10 },
       { type: "switch_system", systemId: "alpha_centauri" },
     ];
 

@@ -19,6 +19,13 @@ type Phase = "select" | "new" | "play";
 export function PreGameGate() {
   const [phase, setPhase] = useState<Phase>("select");
   const [loop, setLoop] = useState<GameLoop | null>(null);
+  const [slotInfo, setSlotInfo] = useState<{ key: string; probeName: string } | null>(null);
+
+  function saveNow(gameLoop: GameLoop) {
+    if (slotInfo) {
+      saveGameSlot(slotInfo.key, gameLoop.getState(), slotInfo.probeName);
+    }
+  }
 
   function startGame(gameLoop: GameLoop) {
     setLoop(gameLoop);
@@ -27,8 +34,12 @@ export function PreGameGate() {
   }
 
   function handleBackToSelect() {
-    if (loop) loop.stop();
+    if (loop) {
+      saveNow(loop);
+      loop.stop();
+    }
     setLoop(null);
+    setSlotInfo(null);
     setPhase("select");
   }
 
@@ -39,10 +50,15 @@ export function PreGameGate() {
     const state = elapsedMs > 0 ? catchUp(save.state, elapsedMs) : save.state;
     const gameLoop = createGameLoop(state);
 
-    const slotKey = slot.key;
-    const probeName = slot.probeName;
+    const info = { key: slot.key, probeName: slot.probeName };
+    setSlotInfo(info);
+
+    let saveCounter = 0;
     gameLoop.onStateChange(() => {
-      saveGameSlot(slotKey, gameLoop.getState(), probeName);
+      saveCounter++;
+      if (saveCounter % 100 === 0 || gameLoop.getState().paused) {
+        saveGameSlot(info.key, gameLoop.getState(), info.probeName);
+      }
     });
 
     startGame(gameLoop);
@@ -54,13 +70,15 @@ export function PreGameGate() {
     const gameLoop = createGameLoop(state);
     const slotKey = `save_${Date.now()}`;
 
+    const info = { key: slotKey, probeName };
+    setSlotInfo(info);
     saveGameSlot(slotKey, state, probeName);
 
     let saveCounter = 0;
     gameLoop.onStateChange(() => {
       saveCounter++;
-      if (saveCounter % 100 === 0) {
-        saveGameSlot(slotKey, gameLoop.getState(), probeName);
+      if (saveCounter % 100 === 0 || gameLoop.getState().paused) {
+        saveGameSlot(info.key, gameLoop.getState(), info.probeName);
       }
     });
 

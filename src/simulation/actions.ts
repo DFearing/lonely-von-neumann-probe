@@ -1,6 +1,6 @@
 import type { ProbeMode, StructureType } from "./state";
 
-export type GameSpeed = 1 | 2 | 5 | 10;
+export type GameSpeed = 1 | 10 | 100 | 1000;
 
 export type PlayerAction =
   | { type: "build_structure"; systemId: string; structureType: StructureType; tier: number }
@@ -10,6 +10,7 @@ export type PlayerAction =
   | { type: "pause_research"; systemId: string; projectId: string }
   | { type: "cancel_research"; systemId: string; projectId: string }
   | { type: "reorder_research"; systemId: string; projectId: string; newIndex: number }
+  | { type: "toggle_structure"; systemId: string; structureId: string }
   | { type: "set_probe_mode"; systemId: string; mode: ProbeMode }
   | { type: "switch_system"; systemId: string }
   | { type: "set_speed"; speed: GameSpeed }

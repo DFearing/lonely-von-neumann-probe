@@ -1,16 +1,14 @@
 import type { GameState } from "../simulation/state";
 import type { PlayerAction, GameSpeed } from "../simulation/actions";
 import { tick } from "../simulation/tick";
-import { saveGame } from "../persistence/save-load";
 
 export const TICK_MS = 100;
-const AUTO_SAVE_INTERVAL_MS = 10_000;
 
 const SPEED_MULTIPLIERS: Record<GameSpeed, number> = {
   1: 1,
-  2: 2,
-  5: 5,
   10: 10,
+  100: 100,
+  1000: 1000,
 };
 
 export interface GameLoop {
@@ -31,8 +29,7 @@ export interface GameLoop {
  * Creates a browser game loop driven by requestAnimationFrame.
  *
  * Uses a fixed-timestep accumulator (100ms ticks, 10 ticks/sec) with a
- * speed multiplier applied to the real-time delta. Auto-saves every 10
- * seconds and on stop.
+ * speed multiplier applied to the real-time delta.
  */
 export function createGameLoop(initialState: GameState): GameLoop {
   let state = initialState;
@@ -40,8 +37,6 @@ export function createGameLoop(initialState: GameState): GameLoop {
   let rafId = 0;
   let lastTime = 0;
   let accumulator = 0;
-  let lastSaveTime = 0;
-
   const actionQueue: PlayerAction[] = [];
   const subscribers = new Set<(state: GameState) => void>();
 
@@ -56,19 +51,11 @@ export function createGameLoop(initialState: GameState): GameLoop {
     state = tick(state, TICK_MS / 1000, actions);
   }
 
-  function checkAutoSave(now: number): void {
-    if (now - lastSaveTime >= AUTO_SAVE_INTERVAL_MS) {
-      saveGame(state);
-      lastSaveTime = now;
-    }
-  }
-
   function frame(now: number): void {
     if (!running) return;
 
     if (lastTime === 0) {
       lastTime = now;
-      lastSaveTime = now;
     }
 
     if (!state.paused) {
@@ -84,7 +71,6 @@ export function createGameLoop(initialState: GameState): GameLoop {
 
       if (ticked) {
         notifySubscribers();
-        checkAutoSave(now);
       }
     }
 
@@ -107,7 +93,6 @@ export function createGameLoop(initialState: GameState): GameLoop {
         cancelAnimationFrame(rafId);
         rafId = 0;
       }
-      saveGame(state);
     },
 
     setSpeed(newSpeed: GameSpeed): void {

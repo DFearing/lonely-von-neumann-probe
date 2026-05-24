@@ -300,6 +300,27 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       return applyCancelResearch(state, action);
     case "reorder_research":
       return applyReorderResearch(state, action);
+    case "toggle_structure": {
+      const sys = state.systems[action.systemId];
+      if (!sys) return state;
+      const toggle = (list: readonly import("./state").StructureInstance[]) =>
+        list.map((s) => s.id === action.structureId ? { ...s, active: !s.active } : s);
+      return {
+        ...state,
+        systems: {
+          ...state.systems,
+          [action.systemId]: {
+            ...sys,
+            structures: {
+              miners: toggle(sys.structures.miners),
+              reactors: toggle(sys.structures.reactors),
+              printers: toggle(sys.structures.printers),
+              stations: toggle(sys.structures.stations),
+            },
+          },
+        },
+      };
+    }
     case "set_probe_mode":
       return applySetProbeMode(state, action);
     case "switch_system": {

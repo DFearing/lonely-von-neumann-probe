@@ -162,7 +162,7 @@ function emptySystemState(
     scanned,
     mainProbe: null,
     structures: { miners: [], reactors: [], printers: [], stations: [] },
-    resources: { materials: 0, energy: 0, computingPower: 0 },
+    resources: { materials: 5, energy: 0, computingPower: 0 },
     resourceRates: {
       materialsSupply: 0,
       materialsDemand: 0,

@@ -7,12 +7,14 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
   const state = useGameState();
   const dispatch = useDispatch();
   const system = useCurrentSystem();
+  const showExpansion = Object.keys(system.completedResearch).length >= 4;
+  const cols = showExpansion ? "1fr 1fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr";
 
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
+        gridTemplateColumns: cols,
         gridTemplateRows: "minmax(0, 1fr)",
         gap: 16,
         flex: 1,
@@ -35,11 +37,13 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
         category="printers"
         dispatch={dispatch}
       />
-      <StructureColumn
-        system={system}
-        category="stations"
-        dispatch={dispatch}
-      />
+      {showExpansion && (
+        <StructureColumn
+          system={system}
+          category="stations"
+          dispatch={dispatch}
+        />
+      )}
     </div>
   );
 }

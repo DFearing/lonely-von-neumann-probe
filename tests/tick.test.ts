@@ -471,8 +471,8 @@ describe("tick", () => {
       const state = createInitialState(SEED);
       expect(state.speed).toBe(1);
 
-      const next = tick(state, DT, [{ type: "set_speed", speed: 5 }]);
-      expect(next.speed).toBe(5);
+      const next = tick(state, DT, [{ type: "set_speed", speed: 10 }]);
+      expect(next.speed).toBe(10);
     });
 
     test("speed persists across subsequent ticks", () => {

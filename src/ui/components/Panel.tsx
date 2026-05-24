@@ -47,6 +47,7 @@ export function Panel({
             alignItems: "center",
             justifyContent: "space-between",
             padding: "12px 18px 10px",
+            minHeight: 44,
             borderBottom: "1px solid rgba(110,200,255,0.10)",
             flexShrink: 0,
           }}

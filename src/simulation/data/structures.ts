@@ -15,7 +15,7 @@ export interface StructureDefinition {
 }
 
 export const MINER_NAMES = [
-  "Miner",
+  "Basic Miner",
   "Auger Drill",
   "Plasma Cutter",
   "Deep Core Drill",

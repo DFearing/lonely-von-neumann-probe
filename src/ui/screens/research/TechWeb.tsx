@@ -15,14 +15,24 @@ import { getTechStatus, type TechStatus } from "../../../simulation/queries";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
 
+const GROUP_COLORS: Record<string, string> = {
+  mining: "#5fd9c4",
+  energy: "#6aa9ff",
+  manufacturing: "#4cd8a8",
+  stations: "#b08bff",
+  probes: "#4ddbff",
+  computing: "#b08bff",
+  communication: "#ff9966",
+};
+
 const BRANCH_META: Record<
   string,
   { label: string; color: string; icon: IconDefinition }
 > = {
-  mining_efficiency: { label: "Output", color: "#5cc7ff", icon: faAtom },
-  mining_types: { label: "Structures", color: "#3aa8e0", icon: faAtom },
-  energy_production: { label: "Output", color: "#ffcb47", icon: faBolt },
-  energy_types: { label: "Structures", color: "#e0a830", icon: faBolt },
+  mining_efficiency: { label: "Output", color: "#5fd9c4", icon: faAtom },
+  mining_types: { label: "Structures", color: "#4bb8a6", icon: faAtom },
+  energy_production: { label: "Output", color: "#6aa9ff", icon: faBolt },
+  energy_types: { label: "Structures", color: "#5590e0", icon: faBolt },
   manufacturing_efficiency: { label: "Output", color: "#4cd8a8", icon: faIndustry },
   manufacturing_types: { label: "Structures", color: "#38b890", icon: faIndustry },
   station_efficiency: { label: "Output", color: "#b08bff", icon: faSatellite },
@@ -275,7 +285,11 @@ export function TechWeb({
         </div>
 
         {/* Branch rows grouped */}
-        {BRANCH_GROUPS.map((group) => (
+        {BRANCH_GROUPS.filter((group) => {
+          const core = ["mining", "energy", "manufacturing", "computing"];
+          if (core.includes(group.id)) return true;
+          return Object.keys(system.completedResearch).length >= 4;
+        }).map((group) => (
           <div key={group.id}>
             <div
               style={{
@@ -290,7 +304,7 @@ export function TechWeb({
                   fontFamily: FONT_MONO,
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#9ab4cf",
+                  color: GROUP_COLORS[group.id] ?? "#9ab4cf",
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   padding: "0 12px",
@@ -323,7 +337,7 @@ export function TechWeb({
                     style={{
                       fontFamily: FONT_MONO,
                       fontSize: 12,
-                      color: meta.color,
+                      color: "#6b87a3",
                       letterSpacing: "0.14em",
                       textTransform: "uppercase",
                       padding: "0 12px",

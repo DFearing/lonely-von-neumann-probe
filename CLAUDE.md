@@ -55,6 +55,10 @@ The game is intentionally slow in early game (~30 min to self-sustaining). Key p
 
 The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "year(s)" not "yr" for units throughout the UI.
 
+## Persistence
+
+Save/load uses a slot-based system (`saveGameSlot`/`loadGameSlot`/`deleteSlot`). **Never add legacy save support** — no single-key saves, no migration from old formats. The game loop does not auto-save; saving is handled by the `onStateChange` callback in `PreGameGate`.
+
 ## Design Documents
 
 The three files in the repo root (`01_design_brief.md`, `02_detailed_context.md`, `03_ui_layout.md`) are the source of truth for game design. When in doubt about game mechanics, check these first.
