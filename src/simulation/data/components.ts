@@ -76,7 +76,7 @@ function generateCpus(): Record<string, CpuDefinition> {
       computingOutput: +(1 * 1.15 ** (tier - 1)).toFixed(2),
       miningOutput: +(5 * (1 + 0.30 * (tier - 1))).toFixed(2),
       printSpeed: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
-      techGate: componentTechGate("probe_cpu", tier),
+      techGate: componentTechGate("computing_architecture", tier),
     };
   }
   return cpus;

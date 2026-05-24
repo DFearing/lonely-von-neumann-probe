@@ -3,9 +3,9 @@ import { MAX_TIER } from "./state";
 export interface TechMultipliers {
   miningMultiplier: number;
   energyMultiplier: number;
-  researchSpeedMultiplier: number;
   manufacturingSpeedMultiplier: number;
   stationComputingMultiplier: number;
+  stationCostDivisor: number;
   commSpeedMultiplier: number;
   maxConcurrentResearch: number;
   printerNetworking: boolean;
@@ -30,10 +30,10 @@ export function getTechMultipliers(
     }
   }
 
-  let researchSpeedMultiplier = 1.0;
+  let stationCostDivisor = 1.0;
   for (let tier = 1; tier <= MAX_TIER; tier++) {
     if (completedResearch[`computing_speed_t${tier}`]) {
-      researchSpeedMultiplier += 0.06 + 0.004 * (tier - 1);
+      stationCostDivisor += 0.05 + 0.003 * (tier - 1);
     }
   }
 
@@ -69,9 +69,9 @@ export function getTechMultipliers(
   return {
     miningMultiplier,
     energyMultiplier,
-    researchSpeedMultiplier,
     manufacturingSpeedMultiplier,
     stationComputingMultiplier,
+    stationCostDivisor,
     commSpeedMultiplier,
     maxConcurrentResearch,
     printerNetworking,

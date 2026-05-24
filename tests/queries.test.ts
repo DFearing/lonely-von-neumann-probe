@@ -137,9 +137,9 @@ describe("getAvailableComponents", () => {
     expect(reactors[0]!.type).toBe("rct_t1");
   });
 
-  test("unlocks tier-2 CPU when probe_cpu_t4 is completed", () => {
+  test("unlocks tier-2 CPU when computing_architecture_t4 is completed", () => {
     const system = solSystem({
-      completedResearch: { probe_cpu_t4: true },
+      completedResearch: { computing_architecture_t4: true },
     });
     const { cpus } = getAvailableComponents(system);
 

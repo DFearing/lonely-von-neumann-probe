@@ -256,6 +256,54 @@ describe("calculateRates", () => {
       const rates = calculateRates(system);
       expect(rates.computingPowerPerSecond).toBe(5);
     });
+
+    test("station efficiency multiplies station compute output", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ computingOutput: 10 }),
+        completedResearch: { station_efficiency_t1: true },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [makeStructure({ type: "station", productionRate: 20 })],
+        },
+      });
+      const rates = calculateRates(system);
+      expect(rates.computeSupply).toBeCloseTo(10 + 20 * 1.04);
+    });
+  });
+
+  // ── Station cost reduction ──────────────────────────────────────
+
+  describe("station cost reduction", () => {
+    test("computing_speed_t1 reduces station operating costs", () => {
+      const system = makeSystem({
+        completedResearch: { computing_speed_t1: true },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [makeStructure({ type: "station", operatingCost: 2, maintenanceCost: 0 })],
+        },
+      });
+      const rates = calculateRates(system);
+      expect(rates.energyDemand).toBeCloseTo(2 / 1.05);
+    });
+
+    test("computing_speed_t1 reduces station maintenance costs", () => {
+      const system = makeSystem({
+        mainProbe: null,
+        completedResearch: { computing_speed_t1: true },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [makeStructure({ type: "station", maintenanceCost: 1, operatingCost: 0 })],
+        },
+      });
+      const rates = calculateRates(system);
+      expect(rates.materialsDemand).toBeCloseTo(1 / 1.05);
+    });
   });
 
   // ── Null probe ──────────────────────────────────────────────────

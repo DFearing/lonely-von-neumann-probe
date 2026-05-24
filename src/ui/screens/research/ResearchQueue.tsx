@@ -3,7 +3,6 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
-import { getTechMultipliers } from "../../../simulation/tech-effects";
 import { FONT_MONO } from "../../tokens";
 import { fmtYears } from "../../format";
 
@@ -37,7 +36,6 @@ export function ResearchQueue({
   selectedTech: string | null;
 }) {
   const active = system.researchQueue.filter((r) => !r.completed);
-  const multipliers = getTechMultipliers(system.completedResearch);
   const computeRate = system.resourceRates.computingPowerPerSecond;
 
   function estimateSeconds(project: typeof active[number]): number {
@@ -46,7 +44,7 @@ export function ResearchQueue({
     const required = project.continuousCost;
     if (required <= 0 || computeRate <= 0) return 0;
     const effectiveRate = Math.min(computeRate, required) / required;
-    return (1 - project.progress) * techDef.researchTime / (effectiveRate * multipliers.researchSpeedMultiplier);
+    return (1 - project.progress) * techDef.researchTime / effectiveRate;
   }
 
   const totalRemaining = active.reduce((sum, project) => sum + estimateSeconds(project), 0);
