@@ -48,14 +48,14 @@ export function ProbeDetail({
   const statusColor = "#4cd8a8";
 
   const techRows = [
-    { k: "CPU", v: cpu.name, acc: "#4ddbff" },
-    { k: "PROPULSION", v: prop.name, acc: "#5cc7ff" },
-    { k: "REACTOR", v: reactor.name, acc: "#ffcb47" },
+    { k: "CPU", v: cpu.name, acc: "#b08bff" },
+    { k: "PROPULSION", v: prop.name, acc: "#4ddbff" },
+    { k: "REACTOR", v: reactor.name, acc: "#6aa9ff" },
   ];
 
   const telemetry = [
-    { k: "MINING", v: `${(probe.miningOutput * probe.health).toFixed(1)} tons/year`, acc: "#5cc7ff" },
-    { k: "COMPUTE", v: `${(probe.computingOutput * probe.health).toFixed(1)} Teraflops`, acc: "#b08bff" },
+    { k: "MINING", v: `${(probe.miningOutput * probe.health).toFixed(1)} T/year`, acc: "#5fd9c4" },
+    { k: "COMPUTE", v: `${(probe.computingOutput * probe.health).toFixed(1)} TFLOPS`, acc: "#b08bff" },
     { k: "SPEED", v: `×${prop.travelSpeed.toFixed(1)}`, acc: "#4ddbff" },
   ];
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip } from "@fortawesome/free-solid-svg-icons";
+import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState, StructureInstance, StructureType } from "../../../simulation/state";
 import type { ResourceRates } from "../../../simulation/rates";
@@ -10,8 +10,9 @@ import type { StructureDefinition } from "../../../simulation/data/structures";
 import { getAvailableStructures } from "../../../simulation/queries";
 import { calculateRates } from "../../../simulation/rates";
 import { Panel } from "../../components/Panel";
+import { HealthGauge } from "../../components/HealthGauge";
 import { HeaderAddButton } from "./HeaderAddButton";
-import { fmt, fmtTime } from "../../format";
+import { fmt, fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
 type CategoryId = "miners" | "reactors" | "printers" | "stations";
@@ -29,18 +30,18 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
   miners: {
     structureType: "miner",
     label: "MINERS",
-    accent: "#5cc7ff",
+    accent: "#5fd9c4",
     icon: faAtom,
     description: "Extract Materials",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} tons/year`,
+    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} T/year`,
   },
   reactors: {
     structureType: "reactor",
     label: "REACTORS",
-    accent: "#ffcb47",
+    accent: "#6aa9ff",
     icon: faBolt,
     description: "Generate Energy",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} Megawatts/year`,
+    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} MW/year`,
   },
   printers: {
     structureType: "printer",
@@ -56,9 +57,11 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#b08bff",
     icon: faSatellite,
     description: "Provide Computing",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} Teraflops`,
+    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} TFLOPS`,
   },
 };
+
+
 
 function computeSummaryRate(
   system: SystemState,
@@ -92,15 +95,13 @@ function formatVariantSpec(
   category: CategoryId,
 ): string {
   if (category === "miners") {
-    return `+${def.productionRate.toFixed(1)} tons/year`;
+    return `+${def.productionRate.toFixed(1)} T/year`;
   }
   if (category === "reactors") {
-    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} Megawatts op` : "";
-    return `+${def.productionRate} Megawatts/year${opCost}`;
+    return `+${def.productionRate.toFixed(1)} MW/year`;
   }
   if (category === "stations") {
-    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} Megawatts op` : "";
-    return `+${def.productionRate.toFixed(1)} Teraflops${opCost}`;
+    return `+${def.productionRate.toFixed(1)} TFLOPS`;
   }
   return `${def.productionRate.toFixed(1)} BP`;
 }
@@ -345,7 +346,7 @@ function BuildStructureModal({
           <span style={{ fontSize: 9, letterSpacing: "0.18em", color: "#6b87a3" }}>READY</span>
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }}>
             <span style={{ fontSize: 9, letterSpacing: "0.16em", color: "#6b87a3" }}>NANO MAT</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#5cc7ff" }}>{fmt(Math.floor(system.resources.materials))}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#5fd9c4" }}>{fmt(Math.floor(system.resources.materials))}</span>
             <span style={{ fontSize: 9, color: "#6b87a3" }}>tons</span>
           </span>
           <span style={{ flex: 1 }} />
@@ -410,7 +411,7 @@ function BuildStructureModal({
                   <span>
                     <span style={{ color: "#6b87a3", letterSpacing: "0.16em" }}>BUILD </span>
                     <span style={{ color: "#b08bff" }}>
-                      {currentBP > 0 ? fmtTime(def.cost.materials / currentBP) : "—"}
+                      {currentBP > 0 ? fmtYears(def.cost.materials / currentBP) : "—"}
                     </span>
                   </span>
                   <span>
@@ -420,7 +421,7 @@ function BuildStructureModal({
                   <span>
                     <span style={{ color: "#6b87a3", letterSpacing: "0.16em" }}>DRAW </span>
                     <span style={{ color: def.operatingCost > 0 ? "#ff9966" : "#6b87a3" }}>
-                      {def.operatingCost > 0 ? `${def.operatingCost.toFixed(1)} Megawatts` : "none"}
+                      {def.operatingCost > 0 ? `${def.operatingCost.toFixed(1)} MW` : "none"}
                     </span>
                   </span>
                 </div>
@@ -443,7 +444,7 @@ function BuildStructureModal({
                         label="Nano Material"
                         before={currentRates.materialsPerSecond}
                         after={afterRates.materialsPerSecond}
-                        unit="tons/year"
+                        unit="T/year"
                         accent={config.accent}
                       />
                     )}
@@ -452,7 +453,7 @@ function BuildStructureModal({
                         label="Energy supply"
                         before={currentRates.energySupply}
                         after={afterRates.energySupply}
-                        unit="Megawatts"
+                        unit="MW"
                         accent={config.accent}
                       />
                     )}
@@ -470,7 +471,7 @@ function BuildStructureModal({
                         label="Energy demand"
                         before={currentRates.energyDemand}
                         after={afterRates.energyDemand}
-                        unit="Megawatts"
+                        unit="MW"
                         accent="#ff9966"
                       />
                     )}
@@ -596,41 +597,38 @@ export function StructureColumn({
         <div
           style={{
             fontFamily: FONT_MONO,
-            fontSize: 11,
+            fontSize: 13,
             color: config.accent,
             letterSpacing: "0.14em",
           }}
         >
           {completed.length} OWNED &middot; {config.formatSummaryRate(summaryRate)}
         </div>
-        {(category === "miners" || category === "printers") && (() => {
-          let draw = 0;
-          for (const s of instances) {
-            if (s.active) draw += s.operatingCost;
+        {(() => {
+          let draw = 0, maint = 0, compute = 0;
+          for (const s of completed) {
+            if (s.active) {
+              draw += s.operatingCost;
+              maint += s.maintenanceCost;
+              compute += s.computeDemand;
+            } else {
+              maint += s.maintenanceCost * 0.25;
+            }
           }
-          return draw > 0 ? (
-            <div
-              style={{
-                fontFamily: FONT_MONO,
-                fontSize: 10,
-                color: "#ffcb47",
-                marginTop: 4,
-              }}
-            >
-              <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />{draw.toFixed(1)} Megawatts draw
+          return (
+            <div style={{ fontFamily: FONT_MONO, fontSize: 12, marginTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ color: "#6aa9ff" }}>
+                <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />{draw.toFixed(1)} MW draw
+              </span>
+              <span style={{ color: "#6b87a3" }}>
+                <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />{maint.toFixed(2)} T/year maintenance
+              </span>
+              <span style={{ color: "#b08bff" }}>
+                <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />{compute.toFixed(2)} TFLOPS demand
+              </span>
             </div>
-          ) : null;
+          );
         })()}
-        <div
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 10,
-            color: "#6b87a3",
-            marginTop: 4,
-          }}
-        >
-          {config.description}
-        </div>
       </div>
 
       {/* Build modal */}
@@ -658,7 +656,7 @@ export function StructureColumn({
           <div
             style={{
               fontFamily: FONT_MONO,
-              fontSize: 9,
+              fontSize: 11,
               color: "#6b87a3",
               letterSpacing: "0.18em",
               marginBottom: 8,
@@ -695,17 +693,17 @@ export function StructureColumn({
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 12, color: "#d6e8f5" }}>
+                  <span style={{ fontSize: 14, color: "#d6e8f5" }}>
                     {label}
                   </span>
                   <span
                     style={{
                       fontFamily: FONT_MONO,
-                      fontSize: 10,
+                      fontSize: 12,
                       color: config.accent,
                     }}
                   >
-                    {fmtTime(remaining)}
+                    {fmtYears(remaining)}
                   </span>
                 </div>
                 <div
@@ -729,7 +727,7 @@ export function StructureColumn({
                 <div
                   style={{
                     fontFamily: FONT_MONO,
-                    fontSize: 9,
+                    fontSize: 11,
                     color: "#3d5572",
                     marginTop: 3,
                   }}
@@ -765,7 +763,7 @@ export function StructureColumn({
               style={{
                 padding: "12px 14px",
                 background: `${config.accent}06`,
-                border: `1px solid ${config.accent}30`,
+                border: `1px solid ${inst.active ? `${config.accent}30` : "rgba(110,200,255,0.10)"}`,
               }}
             >
               <div
@@ -776,15 +774,36 @@ export function StructureColumn({
                   marginBottom: 3,
                 }}
               >
-                <span
-                  style={{ fontSize: 14, color: "#d6e8f5", fontWeight: 500 }}
-                >
-                  {def.name}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({
+                        type: "toggle_structure",
+                        systemId: system.id,
+                        structureId: inst.id,
+                      });
+                    }}
+                    title={inst.active ? "Pause structure" : "Resume structure"}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: inst.active ? "#6b87a3" : "#4cd8a8",
+                      cursor: "pointer",
+                      padding: 0,
+                      fontSize: 12,
+                    }}
+                  >
+                    <FontAwesomeIcon icon={inst.active ? faPause : faPlay} />
+                  </button>
+                  <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
+                    {def.name}
+                  </span>
                 </span>
                 <span
                   style={{
                     fontFamily: FONT_MONO,
-                    fontSize: 10,
+                    fontSize: 12,
                     color: inst.active ? "#4cd8a8" : "#6b87a3",
                     letterSpacing: "0.14em",
                   }}
@@ -795,45 +814,42 @@ export function StructureColumn({
                   }
                 </span>
               </div>
+              <div style={{ opacity: inst.active ? 1 : 0.4 }}>
+              <HealthGauge health={inst.health} />
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   fontFamily: FONT_MONO,
-                  fontSize: 12,
+                  fontSize: 14,
                 }}
               >
-                <span style={{ color: config.accent }}>
+                <span style={{ color: config.accent }} title="Production output">
                   {formatVariantSpec(def, category)}
                 </span>
-                {inst.operatingCost > 0 && (
-                  <span style={{ color: "#ffcb47" }}>
-                    <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />{inst.operatingCost.toFixed(1)} Megawatts
-                  </span>
-                )}
+                <span style={{ color: "#6b87a3" }} title="Material upkeep per year">
+                  <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />{inst.maintenanceCost.toFixed(2)} T/year
+                </span>
               </div>
-              {inst.maintenanceCost > 0 && (
-                <div style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 10,
-                  color: "#6b87a3",
-                  marginTop: 4,
-                }}>
-                  <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
-                  {inst.maintenanceCost.toFixed(2)} tons/year maint
-                </div>
-              )}
-              {inst.computeDemand > 0 && (
-                <div style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 10,
-                  color: "#b08bff",
-                  marginTop: 2,
-                }}>
-                  <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />
-                  {inst.computeDemand.toFixed(2)} Teraflops demand
-                </div>
-              )}
+              <div style={{
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                color: "#6aa9ff",
+                marginTop: 4,
+              }} title="Energy demand per year">
+                <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />
+                {inst.operatingCost.toFixed(1)} MW demand
+              </div>
+              <div style={{
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                color: "#b08bff",
+                marginTop: 2,
+              }} title="Computing power demand per year">
+                <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />
+                {inst.computeDemand.toFixed(2)} TFLOPS demand
+              </div>
+              </div>
             </div>
           );
         })}

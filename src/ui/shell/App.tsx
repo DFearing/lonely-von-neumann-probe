@@ -53,7 +53,7 @@ export function App() {
         fontFamily: FONT_DISPLAY,
         display: "grid",
         gridTemplateColumns: "200px 1fr",
-        gridTemplateRows: "64px 1fr 130px",
+        gridTemplateRows: "80px 1fr 130px",
         gridTemplateAreas:
           '"brand topbar" "sidebar main" "sidebar footer"',
         position: "relative",

@@ -1,6 +1,5 @@
 import type { GameState } from "../simulation/state";
 
-const SAVE_KEY = "lonely-probe-save";
 const SAVE_INDEX_KEY = "lonely-probe-saves";
 const CURRENT_VERSION = 1;
 
@@ -19,36 +18,6 @@ export interface SaveSlotInfo {
   year: number;
   systemCount: number;
   structureCount: number;
-}
-
-export function saveGame(state: GameState): void {
-  const data: SaveData = {
-    version: CURRENT_VERSION,
-    timestamp: Date.now(),
-    state,
-  };
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-}
-
-export function loadGame(): SaveData | null {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (raw === null) return null;
-
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!isValidSaveData(parsed)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-export function deleteSave(): void {
-  localStorage.removeItem(SAVE_KEY);
-}
-
-export function hasSave(): boolean {
-  return localStorage.getItem(SAVE_KEY) !== null;
 }
 
 function isValidSaveData(data: unknown): data is SaveData {
@@ -76,28 +45,7 @@ function writeSaveIndex(index: SaveSlotInfo[]): void {
 }
 
 export function listSaves(): SaveSlotInfo[] {
-  const index = getSaveIndex();
-
-  if (index.length === 0) {
-    const legacy = loadGame();
-    if (legacy) {
-      const stats = deriveSlotStats(legacy.state);
-      const slot: SaveSlotInfo = {
-        key: SAVE_KEY,
-        name: "Legacy Save",
-        tickCount: legacy.state.tickCount,
-        timestamp: legacy.timestamp,
-        probeName: "Legacy Probe",
-        year: stats.year,
-        systemCount: stats.systemCount,
-        structureCount: stats.structureCount,
-      };
-      writeSaveIndex([slot]);
-      return [slot];
-    }
-  }
-
-  return index;
+  return getSaveIndex();
 }
 
 function deriveSlotStats(state: GameState): {

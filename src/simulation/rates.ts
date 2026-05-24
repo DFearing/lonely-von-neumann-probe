@@ -34,18 +34,20 @@ function sumProductionRates(structures: readonly StructureInstance[]): number {
 function sumOperatingCosts(structures: readonly StructureInstance[]): number {
   let total = 0;
   for (const s of structures) {
-    if (s.active) {
+    if (s.active && s.constructionProgress >= 1) {
       total += s.operatingCost;
     }
   }
   return total;
 }
 
+const IDLE_MAINTENANCE_FRACTION = 0.25;
+
 function sumMaintenanceCosts(structures: readonly StructureInstance[]): number {
   let total = 0;
   for (const s of structures) {
-    if (isActiveAndComplete(s)) {
-      total += s.maintenanceCost;
+    if (s.constructionProgress >= 1) {
+      total += s.active ? s.maintenanceCost : s.maintenanceCost * IDLE_MAINTENANCE_FRACTION;
     }
   }
   return total;

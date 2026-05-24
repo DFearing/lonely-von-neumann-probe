@@ -2,7 +2,6 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { createInitialState } from "../src/simulation/state";
 
 const SEED = 42;
-const SAVE_KEY = "lonely-probe-save";
 
 function createInMemoryLocalStorage(): Storage {
   const store = new Map<string, string>();
@@ -30,7 +29,7 @@ function createInMemoryLocalStorage(): Storage {
 
 (globalThis as any).localStorage = createInMemoryLocalStorage();
 
-const { saveGame, loadGame, hasSave, deleteSave } = await import(
+const { saveGameSlot, loadGameSlot, listSaves, deleteSlot } = await import(
   "../src/persistence/save-load"
 );
 
@@ -38,106 +37,93 @@ beforeEach(() => {
   localStorage.clear();
 });
 
-describe("saveGame + loadGame round-trip", () => {
+describe("saveGameSlot + loadGameSlot round-trip", () => {
   test("saved state can be loaded and matches the original", () => {
     const state = createInitialState(SEED);
-    saveGame(state);
+    saveGameSlot("slot_1", state, "TestProbe");
 
-    const loaded = loadGame();
+    const loaded = loadGameSlot("slot_1");
     expect(loaded).not.toBeNull();
     expect(loaded!.state).toEqual(state);
   });
 
   test("version field is set to 1", () => {
     const state = createInitialState(SEED);
-    saveGame(state);
+    saveGameSlot("slot_1", state, "TestProbe");
 
-    const loaded = loadGame();
+    const loaded = loadGameSlot("slot_1");
     expect(loaded!.version).toBe(1);
   });
 
   test("timestamp is a recent epoch-ms value", () => {
     const before = Date.now();
     const state = createInitialState(SEED);
-    saveGame(state);
+    saveGameSlot("slot_1", state, "TestProbe");
     const after = Date.now();
 
-    const loaded = loadGame();
+    const loaded = loadGameSlot("slot_1");
     expect(loaded!.timestamp).toBeGreaterThanOrEqual(before);
     expect(loaded!.timestamp).toBeLessThanOrEqual(after);
   });
 });
 
-describe("loadGame edge cases", () => {
+describe("loadGameSlot edge cases", () => {
   test("returns null when no save exists", () => {
-    expect(loadGame()).toBeNull();
+    expect(loadGameSlot("slot_missing")).toBeNull();
   });
 
   test("returns null for corrupted JSON", () => {
-    localStorage.setItem(SAVE_KEY, "not valid json {{{");
-    expect(loadGame()).toBeNull();
+    localStorage.setItem("slot_bad", "not valid json {{{");
+    expect(loadGameSlot("slot_bad")).toBeNull();
   });
 
   test("returns null when stored data is a plain string", () => {
-    localStorage.setItem(SAVE_KEY, JSON.stringify("just a string"));
-    expect(loadGame()).toBeNull();
+    localStorage.setItem("slot_str", JSON.stringify("just a string"));
+    expect(loadGameSlot("slot_str")).toBeNull();
   });
 
   test("returns null when stored data is missing version", () => {
-    localStorage.setItem(
-      SAVE_KEY,
-      JSON.stringify({ state: { tickCount: 0 } }),
-    );
-    expect(loadGame()).toBeNull();
+    localStorage.setItem("slot_nover", JSON.stringify({ state: { tickCount: 0 } }));
+    expect(loadGameSlot("slot_nover")).toBeNull();
   });
 
   test("returns null when stored data is missing state", () => {
-    localStorage.setItem(
-      SAVE_KEY,
-      JSON.stringify({ version: 1, timestamp: Date.now() }),
-    );
-    expect(loadGame()).toBeNull();
-  });
-
-  test("returns null when state is null", () => {
-    localStorage.setItem(
-      SAVE_KEY,
-      JSON.stringify({ version: 1, timestamp: Date.now(), state: null }),
-    );
-    expect(loadGame()).toBeNull();
+    localStorage.setItem("slot_nostate", JSON.stringify({ version: 1, timestamp: Date.now() }));
+    expect(loadGameSlot("slot_nostate")).toBeNull();
   });
 });
 
-describe("hasSave", () => {
-  test("returns false when no save exists", () => {
-    expect(hasSave()).toBe(false);
+describe("listSaves", () => {
+  test("returns empty array when no saves exist", () => {
+    expect(listSaves()).toEqual([]);
   });
 
-  test("returns true after saving", () => {
-    saveGame(createInitialState(SEED));
-    expect(hasSave()).toBe(true);
-  });
-
-  test("returns false after deleteSave", () => {
-    saveGame(createInitialState(SEED));
-    expect(hasSave()).toBe(true);
-
-    deleteSave();
-    expect(hasSave()).toBe(false);
+  test("returns saved slots after saving", () => {
+    saveGameSlot("slot_1", createInitialState(SEED), "Probe-1");
+    const saves = listSaves();
+    expect(saves.length).toBe(1);
+    expect(saves[0]!.probeName).toBe("Probe-1");
   });
 });
 
-describe("deleteSave", () => {
-  test("removes the save so loadGame returns null", () => {
-    saveGame(createInitialState(SEED));
-    expect(loadGame()).not.toBeNull();
+describe("deleteSlot", () => {
+  test("removes the save so loadGameSlot returns null", () => {
+    saveGameSlot("slot_1", createInitialState(SEED), "TestProbe");
+    expect(loadGameSlot("slot_1")).not.toBeNull();
 
-    deleteSave();
-    expect(loadGame()).toBeNull();
+    deleteSlot("slot_1");
+    expect(loadGameSlot("slot_1")).toBeNull();
+  });
+
+  test("removes the slot from the index", () => {
+    saveGameSlot("slot_1", createInitialState(SEED), "TestProbe");
+    expect(listSaves().length).toBe(1);
+
+    deleteSlot("slot_1");
+    expect(listSaves().length).toBe(0);
   });
 
   test("is a no-op when no save exists", () => {
-    expect(() => deleteSave()).not.toThrow();
-    expect(hasSave()).toBe(false);
+    expect(() => deleteSlot("slot_missing")).not.toThrow();
   });
 });

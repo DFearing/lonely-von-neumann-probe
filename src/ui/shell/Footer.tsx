@@ -27,7 +27,7 @@ function MaterialsCell({
   demand: number;
 }) {
   const net = supply - demand;
-  const color = resourceColor(supply, demand, "#d6e8f5");
+  const color = resourceColor(supply, demand, "#5fd9c4");
   return (
     <div
       style={{
@@ -82,9 +82,9 @@ function MaterialsCell({
           {fmtRate(net)} tons/year net
         </span>
         {demand > 0 && (
-          <span style={{ color: "#ff9966" }}>
+          <span style={{ color: "#6b87a3" }}>
             <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
-            {demand.toFixed(1)} maint
+            {demand.toFixed(1)} maintenance
           </span>
         )}
       </div>
@@ -100,7 +100,7 @@ function EnergyCell({
   demand: number;
 }) {
   const net = supply - demand;
-  const color = resourceColor(supply, demand, "#5cc7ff");
+  const color = resourceColor(supply, demand, "#6aa9ff");
   return (
     <div
       style={{
@@ -155,9 +155,9 @@ function EnergyCell({
           <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 4 }} />
           {supply.toFixed(1)} supply
         </span>
-        <span style={{ color: demand > 0 ? "#ff9966" : "#3d5572" }}>
+        <span style={{ color: demand > 0 ? "#6b87a3" : "#3d5572" }}>
           <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
-          {demand.toFixed(1)} draw
+          {demand.toFixed(1)} demand
         </span>
       </div>
     </div>
@@ -228,7 +228,7 @@ function ComputeResearchCell({
         >
           <FontAwesomeIcon icon={faMicrochip} style={{ fontSize: 14, marginRight: 6 }} />COMPUTE
         </span>
-        {researchName != null && (
+        {researchName != null ? (
           <span
             style={{
               fontFamily: FONT_MONO,
@@ -246,6 +246,17 @@ function ComputeResearchCell({
             {researchTier != null && (
               <span style={{ color: "#3d5572" }}> &middot; T{researchTier}</span>
             )}
+          </span>
+        ) : (
+          <span
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              color: "#3d5572",
+              flex: 1,
+            }}
+          >
+            No research is being pursued
           </span>
         )}
         {researchName != null && (
@@ -273,12 +284,12 @@ function ComputeResearchCell({
             textShadow: `0 0 12px ${color}40`,
           }}
         >
-          {computeRate.toFixed(1)}
+          {fmtRate(computeRate)}
         </span>
         <span
           style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
         >
-          Teraflops
+          Teraflops net
         </span>
       </div>
       <div
@@ -294,7 +305,7 @@ function ComputeResearchCell({
           <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 4 }} />
           {computeSupply.toFixed(1)} supply
         </span>
-        <span style={{ color: computeDemand > 0 ? "#ff9966" : "#3d5572" }}>
+        <span style={{ color: computeDemand > 0 ? "#6b87a3" : "#3d5572" }}>
           <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
           {computeDemand.toFixed(1)} demand
         </span>

@@ -1,5 +1,3 @@
-import { FONT_MONO } from "../tokens";
-
 const SEGMENT_COUNT = 5;
 
 function healthColor(health: number): string {
@@ -19,10 +17,12 @@ export function HealthGauge({
   const filledSegments = Math.ceil(health * SEGMENT_COUNT);
   const color = healthColor(health);
   const barHeight = compact ? 4 : 6;
-  const fontSize = compact ? 9 : 10;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: compact ? 6 : 8 }}>
+    <div
+      title={`${pct}% health`}
+      style={{ display: "flex", alignItems: "center", gap: compact ? 6 : 8, marginBottom: 6 }}
+    >
       <div style={{ display: "flex", gap: 2, flex: 1 }}>
         {Array.from({ length: SEGMENT_COUNT }, (_, i) => (
           <div
@@ -37,17 +37,6 @@ export function HealthGauge({
           />
         ))}
       </div>
-      <span
-        style={{
-          fontFamily: FONT_MONO,
-          fontSize,
-          color,
-          minWidth: compact ? 28 : 32,
-          textAlign: "right",
-        }}
-      >
-        {pct}%
-      </span>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
+import { STRUCTURES } from "../../../simulation/data/structures";
 import { getTechStatus, type TechStatus } from "../../../simulation/queries";
 import { FONT_MONO } from "../../tokens";
 import { fmt, fmtYears } from "../../format";
@@ -162,26 +163,82 @@ export function TechDetail({
         </div>
       </div>
 
-      <div
-        style={{
-          padding: "10px 14px",
-          marginBottom: 14,
-          background: `${branchColor}08`,
-          borderLeft: `2px solid ${branchColor}`,
-          fontSize: 14,
-          color: "#d6e8f5",
-          lineHeight: 1.4,
-        }}
-      >
-        {(tech.effects.length > 1 ? tech.effects.slice(1) : tech.effects).map((effect, i) => (
-          <div key={i} style={i > 0 ? { marginTop: 4 } : undefined}>
-            {effect}
+      {tech.unlocks.length === 0 && (
+        <div
+          style={{
+            padding: "10px 14px",
+            marginBottom: 14,
+            background: `${branchColor}08`,
+            borderLeft: `2px solid ${branchColor}`,
+            fontSize: 14,
+            color: "#d6e8f5",
+            lineHeight: 1.4,
+          }}
+        >
+          {tech.effects.map((effect, i) => (
+            <div key={i} style={i > 0 ? { marginTop: 4 } : undefined}>
+              {effect}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tech.unlocks.length > 0 && (() => {
+        const defs = tech.unlocks.flatMap((id) => { const d = STRUCTURES[id]; return d ? [d] : []; });
+        if (defs.length === 0) return null;
+        return (
+          <div style={{ marginBottom: 14 }}>
+            {defs.map((def) => (
+              <div
+                key={`${def.type}_${def.tier}`}
+                style={{
+                  padding: "14px 16px",
+                  background: "rgba(110,200,255,0.04)",
+                  border: "1px solid rgba(110,200,255,0.10)",
+                  fontFamily: FONT_MONO,
+                }}
+              >
+                <div style={{ color: "#d6e8f5", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>
+                  {def.name}
+                </div>
+                <div style={{ fontSize: 14, marginBottom: 10 }}>
+                  <span style={{ color: "#5fd9c4" }}>
+                    +{def.productionRate} {def.type === "reactor" ? "MW/year" : def.type === "station" ? "TFLOPS/year" : def.type === "miner" ? "T/year" : "BP/year"}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: "#6b87a3", letterSpacing: "0.14em", marginBottom: 4 }}>BUILD</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 13 }}>
+                      <span style={{ color: "#5fd9c4" }}>{fmt(def.cost.materials)} T</span>
+                      <span style={{ color: "#6aa9ff" }}>{fmt(def.cost.energy)} MW</span>
+                    </div>
+                  </div>
+                  {(def.maintenanceCost > 0 || def.operatingCost > 0 || def.computeDemand > 0) && (
+                    <div>
+                      <div style={{ fontSize: 12, color: "#6b87a3", letterSpacing: "0.14em", marginBottom: 4 }}>UPKEEP</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 13 }}>
+                        {def.maintenanceCost > 0 && (
+                          <span style={{ color: "#5fd9c4" }}>{def.maintenanceCost.toFixed(2)} T/year</span>
+                        )}
+                        {def.operatingCost > 0 && (
+                          <span style={{ color: "#6aa9ff" }}>{def.operatingCost} MW/year</span>
+                        )}
+                        {def.computeDemand > 0 && (
+                          <span style={{ color: "#b08bff" }}>{def.computeDemand} TFLOPS/year</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        );
+      })()}
 
       <div style={{ marginBottom: 14 }}>
-        <KV k="COST" v={`${fmt(tech.continuousCost * tech.researchTime)} Teraflops`} color="#b08bff" />
+        <KV k="COMPUTE COST" v={`${fmt(tech.continuousCost * tech.researchTime)} TFLOPS`} color="#b08bff" />
         {computeRate > 0 && (
           <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3", marginTop: 4 }}>
             (~{fmtYears(etaSeconds)})

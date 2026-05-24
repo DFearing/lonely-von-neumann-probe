@@ -292,7 +292,7 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "manufacturing_efficiency": {
       const bonus = 5 + 0.3 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% manufacturing output`];
+      return [`+${+bonus.toFixed(1)}% printing output`];
     }
     case "manufacturing_types": {
       if (tier % 4 === 0) {

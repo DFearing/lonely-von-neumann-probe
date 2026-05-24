@@ -104,7 +104,7 @@ export function ResearchQueue({
             padding: "14px 0",
           }}
         >
-          queue empty · click + QUEUE on any tech
+          double click a technology to queue
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

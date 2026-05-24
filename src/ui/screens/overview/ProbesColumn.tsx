@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faRocket, faCircleHalfStroke, faPause, faGem, faIndustry, faCompass, faChevronDown, faMicrochip } from "@fortawesome/free-solid-svg-icons";
+import { faRocket, faCircleHalfStroke, faPause, faAtom, faIndustry, faCompass, faChevronDown, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import type { GameState, ProbeMode, SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import type { ViewId } from "../../shell/Sidebar";
@@ -8,7 +8,7 @@ import { CPUS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
 import { HeaderAddButton } from "./HeaderAddButton";
-import { fmtTime, fmtYears } from "../../format";
+import { fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
 const ACCENT = "#4ddbff";
@@ -79,7 +79,7 @@ function gatherFleet(state: GameState): FleetProbe[] {
 
 
 const ACTION_OPTIONS = [
-  { mode: "gathering" as ProbeMode, label: "GATHER", icon: faGem, accent: "#5cc7ff" },
+  { mode: "gathering" as ProbeMode, label: "GATHER", icon: faAtom, accent: "#5fd9c4" },
   { mode: "printing" as ProbeMode, label: "PRINT", icon: faIndustry, accent: "#4cd8a8" },
   { mode: null, label: "EXPLORE", icon: faCompass, accent: "#6b87a3" },
 ] as const;
@@ -275,7 +275,7 @@ export function ProbesColumn({
           <div
             style={{
               fontFamily: FONT_MONO,
-              fontSize: 9,
+              fontSize: 11,
               color: "#6b87a3",
               letterSpacing: "0.18em",
               marginBottom: 8,
@@ -310,17 +310,17 @@ export function ProbesColumn({
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 12, color: "#d6e8f5" }}>
+                  <span style={{ fontSize: 14, color: "#d6e8f5" }}>
                     Probe
                   </span>
                   <span
                     style={{
                       fontFamily: FONT_MONO,
-                      fontSize: 10,
+                      fontSize: 12,
                       color: ACCENT,
                     }}
                   >
-                    {fmtTime(remaining)}
+                    {fmtYears(remaining)}
                   </span>
                 </div>
                 <div
@@ -344,7 +344,7 @@ export function ProbesColumn({
                 <div
                   style={{
                     fontFamily: FONT_MONO,
-                    fontSize: 9,
+                    fontSize: 11,
                     color: "#3d5572",
                     marginTop: 3,
                   }}
@@ -390,92 +390,51 @@ export function ProbesColumn({
             >
               <span
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
+                  fontFamily: FONT_MONO,
+                  fontSize: 16,
+                  color: "#d6e8f5",
+                  fontWeight: 500,
                 }}
               >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: p.dotColor,
-                    boxShadow: `0 0 4px ${p.dotColor}`,
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: 14,
-                    color: "#d6e8f5",
-                    fontWeight: 500,
-                  }}
-                >
-                  {p.name}
-                </span>
+                {p.name}
               </span>
-              {p.etaYrs != null && (
-                <span
-                  style={{
-                    fontFamily: FONT_MONO,
-                    fontSize: 10,
-                    color: ACCENT,
-                  }}
-                >
-                  ETA {fmtYears(p.etaYrs)}
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: "#9ab4cf",
-                marginBottom: 2,
-              }}
-            >
-              {p.location}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontFamily: FONT_MONO,
-                fontSize: 11,
-                marginBottom: 2,
-              }}
-            >
               <span
                 style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background:
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontFamily: FONT_MONO,
+                  fontSize: 11,
+                  letterSpacing: "0.14em",
+                  color:
                     p.status === "in-transit"
                       ? ACCENT
                       : p.mode === "gathering"
-                        ? "#5cc7ff"
+                        ? "#5fd9c4"
                         : p.mode === "printing"
                           ? "#4cd8a8"
-                          : "#3d5572",
-                  boxShadow:
-                    p.mode !== "idle"
-                      ? `0 0 4px ${p.mode === "gathering" ? "#5cc7ff" : "#4cd8a8"}`
-                      : "none",
-                }}
-              />
-              <span
-                style={{
-                  color:
-                    p.mode === "gathering"
-                      ? "#5cc7ff"
-                      : p.mode === "printing"
-                        ? "#4cd8a8"
-                        : "#6b87a3",
+                          : "#6b87a3",
                 }}
               >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background:
+                      p.status === "in-transit"
+                        ? ACCENT
+                        : p.mode === "gathering"
+                          ? "#5fd9c4"
+                          : p.mode === "printing"
+                            ? "#4cd8a8"
+                            : "#3d5572",
+                    boxShadow:
+                      p.mode !== "idle"
+                        ? `0 0 4px ${p.mode === "gathering" ? "#5fd9c4" : "#4cd8a8"}`
+                        : "none",
+                  }}
+                />
                 {p.status === "in-transit"
                   ? "IN TRANSIT"
                   : p.mode === "gathering"
@@ -486,8 +445,18 @@ export function ProbesColumn({
               </span>
             </div>
             {p.status === "station-keeping" && (
-              <div style={{ marginTop: 6 }}>
-                <HealthGauge health={p.health} compact />
+              <HealthGauge health={p.health} />
+            )}
+            {p.status === "in-transit" && p.etaYrs != null && (
+              <div
+                style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 12,
+                  color: ACCENT,
+                  marginBottom: 2,
+                }}
+              >
+                {p.location} · ETA {fmtYears(p.etaYrs)}
               </div>
             )}
             <div style={{
@@ -495,20 +464,20 @@ export function ProbesColumn({
               gridTemplateColumns: "1fr 1fr 1fr",
               gap: 6,
               fontFamily: FONT_MONO,
-              fontSize: 10,
+              fontSize: 12,
               marginTop: 6,
               paddingTop: 6,
               borderTop: "1px dashed rgba(110,200,255,0.08)",
             }}>
-              <span style={{ color: "#5cc7ff" }}>
-                <FontAwesomeIcon icon={faGem} style={{ marginRight: 4, fontSize: 9 }} />
+              <span style={{ color: "#5fd9c4" }} title="Mining output (T/year)">
+                <FontAwesomeIcon icon={faAtom} style={{ marginRight: 4, fontSize: 9 }} />
                 {(p.miningOutput * p.health).toFixed(1)}
               </span>
-              <span style={{ color: "#b08bff" }}>
+              <span style={{ color: "#b08bff" }} title="Computing power (TFLOPS)">
                 <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4, fontSize: 9 }} />
                 {(p.computingOutput * p.health).toFixed(1)}
               </span>
-              <span style={{ color: "#4cd8a8" }}>
+              <span style={{ color: "#4cd8a8" }} title="Printer speed (BP)">
                 <FontAwesomeIcon icon={faIndustry} style={{ marginRight: 4, fontSize: 9 }} />
                 {(p.printerSpeed * p.health).toFixed(1)}
               </span>
