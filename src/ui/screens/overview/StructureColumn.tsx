@@ -14,6 +14,7 @@ import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
 import { Tooltip } from "../../components/Tooltip";
 import { HeaderAddButton } from "./HeaderAddButton";
+import { BuildPrinterModal } from "./BuildPrinterModal";
 import { fmt, fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
@@ -634,7 +635,14 @@ export function StructureColumn({
       </div>
 
       {/* Build modal */}
-      {showBuild && (
+      {showBuild && category === "printers" && (
+        <BuildPrinterModal
+          system={system}
+          dispatch={dispatch}
+          onClose={() => setShowBuild(false)}
+        />
+      )}
+      {showBuild && category !== "printers" && (
         <BuildStructureModal
           system={system}
           category={category}
