@@ -58,7 +58,12 @@ export function createGameLoop(initialState: GameState): GameLoop {
       lastTime = now;
     }
 
-    if (!state.paused) {
+    if (state.paused) {
+      if (actionQueue.length > 0) {
+        runTick();
+        notifySubscribers();
+      }
+    } else {
       const delta = now - lastTime;
       accumulator += delta * SPEED_MULTIPLIERS[state.speed];
 

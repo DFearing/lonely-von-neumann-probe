@@ -73,14 +73,16 @@ export function Topbar() {
         fontSize: 15,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
         <span
           style={{
+            display: "inline-block",
             width: 10,
             height: 10,
             borderRadius: "50%",
             background: starColor(system.starType),
             boxShadow: `0 0 8px ${starColor(system.starType)}`,
+            alignSelf: "center",
           }}
         />
         <span style={{ color: "#6b87a3", letterSpacing: "0.14em" }}>
@@ -109,9 +111,9 @@ export function Topbar() {
             fontFamily: FONT_MONO,
             fontSize: 12,
             letterSpacing: "0.1em",
-            color: paused ? "#ff6b6b" : "#6b87a3",
-            background: paused ? "rgba(255,107,107,0.1)" : "transparent",
-            border: `1px solid ${paused ? "rgba(255,107,107,0.4)" : "rgba(110,200,255,0.15)"}`,
+            color: paused ? "#4cd8a8" : "#6b87a3",
+            background: paused ? "rgba(76,216,168,0.1)" : "transparent",
+            border: `1px solid ${paused ? "rgba(76,216,168,0.4)" : "rgba(110,200,255,0.15)"}`,
             padding: "4px 10px",
             cursor: "pointer",
           }}
