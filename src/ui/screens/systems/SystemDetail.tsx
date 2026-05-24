@@ -99,7 +99,7 @@ function ColonizedDetail({
       >
         <SysStat
           label="MATERIALS"
-          value={`${fmtRate(resourceRates.materialsPerSecond)} tons/year`}
+          value={`${fmtRate(resourceRates.materialsPerSecond)} tons/cycle`}
           color="#5cc7ff"
         />
         <SysStat
@@ -271,7 +271,7 @@ function UnvisitedDetail({
         <SysStat label="TRAVEL @1×" value={fmtTime(travelTime)} />
         <SysStat
           label="TECH-SHARE"
-          value={`${fmt(system.distanceFromOrigin, { decimals: 2 })} years`}
+          value={`${fmt(system.distanceFromOrigin, { decimals: 2 })} cycles`}
         />
       </div>
 

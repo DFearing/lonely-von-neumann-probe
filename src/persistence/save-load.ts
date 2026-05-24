@@ -15,7 +15,7 @@ export interface SaveSlotInfo {
   tickCount: number;
   timestamp: number;
   probeName: string;
-  year: number;
+  cycle: number;
   systemCount: number;
   structureCount: number;
 }
@@ -49,7 +49,7 @@ export function listSaves(): SaveSlotInfo[] {
 }
 
 function deriveSlotStats(state: GameState): {
-  year: number;
+  cycle: number;
   systemCount: number;
   structureCount: number;
 } {
@@ -64,8 +64,8 @@ function deriveSlotStats(state: GameState): {
       s.structures.stations.length,
     0,
   );
-  const year = Math.floor(state.elapsedSeconds);
-  return { year, systemCount, structureCount };
+  const cycle = 1000 + Math.floor(state.elapsedSeconds);
+  return { cycle, systemCount, structureCount };
 }
 
 export function saveGameSlot(
@@ -86,7 +86,7 @@ export function saveGameSlot(
   if (existing) {
     existing.tickCount = state.tickCount;
     existing.timestamp = data.timestamp;
-    existing.year = stats.year;
+    existing.cycle = stats.cycle;
     existing.systemCount = stats.systemCount;
     existing.structureCount = stats.structureCount;
   } else {
@@ -96,7 +96,7 @@ export function saveGameSlot(
       tickCount: state.tickCount,
       timestamp: data.timestamp,
       probeName: probeName ?? `Probe-${index.length + 1}`,
-      year: stats.year,
+      cycle: stats.cycle,
       systemCount: stats.systemCount,
       structureCount: stats.structureCount,
     });

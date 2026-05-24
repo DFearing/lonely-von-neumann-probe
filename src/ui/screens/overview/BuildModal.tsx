@@ -108,7 +108,7 @@ const BLURBS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 const OUTPUT_UNITS: Record<StructureType, string> = {
-  miner: "T/year",
+  miner: "T/cycle",
   reactor: "MW",
   printer: "BP/s",
   station: "TFLOPS",
@@ -529,7 +529,7 @@ export function BuildModal({
         style={{
           width: 960,
           maxWidth: "100%",
-          maxHeight: "90vh",
+          height: "min(780px, 90vh)",
           background: "radial-gradient(ellipse at top, #0a1a30 0%, #050913 80%)",
           padding: 22,
           color: C.ink,
@@ -603,7 +603,7 @@ export function BuildModal({
                 }}
               />
               <NavArrow dir="left" onClick={() => go(-1)} accent={accent} disabled={idx === 0} />
-              <div style={{ flex: 1, position: "relative", height: "100%", perspective: "1100px" }}>
+              <div style={{ flex: 1, position: "relative", height: "100%", perspective: "1100px", overflow: "hidden" }}>
                 {allDefs.map((def, i) => {
                   const d = i - idx;
                   const abs = Math.abs(d);

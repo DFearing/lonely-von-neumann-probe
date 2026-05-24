@@ -4,7 +4,7 @@ import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { FONT_MONO } from "../../tokens";
-import { fmtYears } from "../../format";
+import { fmtCycles } from "../../format";
 
 function miniBtn(): React.CSSProperties {
   return {
@@ -86,7 +86,7 @@ export function ResearchQueue({
           {active.length} QUEUED
           {active.length > 0 && (
             <span style={{ color: "#9ab4cf", marginLeft: 6 }}>
-              ~{fmtYears(totalRemaining)}
+              ~{fmtCycles(totalRemaining)}
             </span>
           )}
         </span>
@@ -168,7 +168,7 @@ export function ResearchQueue({
                   textAlign: "right",
                 }}
               >
-                ~{fmtYears(estimateSeconds(project))}
+                ~{fmtCycles(estimateSeconds(project))}
               </span>
               <div style={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <button

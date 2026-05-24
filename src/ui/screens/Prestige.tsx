@@ -65,7 +65,7 @@ function StatCell({ label, value }: { label: string; value: string | number }) {
 }
 
 function MissionBanner({
-  years,
+  cycles,
   systems,
   structures,
   techs,
@@ -75,7 +75,7 @@ function MissionBanner({
   acquiredCount,
   totalUpgradeCount,
 }: {
-  years: number;
+  cycles: number;
   systems: number;
   structures: number;
   techs: number;
@@ -122,7 +122,7 @@ function MissionBanner({
           gridTemplateColumns: "repeat(4, 1fr)",
           gap: 14,
         }}>
-          <StatCell label="LIFESPAN" value={`${fmt(years)} years`} />
+          <StatCell label="LIFESPAN" value={`${fmt(cycles)} cycles`} />
           <StatCell label="SYSTEMS" value={systems} />
           <StatCell label="STRUCTURES" value={structures} />
           <StatCell label="TECHS" value={techs} />
@@ -628,7 +628,7 @@ export function Prestige({ onBeginNewMission, onClose }: { onBeginNewMission: ()
       />
 
       <MissionBanner
-        years={Math.floor(state.elapsedSeconds)}
+        cycles={1000 + Math.floor(state.elapsedSeconds)}
         systems={systemCount}
         structures={structureCount}
         techs={techCount}

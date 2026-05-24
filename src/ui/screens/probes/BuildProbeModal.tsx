@@ -24,7 +24,7 @@ function buildCpuVariants(available: CpuDefinition[]): ComponentVariant[] {
     id: c.type,
     name: c.name,
     costLabel: `${fmt(c.cost.materials)} tons · ${fmt(c.cost.energy)} Megawatts`,
-    spec: `${c.computingOutput} Teraflops · ${c.miningOutput} tons/year gather`,
+    spec: `${c.computingOutput} Teraflops · ${c.miningOutput} tons/cycle gather`,
     techGate: c.techGate,
     unlocked: true,
   }));
@@ -213,7 +213,7 @@ function BuildColumn({
 
   const perfRows = [
     { k: "COMPUTE", v: `${cpu.computingOutput}× TF`, acc: "#b08bff" },
-    { k: "MINING", v: `${cpu.miningOutput}× tons/year`, acc: "#5cc7ff" },
+    { k: "MINING", v: `${cpu.miningOutput}× tons/cycle`, acc: "#5cc7ff" },
     { k: "TRAVEL", v: `${propulsion.travelSpeed}× speed`, acc: "#5cc7ff" },
     { k: "ENERGY", v: `${reactor.energyMultiplier}× Megawatts`, acc: "#ffcb47" },
   ];

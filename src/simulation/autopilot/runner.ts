@@ -34,12 +34,12 @@ export function yearsToTicks(years: number): number {
   return Math.round(years / DT);
 }
 
-export function simulateToYear(
+export function simulateToCycle(
   state: GameState,
   profile: AutopilotProfile,
-  targetYear: number,
+  targetCycle: number,
 ): SimulationResult {
-  const currentYear = 2026 + state.elapsedSeconds;
-  const yearsToAdvance = Math.max(0, targetYear - currentYear);
-  return simulateWithProfile(state, profile, yearsToTicks(yearsToAdvance));
+  const currentCycle = 1000 + state.elapsedSeconds;
+  const cyclesToAdvance = Math.max(0, targetCycle - currentCycle);
+  return simulateWithProfile(state, profile, yearsToTicks(cyclesToAdvance));
 }

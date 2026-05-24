@@ -8,7 +8,7 @@ import { CPUS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
 import { HeaderAddButton } from "./HeaderAddButton";
-import { fmtYears } from "../../format";
+import { fmtCycles } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
 const ACCENT = "#4ddbff";
@@ -320,7 +320,7 @@ export function ProbesColumn({
                       color: ACCENT,
                     }}
                   >
-                    {fmtYears(remaining)}
+                    {fmtCycles(remaining)}
                   </span>
                 </div>
                 <div
@@ -456,7 +456,7 @@ export function ProbesColumn({
                   marginBottom: 2,
                 }}
               >
-                {p.location} · ETA {fmtYears(p.etaYrs)}
+                {p.location} · ETA {fmtCycles(p.etaYrs)}
               </div>
             )}
             <div style={{
@@ -469,7 +469,7 @@ export function ProbesColumn({
               paddingTop: 6,
               borderTop: "1px dashed rgba(110,200,255,0.08)",
             }}>
-              <span style={{ color: "#5fd9c4" }} title="Mining output (T/year)">
+              <span style={{ color: "#5fd9c4" }} title="Mining output (T/cycle)">
                 <FontAwesomeIcon icon={faAtom} style={{ marginRight: 4, fontSize: 9 }} />
                 {(p.miningOutput * p.health).toFixed(1)}
               </span>

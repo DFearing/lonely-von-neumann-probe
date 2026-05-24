@@ -1,7 +1,7 @@
 import type { ResearchProject } from "../../../simulation/state";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { FONT_MONO } from "../../tokens";
-import { fmtYears } from "../../format";
+import { fmtCycles } from "../../format";
 
 export function ActiveBanner({
   project,
@@ -142,7 +142,7 @@ export function ActiveBanner({
             lineHeight: 1,
           }}
         >
-          {fmtYears(remaining)}
+          {fmtCycles(remaining)}
         </span>
         <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
           @ {computeRate.toFixed(1)} Teraflops

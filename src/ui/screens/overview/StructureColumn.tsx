@@ -12,7 +12,7 @@ import { HealthGauge } from "../../components/HealthGauge";
 import { Tooltip } from "../../components/Tooltip";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { BuildModal } from "./BuildModal";
-import { fmt, fmtYears } from "../../format";
+import { fmt, fmtCycles } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
 type CategoryId = "miners" | "reactors" | "printers" | "stations";
@@ -33,7 +33,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#5fd9c4",
     icon: faAtom,
     description: "Extract Materials",
-    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} T/year`,
+    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} T/cycle`,
   },
   reactors: {
     structureType: "reactor",
@@ -41,7 +41,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     accent: "#6aa9ff",
     icon: faBolt,
     description: "Generate Energy",
-    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} MW/year`,
+    formatSummaryRate: (rate) => `${rate >= 0 ? "+" : ""}${rate.toFixed(1)} MW/cycle`,
   },
   printers: {
     structureType: "printer",
@@ -94,10 +94,10 @@ function formatVariantSpec(
   category: CategoryId,
 ): string {
   if (category === "miners") {
-    return `+${def.productionRate.toFixed(1)} T/year`;
+    return `+${def.productionRate.toFixed(1)} T/cycle`;
   }
   if (category === "reactors") {
-    return `+${def.productionRate.toFixed(1)} MW/year`;
+    return `+${def.productionRate.toFixed(1)} MW/cycle`;
   }
   if (category === "stations") {
     return `+${def.productionRate.toFixed(1)} TFLOPS`;
@@ -189,7 +189,7 @@ export function StructureColumn({
                 <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />{draw.toFixed(1)} MW draw
               </span>
               <span style={{ color: "#6b87a3" }}>
-                <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />{maint.toFixed(2)} T/year maintenance
+                <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />{maint.toFixed(2)} T/cycle maintenance
               </span>
               <span style={{ color: "#b08bff" }}>
                 <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />{compute.toFixed(2)} TFLOPS demand
@@ -297,9 +297,9 @@ export function StructureColumn({
                       color: config.accent,
                     }}
                   >
-                    {fmtYears(remaining)}
+                    {fmtCycles(remaining)}
                     {globalIndex > 0 && (
-                      <span style={{ color: "#6b87a3" }}> ({fmtYears(cumulativeYears)})</span>
+                      <span style={{ color: "#6b87a3" }}> ({fmtCycles(cumulativeYears)})</span>
                     )}
                   </span>
                 </div>
@@ -491,19 +491,19 @@ export function StructureColumn({
                 </span>
                 <span style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
                   {inst.maintenanceCost > 0 && (
-                    <span style={{ color: "#5fd9c4" }}>{inst.maintenanceCost.toFixed(2)} T/yr</span>
+                    <span style={{ color: "#5fd9c4" }}>{inst.maintenanceCost.toFixed(2)} T/cy</span>
                   )}
                   {inst.maintenanceCost > 0 && inst.operatingCost > 0 && (
                     <span style={{ color: "#6b87a3" }}> · </span>
                   )}
                   {inst.operatingCost > 0 && (
-                    <span style={{ color: "#6aa9ff" }}>{inst.operatingCost.toFixed(1)} MW/yr</span>
+                    <span style={{ color: "#6aa9ff" }}>{inst.operatingCost.toFixed(1)} MW/cy</span>
                   )}
                   {(inst.maintenanceCost > 0 || inst.operatingCost > 0) && inst.computeDemand > 0 && (
                     <span style={{ color: "#6b87a3" }}> · </span>
                   )}
                   {inst.computeDemand > 0 && (
-                    <span style={{ color: "#b08bff" }}>{inst.computeDemand.toFixed(2)} TFLOPS/yr</span>
+                    <span style={{ color: "#b08bff" }}>{inst.computeDemand.toFixed(2)} TFLOPS/cy</span>
                   )}
                 </span>
               </div>
