@@ -70,6 +70,7 @@ function completeStructure(
     productionRate: def.productionRate,
     operatingCost: def.operatingCost,
     maintenanceCost: def.maintenanceCost,
+    computeDemand: def.computeDemand,
     active: true,
     constructionProgress: 1,
   };
@@ -79,7 +80,9 @@ function completeStructure(
       ? "miners"
       : def.type === "reactor"
         ? "reactors"
-        : "printers";
+        : def.type === "station"
+          ? "stations"
+          : "printers";
 
   return {
     ...system,
@@ -203,6 +206,8 @@ function tickSystemConstruction(
   let updatedSystem = system;
   const updatedQueue: ConstructionProject[] = [];
 
+  const computeEfficiency = updatedSystem.resourceRates.computeEfficiency;
+
   const probePrintSpeed = updatedSystem.mainProbe?.mode === "printing"
     ? updatedSystem.mainProbe.internalPrinterSpeed
     : 0;
@@ -213,7 +218,7 @@ function tickSystemConstruction(
       updatedSystem.structures.printers,
       multipliers.manufacturingSpeedMultiplier,
     );
-    const speed = probePrintSpeed + structurePrintSpeed;
+    const speed = (probePrintSpeed + structurePrintSpeed) * computeEfficiency;
 
     if (speed <= 0) {
       updatedQueue.push(project);

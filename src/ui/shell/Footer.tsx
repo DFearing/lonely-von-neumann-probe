@@ -159,8 +159,18 @@ function EnergyCell({
   );
 }
 
+function computeColor(efficiency: number): string {
+  if (efficiency < 0.5) return "#ff6b6b";
+  if (efficiency < 0.8) return "#ffcb47";
+  return "#b08bff";
+}
+
 function ComputeResearchCell({
   computeRate,
+  computeSupply,
+  computeDemand,
+  computeEfficiency,
+  hasStations,
   researchName,
   researchTier,
   researchProgress,
@@ -168,6 +178,10 @@ function ComputeResearchCell({
   onNavigate,
 }: {
   computeRate: number;
+  computeSupply: number;
+  computeDemand: number;
+  computeEfficiency: number;
+  hasStations: boolean;
   researchName: string | null;
   researchTier: number | null;
   researchProgress: number;
@@ -179,6 +193,7 @@ function ComputeResearchCell({
     researchContinuousCost > 0 && computeRate > 0
       ? ((1 - researchProgress) * researchContinuousCost * 100) / computeRate
       : 0;
+  const color = computeColor(computeEfficiency);
 
   return (
     <div
@@ -248,11 +263,11 @@ function ComputeResearchCell({
           style={{
             fontSize: 38,
             fontWeight: 500,
-            color: "#b08bff",
+            color,
             fontVariantNumeric: "tabular-nums",
             fontFamily: FONT_MONO,
             letterSpacing: "-0.02em",
-            textShadow: "0 0 12px rgba(176,139,255,0.4)",
+            textShadow: `0 0 12px ${color}40`,
           }}
         >
           {computeRate.toFixed(1)}
@@ -263,6 +278,29 @@ function ComputeResearchCell({
           TFLOPS
         </span>
       </div>
+      {hasStations && (
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            fontFamily: FONT_MONO,
+            fontSize: 14,
+            marginTop: 4,
+          }}
+        >
+          <span style={{ color: "#4cd8a8" }}>
+            ▲ {computeSupply.toFixed(1)} supply
+          </span>
+          <span style={{ color: computeDemand > 0 ? "#ff9966" : "#3d5572" }}>
+            ▼ {computeDemand.toFixed(1)} demand
+          </span>
+          {computeEfficiency < 1 && (
+            <span style={{ color }}>
+              {(computeEfficiency * 100).toFixed(0)}% eff
+            </span>
+          )}
+        </div>
+      )}
       <div
         style={{
           height: 2,
@@ -331,6 +369,10 @@ export function Footer({
       >
         <ComputeResearchCell
           computeRate={system.resourceRates.computingPowerPerSecond}
+          computeSupply={system.resourceRates.computeSupply}
+          computeDemand={system.resourceRates.computeDemand}
+          computeEfficiency={system.resourceRates.computeEfficiency}
+          hasStations={system.structures.stations.length > 0}
           researchName={activeResearch?.name ?? null}
           researchTier={activeResearch?.tier ?? null}
           researchProgress={activeResearch?.progress ?? 0}

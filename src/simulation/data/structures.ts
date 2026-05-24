@@ -9,6 +9,7 @@ export interface StructureDefinition {
   productionRate: number;
   operatingCost: number;
   maintenanceCost: number;
+  computeDemand: number;
   techGate: string | null;
   solarScaling: boolean;
 }
@@ -40,6 +41,15 @@ export const PRINTER_NAMES = [
   "Von Neumann Assembler",
 ];
 
+export const STATION_NAMES = [
+  "Relay Hub",
+  "Compute Cluster",
+  "Neural Nexus",
+  "Quantum Mainframe",
+  "Dyson Brain",
+  "Matrioshka Core",
+];
+
 const SOLAR_REACTOR_TIERS = new Set([5]);
 
 function structureTechGate(typesPrefix: string, tier: number): string | null {
@@ -62,6 +72,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       productionRate: +(3 * (1 + 0.30 * (tier - 1))).toFixed(2),
       operatingCost: +(0.5 * (1 + 0.12 * (tier - 1))).toFixed(2),
       maintenanceCost: +(0.15 * (1 + 0.15 * (tier - 1))).toFixed(3),
+      computeDemand: +(0.10 * Math.pow(1.15, tier - 1)).toFixed(3),
       techGate: structureTechGate("mining_types", tier),
       solarScaling: false,
     };
@@ -79,6 +90,7 @@ function generateStructures(): Record<string, StructureDefinition> {
       productionRate: +(3 * (1 + 0.30 * (tier - 1))).toFixed(2),
       operatingCost: 0,
       maintenanceCost: +(0.08 * (1 + 0.15 * (tier - 1))).toFixed(3),
+      computeDemand: +(0.05 * Math.pow(1.10, tier - 1)).toFixed(3),
       techGate: structureTechGate("energy_types", tier),
       solarScaling: SOLAR_REACTOR_TIERS.has(tier),
     };
@@ -96,7 +108,35 @@ function generateStructures(): Record<string, StructureDefinition> {
       productionRate: +(0.8 * (1 + 0.12 * (tier - 1))).toFixed(2),
       operatingCost: +(0.5 * (1 + 0.10 * (tier - 1))).toFixed(2),
       maintenanceCost: +(0.2 * (1 + 0.15 * (tier - 1))).toFixed(3),
+      computeDemand: +(0.15 * Math.pow(1.20, tier - 1)).toFixed(3),
       techGate: structureTechGate("manufacturing_types", tier),
+      solarScaling: false,
+    };
+  }
+
+  const stationTechGates = [
+    "computing_architecture_t7",
+    "computing_architecture_t10",
+    "computing_architecture_t13",
+    "computing_architecture_t16",
+    "computing_architecture_t19",
+    "computing_architecture_t20",
+  ];
+
+  for (let tier = 1; tier <= MAX_STRUCTURE_TIER; tier++) {
+    structures[`station_${tier}`] = {
+      type: "station",
+      tier,
+      name: STATION_NAMES[tier - 1]!,
+      cost: {
+        materials: Math.round(60 * 2.2 ** (tier - 1)),
+        energy: Math.round(12 * 2.2 ** (tier - 1)),
+      },
+      productionRate: +(1.5 * Math.pow(1.35, tier - 1)).toFixed(2),
+      operatingCost: +(1.0 * Math.pow(1.20, tier - 1)).toFixed(2),
+      maintenanceCost: +(0.08 * (1 + 0.15 * (tier - 1))).toFixed(3),
+      computeDemand: 0,
+      techGate: stationTechGates[tier - 1]!,
       solarScaling: false,
     };
   }

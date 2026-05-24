@@ -11,7 +11,7 @@ import { HeaderAddButton } from "./HeaderAddButton";
 import { fmt, fmtTime } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
-type CategoryId = "miners" | "reactors" | "printers";
+type CategoryId = "miners" | "reactors" | "printers" | "stations";
 
 interface CategoryConfig {
   structureType: StructureType;
@@ -47,6 +47,14 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     description: "Build structures & probes",
     formatSummaryRate: (rate) => `${rate.toFixed(1)} BP`,
   },
+  stations: {
+    structureType: "station" as StructureType,
+    label: "STATIONS",
+    accent: "#b08bff",
+    icon: "◈",
+    description: "Provide Computing",
+    formatSummaryRate: (rate) => `+${rate.toFixed(1)} TFLOPS`,
+  },
 };
 
 function computeSummaryRate(
@@ -71,6 +79,8 @@ function computeSummaryRate(
       }
       return total;
     }
+    case "stations":
+      return rates.computeSupply - (system.mainProbe?.computingOutput ?? 0);
   }
 }
 
@@ -84,6 +94,10 @@ function formatVariantSpec(
   if (category === "reactors") {
     const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} MW op` : "";
     return `+${def.productionRate} MW/s${opCost}`;
+  }
+  if (category === "stations") {
+    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} MW op` : "";
+    return `+${def.productionRate.toFixed(1)} TFLOPS${opCost}`;
   }
   return `${def.productionRate.toFixed(1)} BP`;
 }
@@ -99,6 +113,7 @@ function simulateWithStructure(
     productionRate: def.productionRate,
     operatingCost: def.operatingCost,
     maintenanceCost: def.maintenanceCost,
+    computeDemand: def.computeDemand,
     active: true,
     constructionProgress: 1,
   };

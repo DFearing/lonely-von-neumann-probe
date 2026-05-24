@@ -9,6 +9,7 @@ function makeStructure(overrides: Partial<StructureInstance> & Pick<StructureIns
     productionRate: 10,
     operatingCost: 0,
     maintenanceCost: 0,
+    computeDemand: 0,
     active: true,
     constructionProgress: 1,
     ...overrides,
@@ -40,9 +41,9 @@ function makeSystem(overrides?: Partial<SystemState>): SystemState {
     discovered: true,
     scanned: true,
     mainProbe: makeProbe(),
-    structures: { miners: [], reactors: [], printers: [] },
+    structures: { miners: [], reactors: [], printers: [], stations: [] },
     resources: { materials: 0, energy: 0, computingPower: 0 },
-    resourceRates: { materialsSupply: 0, materialsDemand: 0, materialsPerSecond: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 0 },
+    resourceRates: { materialsSupply: 0, materialsDemand: 0, materialsPerSecond: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 0, computeSupply: 0, computeDemand: 0, computeNet: 0, computeEfficiency: 1 },
     constructionQueue: [],
     researchQueue: [],
     completedResearch: {},
@@ -75,6 +76,7 @@ describe("calculateRates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -87,6 +89,7 @@ describe("calculateRates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20, active: false })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -99,6 +102,7 @@ describe("calculateRates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20, constructionProgress: 0.5 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -115,6 +119,7 @@ describe("calculateRates", () => {
           ],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -139,6 +144,7 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -152,6 +158,7 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 5, productionRate: 12 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -165,6 +172,7 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -177,6 +185,7 @@ describe("calculateRates", () => {
           miners: [makeStructure({ type: "miner", operatingCost: 2 })],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 20 })],
           printers: [makeStructure({ type: "printer", operatingCost: 1 })],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -189,6 +198,7 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10, active: false })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -201,6 +211,7 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10, constructionProgress: 0.9 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -213,6 +224,7 @@ describe("calculateRates", () => {
           miners: [makeStructure({ type: "miner", operatingCost: 15 })],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 5 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -226,6 +238,7 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);
@@ -261,6 +274,7 @@ describe("calculateRates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10 })],
           printers: [],
+          stations: [],
         },
       });
       const rates = calculateRates(system);

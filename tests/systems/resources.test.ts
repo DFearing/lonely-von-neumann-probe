@@ -10,6 +10,7 @@ function makeStructure(overrides: Partial<StructureInstance> & Pick<StructureIns
     productionRate: 10,
     operatingCost: 0,
     maintenanceCost: 0,
+    computeDemand: 0,
     active: true,
     constructionProgress: 1,
     ...overrides,
@@ -60,7 +61,7 @@ describe("tickResources", () => {
     const state = stateWithSystem({
       resources: { materials: 0, energy: 0, computingPower: 0 },
       mainProbe: null,
-      structures: { miners: [], reactors: [], printers: [] },
+      structures: { miners: [], reactors: [], printers: [], stations: [] },
     });
     const next = tickResources(state, 10);
     const sol = next.systems["sol"]!;
@@ -73,6 +74,7 @@ describe("tickResources", () => {
         miners: [makeStructure({ type: "miner", operatingCost: 100 })],
         reactors: [],
         printers: [],
+        stations: [],
       },
     });
     const next = tickResources(state, 1);
