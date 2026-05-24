@@ -84,6 +84,7 @@ export interface ProbeState {
   internalPrinterSpeed: number;
   autoReplicating: boolean;
   health: number;
+  gatheringStartMaterials?: number;
 }
 
 export interface StructureInstance {

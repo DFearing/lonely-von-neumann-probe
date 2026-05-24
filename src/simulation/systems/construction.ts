@@ -294,10 +294,19 @@ function tickSystemConstruction(
     multipliers.printerNetworking,
   );
 
-  const finishedSystem = { ...updatedSystem, constructionQueue: finalQueue };
+  let finishedSystem: SystemState = { ...updatedSystem, constructionQueue: finalQueue };
 
   if (finalQueue.length === 0 && finishedSystem.mainProbe?.mode === "printing") {
-    finishedSystem.mainProbe = { ...finishedSystem.mainProbe, mode: "idle" };
+    const probe = finishedSystem.mainProbe;
+    finishedSystem = {
+      ...finishedSystem,
+      mainProbe: { ...probe, mode: "idle" },
+    };
+    log.push({
+      tick: tickCount,
+      message: `${probe.name} finished printing — queue empty`,
+      category: "info",
+    });
   }
 
   return { system: finishedSystem, log };

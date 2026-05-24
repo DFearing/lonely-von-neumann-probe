@@ -317,10 +317,37 @@ function applySetProbeMode(
   const system = getSystem(state, action.systemId);
   if (!system?.mainProbe) return state;
 
-  return updateSystem(state, action.systemId, {
-    ...system,
-    mainProbe: { ...system.mainProbe, mode: action.mode },
-  });
+  const probe = system.mainProbe;
+  if (probe.mode === action.mode) return state;
+
+  let message: string;
+  let updatedProbe = { ...probe, mode: action.mode };
+
+  if (probe.mode === "gathering") {
+    const gathered = system.resources.materials - (probe.gatheringStartMaterials ?? 0);
+    const { gatheringStartMaterials: _, ...probeWithoutGathering } = updatedProbe;
+    updatedProbe = probeWithoutGathering as typeof updatedProbe;
+    message = gathered > 0
+      ? `${probe.name} stopped gathering (${(Math.round(gathered * 10) / 10).toFixed(1)} tons collected)`
+      : `${probe.name} stopped gathering`;
+  } else if (action.mode === "gathering") {
+    updatedProbe = { ...updatedProbe, gatheringStartMaterials: system.resources.materials };
+    message = `${probe.name} began gathering`;
+  } else if (action.mode === "printing") {
+    message = `${probe.name} began printing`;
+  } else if (action.mode === "idle") {
+    message = `${probe.name} is now idle`;
+  } else {
+    message = `${probe.name} mode: ${action.mode}`;
+  }
+
+  return {
+    ...updateSystem(state, action.systemId, {
+      ...system,
+      mainProbe: updatedProbe,
+    }),
+    log: [...state.log, { tick: state.tickCount, message, category: "info" as const }],
+  };
 }
 
 function applyAction(state: GameState, action: PlayerAction): GameState {
