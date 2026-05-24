@@ -1,9 +1,13 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGear, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useGameState, useCurrentSystem, useLoop } from "../context";
 import { FONT_MONO } from "../tokens";
 import { starColor } from "../data/star-colors";
 import type { GameSpeed } from "../../simulation/actions";
 import { useSoundSettings } from "../../audio/use-sound-events";
+import { soundManager } from "../../audio/sound-manager";
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";
@@ -17,7 +21,7 @@ function richnessLabel(value: number): string {
 const SPEEDS: GameSpeed[] = [1, 10, 100, 1000];
 const SPEED_LABELS: Record<GameSpeed, string> = { 1: "1×", 10: "10×", 100: "100×", 1000: "1000×" };
 
-export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
+export function Topbar({ onOpenSettings, onBack }: { onOpenSettings?: () => void; onBack?: (() => void) | null }) {
   const state = useGameState();
   const system = useCurrentSystem();
   const loop = useLoop();
@@ -152,6 +156,7 @@ export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
           max={100}
           value={Math.round(soundSettings.volume * 100)}
           onChange={(e) => setVolume(Number(e.target.value) / 100)}
+          onPointerUp={() => soundManager.preview("miner_constructed")}
           style={{
             width: 60,
             height: 4,
@@ -159,24 +164,10 @@ export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
             cursor: "pointer",
           }}
         />
-        {onOpenSettings && (
-          <button
-            onClick={onOpenSettings}
-            title="Sound settings"
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 14,
-              color: "#6b87a3",
-              background: "transparent",
-              border: "1px solid rgba(110,200,255,0.15)",
-              padding: "4px 8px",
-              cursor: "pointer",
-              lineHeight: 1,
-            }}
-          >
-            {"⚙"}
-          </button>
-        )}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        {onOpenSettings && <TopbarIconButton icon={faGear} title="Settings" onClick={onOpenSettings} />}
+        {onBack && <TopbarIconButton icon={faArrowRightFromBracket} title="Switch operator" onClick={onBack} />}
       </div>
       <div style={{ flex: 1 }} />
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
@@ -193,5 +184,46 @@ export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
         </span>
       </div>
     </div>
+  );
+}
+
+function TopbarIconButton({
+  icon,
+  title,
+  onClick,
+}: {
+  icon: IconDefinition;
+  title: string;
+  onClick?: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        width: 28,
+        height: 28,
+        background: "transparent",
+        border: hovered
+          ? "1px solid rgba(77,219,255,0.5)"
+          : "1px solid rgba(110,200,255,0.20)",
+        color: hovered ? "#4ddbff" : "#9ab4cf",
+        fontFamily: FONT_MONO,
+        fontSize: 14,
+        lineHeight: 1,
+        cursor: "pointer",
+        borderRadius: 2,
+        padding: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "color .15s, border-color .15s",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <FontAwesomeIcon icon={icon} style={{ width: 12, height: 12 }} />
+    </button>
   );
 }

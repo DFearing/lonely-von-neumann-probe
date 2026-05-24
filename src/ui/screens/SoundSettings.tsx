@@ -70,7 +70,7 @@ export function SoundSettings({ onClose }: { onClose: () => void }) {
               letterSpacing: "0.08em",
             }}
           >
-            SOUND SETTINGS
+            SETTINGS
           </div>
           <button
             onClick={onClose}
@@ -95,6 +95,7 @@ export function SoundSettings({ onClose }: { onClose: () => void }) {
         </div>
 
         <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 18 }}>
+          <SectionHeader label="SOUND" />
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <span
               style={{
@@ -209,8 +210,37 @@ export function SoundSettings({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           </div>
+
+          <SectionHeader label="GAME" />
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 11,
+              color: "#3d5572",
+              letterSpacing: "0.06em",
+            }}
+          >
+            No game settings available yet
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        fontFamily: FONT_MONO,
+        fontSize: 10,
+        letterSpacing: "0.22em",
+        color: "#6b87a3",
+        paddingBottom: 6,
+        borderBottom: "1px solid rgba(110,200,255,0.10)",
+      }}
+    >
+      {label}
     </div>
   );
 }

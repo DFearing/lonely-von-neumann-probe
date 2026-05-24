@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Brand } from "./Brand";
 import { Topbar } from "./Topbar";
-import { Sidebar, type ViewId } from "./Sidebar";
+import { Sidebar, LVNPGateContext, type ViewId } from "./Sidebar";
 import { Footer } from "./Footer";
 import { Overview } from "../screens/Overview";
 import { Probes } from "../screens/Probes";
@@ -56,6 +56,7 @@ function Screen({
 export function App() {
   const [view, setView] = useState<ViewId>("overview");
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const gate = useContext(LVNPGateContext);
   useSoundEvents();
 
   return (
@@ -87,7 +88,7 @@ export function App() {
       />
 
       <Brand onNavigate={setView} />
-      <Topbar onOpenSettings={() => setShowSoundSettings(true)} />
+      <Topbar onOpenSettings={() => setShowSoundSettings(true)} onBack={gate.onBack} />
       <Sidebar activeView={view} onNavigate={setView} />
 
       <div
