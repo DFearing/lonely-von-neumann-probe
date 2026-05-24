@@ -219,7 +219,7 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
       reactor: "rct_t1",
     },
     miningOutput: cpuDef?.miningOutput ?? 1,
-    computingOutput: cpuDef?.computingOutput ?? 1,
+    computingOutput: cpuDef?.computingOutput ?? 0.5,
     internalPrinterSpeed: cpuDef?.printSpeed ?? 0.5,
     autoReplicating: false,
     health: 1,

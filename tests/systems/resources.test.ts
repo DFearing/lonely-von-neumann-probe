@@ -92,7 +92,7 @@ describe("tickResources", () => {
     const next = tickResources(state, 1);
     const nextSol = next.systems["sol"]!;
     expect(nextSol.resourceRates.materialsPerSecond).toBeCloseTo(0.9);
-    expect(nextSol.resourceRates.computingPowerPerSecond).toBe(1);
+    expect(nextSol.resourceRates.computingPowerPerSecond).toBe(0.5);
   });
 
   test("ticks all systems independently", () => {
