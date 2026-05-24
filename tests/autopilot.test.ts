@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { createInitialState } from "../src/simulation/state";
-import { simulateWithProfile, simulateToYear, yearsToTicks } from "../src/simulation/autopilot/runner";
+import { simulateWithProfile, simulateToCycle, yearsToTicks } from "../src/simulation/autopilot/runner";
 import { PROFILES, getProfileById } from "../src/simulation/autopilot/profiles";
 
 const SEED = 42;
@@ -24,18 +24,18 @@ describe("autopilot runner", () => {
       .toBe(b.finalState.systems["sol"]!.resources.materials);
   });
 
-  it("simulateToYear calculates correct ticks", () => {
+  it("simulateToCycle calculates correct ticks", () => {
     const state = createInitialState(SEED);
     const profile = PROFILES[0]!;
-    const result = simulateToYear(state, profile, 2126);
+    const result = simulateToCycle(state, profile, 1100);
     expect(result.ticksRun).toBe(yearsToTicks(100));
     expect(result.finalState.elapsedSeconds).toBeCloseTo(100, 0);
   });
 
-  it("returns unchanged state when target year is in the past", () => {
+  it("returns unchanged state when target cycle is in the past", () => {
     const state = createInitialState(SEED);
     const profile = PROFILES[0]!;
-    const result = simulateToYear(state, profile, 2000);
+    const result = simulateToCycle(state, profile, 900);
     expect(result.ticksRun).toBe(0);
     expect(result.finalState.tickCount).toBe(0);
   });

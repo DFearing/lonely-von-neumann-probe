@@ -9,7 +9,7 @@ import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { STRUCTURES } from "../../../simulation/data/structures";
 import { getTechStatus, getMissingPrerequisites, type TechStatus } from "../../../simulation/queries";
 import { FONT_MONO } from "../../tokens";
-import { fmt, fmtYears } from "../../format";
+import { fmt, fmtCycles } from "../../format";
 import { btnFlush } from "../../components/buttons";
 import { BRANCH_META } from "../../data/branch-meta";
 
@@ -185,7 +185,7 @@ export function TechDetail({
                 </div>
                 <div style={{ fontSize: 14, marginBottom: 10 }}>
                   <span style={{ color: "#5fd9c4" }}>
-                    +{def.productionRate} {def.type === "reactor" ? "MW/year" : def.type === "station" ? "TFLOPS/year" : def.type === "miner" ? "T/year" : "BP/year"}
+                    +{def.productionRate} {def.type === "reactor" ? "MW/cycle" : def.type === "station" ? "TFLOPS/cycle" : def.type === "miner" ? "T/cycle" : "BP/cycle"}
                   </span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -201,13 +201,13 @@ export function TechDetail({
                       <div style={{ fontSize: 12, color: "#6b87a3", letterSpacing: "0.14em", marginBottom: 4 }}>UPKEEP</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 13 }}>
                         {def.maintenanceCost > 0 && (
-                          <span style={{ color: "#5fd9c4" }}>{def.maintenanceCost.toFixed(2)} T/year</span>
+                          <span style={{ color: "#5fd9c4" }}>{def.maintenanceCost.toFixed(2)} T/cycle</span>
                         )}
                         {def.operatingCost > 0 && (
-                          <span style={{ color: "#6aa9ff" }}>{def.operatingCost} MW/year</span>
+                          <span style={{ color: "#6aa9ff" }}>{def.operatingCost} MW/cycle</span>
                         )}
                         {def.computeDemand > 0 && (
-                          <span style={{ color: "#b08bff" }}>{def.computeDemand} TFLOPS/year</span>
+                          <span style={{ color: "#b08bff" }}>{def.computeDemand} TFLOPS/cycle</span>
                         )}
                       </div>
                     </div>
@@ -223,7 +223,7 @@ export function TechDetail({
         <KV k="COMPUTE COST" v={`${fmt(tech.continuousCost * tech.researchTime)} TFLOPS`} color="#b08bff" />
         {computeRate > 0 && (
           <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3", marginTop: 4 }}>
-            (~{fmtYears(etaSeconds)})
+            (~{fmtCycles(etaSeconds)})
           </div>
         )}
       </div>

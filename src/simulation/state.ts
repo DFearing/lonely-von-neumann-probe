@@ -155,7 +155,7 @@ export type SoundEventType =
 export interface LogEntry {
   tick: number;
   message: string;
-  category: "info" | "discovery" | "warning" | "milestone";
+  category: "info" | "discovery" | "warning" | "milestone" | "error";
   soundEvent?: SoundEventType;
 }
 
@@ -295,7 +295,12 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
     log: [
       {
         tick: 0,
-        message: `${probeName} activated in Sol system. Beginning resource survey.`,
+        message: "Unable to load logs, data corrupted. ABORTED.",
+        category: "error",
+      },
+      {
+        tick: 0,
+        message: `${probeName} online in Sol system. Beginning resource survey.`,
         category: "milestone",
       },
     ],

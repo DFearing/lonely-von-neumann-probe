@@ -8,13 +8,13 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
   const state = useGameState();
   const jumpForward = useDevJumpForward();
   const loop = useLoop();
-  const currentYear = 2026 + Math.floor(state.elapsedSeconds);
+  const currentCycle = 1000 + Math.floor(state.elapsedSeconds);
 
   const [profileId, setProfileId] = useState(PROFILES[0]!.id);
-  const [yearsToJump, setYearsToJump] = useState(500);
+  const [cyclesToJump, setCyclesToJump] = useState(500);
   const [result, setResult] = useState<{
     ticksRun: number;
-    year: number;
+    cycle: number;
     systems: number;
     structures: number;
     techs: number;
@@ -32,7 +32,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
 
     setRunning(true);
     setTimeout(() => {
-      const targetTicks = yearsToTicks(yearsToJump);
+      const targetTicks = yearsToTicks(cyclesToJump);
       const { finalState, ticksRun } = simulateWithProfile(state, profile, targetTicks);
 
       let systems = 0;
@@ -50,7 +50,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
 
       setResult({
         ticksRun,
-        year: 2026 + Math.floor(finalState.elapsedSeconds),
+        cycle: 1000 + Math.floor(finalState.elapsedSeconds),
         systems,
         structures,
         techs,
@@ -124,12 +124,12 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
 
         <div style={{ marginBottom: 20 }}>
           <label style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#6b87a3", letterSpacing: "0.12em" }}>
-            YEARS TO ADVANCE
+            CYCLES TO ADVANCE
           </label>
           <input
             type="number"
-            value={yearsToJump}
-            onChange={(e) => setYearsToJump(Math.max(1, Number(e.target.value)))}
+            value={cyclesToJump}
+            onChange={(e) => setCyclesToJump(Math.max(1, Number(e.target.value)))}
             min={1}
             style={{
               display: "block",
@@ -145,7 +145,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
             }}
           />
           <div style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#3d5572", marginTop: 4 }}>
-            Current: {currentYear} · Target: {currentYear + yearsToJump}
+            Current: {currentCycle} · Target: {currentCycle + cyclesToJump}
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
             lineHeight: 1.8,
             color: "#9ab4cf",
           }}>
-            <div>Year <span style={{ color: "#d6e8f5" }}>{result.year}</span> · {result.ticksRun} ticks</div>
+            <div>Cycle <span style={{ color: "#d6e8f5" }}>{result.cycle}</span> · {result.ticksRun} ticks</div>
             <div>Systems <span style={{ color: "#4cd8a8" }}>{result.systems}</span> · Structures <span style={{ color: "#4cd8a8" }}>{result.structures}</span></div>
             <div>Techs <span style={{ color: "#6cb8e8" }}>{result.techs}</span> · Materials <span style={{ color: "#d6e8f5" }}>{result.materials}</span></div>
           </div>
@@ -184,7 +184,7 @@ export function DevAutopilot({ onClose }: { onClose: () => void }) {
           >CLOSE</button>
           <button
             onClick={handleRun}
-            disabled={running || yearsToJump <= 0}
+            disabled={running || cyclesToJump <= 0}
             style={{
               background: running ? "rgba(110,200,255,0.06)" : "rgba(77,219,255,0.12)",
               border: "1px solid rgba(77,219,255,0.4)",

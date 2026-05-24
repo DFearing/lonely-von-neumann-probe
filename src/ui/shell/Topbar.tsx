@@ -31,7 +31,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
   const { settings: soundSettings, setVolume, setMuted } = useSoundSettings();
   const paused = loop.isPaused();
   const currentSpeed = loop.getSpeed();
-  const year = 2026 + Math.floor(state.elapsedSeconds);
+  const cycle = 1000 + Math.floor(state.elapsedSeconds);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -175,7 +175,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
       </div>
       <div style={{ flex: 1 }} />
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <span style={{ color: "#9ab4cf", letterSpacing: "0.14em" }}>YEAR</span>
+        <span style={{ color: "#9ab4cf", letterSpacing: "0.14em" }}>CYCLE</span>
         <span
           style={{
             color: "#d6e8f5",
@@ -184,7 +184,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {year}
+          {cycle}
         </span>
       </div>
     </div>

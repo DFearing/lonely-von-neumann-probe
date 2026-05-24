@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCaretUp, faAtom, faBolt, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import { useCurrentSystem } from "../context";
-import { fmt, fmtRate, fmtYears } from "../format";
+import { fmt, fmtRate, fmtCycles } from "../format";
 import { FONT_MONO } from "../tokens";
 import { TECH_TREE } from "../../simulation/data/tech-tree";
 import type { ViewId } from "./Sidebar";
@@ -79,7 +79,7 @@ function MaterialsCell({
         }}
       >
         <span style={{ color: "#5fd9c4" }}>
-          {fmtRate(net)} tons/year net
+          {fmtRate(net)} tons/cycle net
         </span>
         {demand > 0 && (
           <span style={{ color: demandColor }}>
@@ -272,7 +272,7 @@ function ComputeResearchCell({
               flexShrink: 0,
             }}
           >
-            {fmtYears(eta)}
+            {fmtCycles(eta)}
           </span>
         )}
       </div>
