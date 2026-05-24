@@ -14,6 +14,7 @@ function makeStructure(
     computeDemand: 0,
     active: true,
     constructionProgress: 1,
+    health: 1,
     ...overrides,
   };
 }

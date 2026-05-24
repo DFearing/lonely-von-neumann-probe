@@ -90,6 +90,7 @@ export interface StructureInstance {
   computeDemand: number;
   active: boolean;
   constructionProgress: number;
+  health: number;
 }
 
 export interface ConstructionProject {

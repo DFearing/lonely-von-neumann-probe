@@ -517,6 +517,7 @@ describe("tick", () => {
         computeDemand: 0,
         active: true,
         constructionProgress: 1,
+        health: 1,
       };
       const stateWithPrinter = {
         ...state,

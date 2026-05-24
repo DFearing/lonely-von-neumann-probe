@@ -25,7 +25,7 @@ function sumProductionRates(structures: readonly StructureInstance[]): number {
   let total = 0;
   for (const s of structures) {
     if (isActiveAndComplete(s)) {
-      total += s.productionRate;
+      total += s.productionRate * s.health;
     }
   }
   return total;
@@ -86,7 +86,7 @@ export function calculateRates(system: SystemState): ResourceRates {
     if (isActiveAndComplete(reactor)) {
       const def = STRUCTURES[structureKey("reactor", reactor.tier)];
       const solarMultiplier = def?.solarScaling ? resourceRichness : 1;
-      structureReactorOutput += reactor.productionRate * solarMultiplier;
+      structureReactorOutput += reactor.productionRate * reactor.health * solarMultiplier;
     }
   }
   structureReactorOutput *= multipliers.energyMultiplier;

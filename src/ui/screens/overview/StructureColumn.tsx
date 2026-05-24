@@ -119,6 +119,7 @@ function simulateWithStructure(
     computeDemand: def.computeDemand,
     active: true,
     constructionProgress: 1,
+    health: 1,
   };
   const key = `${def.type}s` as keyof typeof system.structures;
   const preview: SystemState = {

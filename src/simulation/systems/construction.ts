@@ -25,7 +25,7 @@ function totalPrintSpeed(
       (p) => p.id === id && p.active && p.constructionProgress >= 1,
     );
     if (printer) {
-      speed += printer.productionRate;
+      speed += printer.productionRate * printer.health;
     }
   }
   return speed * manufacturingSpeedMultiplier;
@@ -73,6 +73,7 @@ function completeStructure(
     computeDemand: def.computeDemand,
     active: true,
     constructionProgress: 1,
+    health: 1,
   };
 
   const arrayKey =
