@@ -6,6 +6,7 @@ describe("getTechMultipliers", () => {
     test("all multipliers at baseline", () => {
       const m = getTechMultipliers({});
       expect(m.miningMultiplier).toBe(1.0);
+      expect(m.energyMultiplier).toBe(1.0);
       expect(m.researchSpeedMultiplier).toBe(1.0);
       expect(m.manufacturingSpeedMultiplier).toBe(1.0);
       expect(m.maxConcurrentResearch).toBe(1);
@@ -16,52 +17,76 @@ describe("getTechMultipliers", () => {
   });
 
   describe("mining multiplier", () => {
-    test("mining_t1 adds 0.10", () => {
-      const m = getTechMultipliers({ mining_t1: true });
+    test("mining_efficiency_t1 adds 0.10", () => {
+      const m = getTechMultipliers({ mining_efficiency_t1: true });
       expect(m.miningMultiplier).toBeCloseTo(1.1);
     });
 
-    test("all four mining techs (t1-t4) stack", () => {
+    test("all four mining efficiency techs (t1-t4) stack", () => {
       const m = getTechMultipliers({
-        mining_t1: true,
-        mining_t2: true,
-        mining_t3: true,
-        mining_t4: true,
+        mining_efficiency_t1: true,
+        mining_efficiency_t2: true,
+        mining_efficiency_t3: true,
+        mining_efficiency_t4: true,
       });
       expect(m.miningMultiplier).toBeCloseTo(1.0 + 0.100 + 0.105 + 0.110 + 0.115);
     });
   });
 
+  describe("energy multiplier", () => {
+    test("energy_production_t1 adds 0.08", () => {
+      const m = getTechMultipliers({ energy_production_t1: true });
+      expect(m.energyMultiplier).toBeCloseTo(1.08);
+    });
+
+    test("energy_production t1-t3 stack", () => {
+      const m = getTechMultipliers({
+        energy_production_t1: true,
+        energy_production_t2: true,
+        energy_production_t3: true,
+      });
+      expect(m.energyMultiplier).toBeCloseTo(1.0 + 0.080 + 0.084 + 0.088);
+    });
+  });
+
   describe("research speed multiplier", () => {
-    test("computing_t1 adds 0.06", () => {
-      const m = getTechMultipliers({ computing_t1: true });
+    test("computing_speed_t1 adds 0.06", () => {
+      const m = getTechMultipliers({ computing_speed_t1: true });
       expect(m.researchSpeedMultiplier).toBeCloseTo(1.06);
     });
 
-    test("computing_t1 + computing_t3 stack", () => {
+    test("computing_speed_t1 + computing_speed_t3 stack", () => {
       const m = getTechMultipliers({
-        computing_t1: true,
-        computing_t3: true,
+        computing_speed_t1: true,
+        computing_speed_t3: true,
       });
       expect(m.researchSpeedMultiplier).toBeCloseTo(1.0 + 0.060 + 0.068);
     });
   });
 
   describe("concurrent research", () => {
-    test("computing_t4 sets max to 2", () => {
-      const m = getTechMultipliers({ computing_t4: true });
+    test("computing_architecture_t4 sets max to 2", () => {
+      const m = getTechMultipliers({ computing_architecture_t4: true });
       expect(m.maxConcurrentResearch).toBe(2);
+    });
+
+    test("computing_architecture_t10 sets max to 3", () => {
+      const m = getTechMultipliers({
+        computing_architecture_t4: true,
+        computing_architecture_t10: true,
+      });
+      expect(m.maxConcurrentResearch).toBe(3);
     });
   });
 
   describe("boolean flags", () => {
-    test("manufacturing_t8 enables printer networking", () => {
-      const m = getTechMultipliers({ manufacturing_t8: true });
+    test("manufacturing_efficiency_t8 enables printer networking", () => {
+      const m = getTechMultipliers({ manufacturing_efficiency_t8: true });
       expect(m.printerNetworking).toBe(true);
     });
 
-    test("computing_t14 enables distributed intelligence", () => {
-      const m = getTechMultipliers({ computing_t14: true });
+    test("computing_architecture_t14 enables distributed intelligence", () => {
+      const m = getTechMultipliers({ computing_architecture_t14: true });
       expect(m.distributedIntelligence).toBe(true);
     });
 
@@ -72,9 +97,16 @@ describe("getTechMultipliers", () => {
   });
 
   describe("manufacturing speed multiplier", () => {
-    test("manufacturing_t1 adds 0.05", () => {
-      const m = getTechMultipliers({ manufacturing_t1: true });
+    test("manufacturing_efficiency_t1 adds 0.05", () => {
+      const m = getTechMultipliers({ manufacturing_efficiency_t1: true });
       expect(m.manufacturingSpeedMultiplier).toBeCloseTo(1.05);
+    });
+  });
+
+  describe("types paths have no multiplier effects", () => {
+    test("mining_types tiers do not affect any multipliers", () => {
+      const m = getTechMultipliers({ mining_types_t1: true, mining_types_t2: true });
+      expect(m.miningMultiplier).toBe(1.0);
     });
   });
 });

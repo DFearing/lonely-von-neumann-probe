@@ -66,9 +66,9 @@ describe("tech effects on resource rates", () => {
       expect(rates.materialsPerSecond).toBe((5 + 20) * 1.0);
     });
 
-    test("mining_t1 gives 1.1x mining rate", () => {
+    test("mining_efficiency_t1 gives 1.1x mining rate", () => {
       const system = makeSystem({
-        completedResearch: { mining_t1: true },
+        completedResearch: { mining_efficiency_t1: true },
         structures: {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
@@ -80,13 +80,13 @@ describe("tech effects on resource rates", () => {
       expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 1.1);
     });
 
-    test("mining t1-t4 stack to correct multiplier", () => {
+    test("mining_efficiency t1-t4 stack to correct multiplier", () => {
       const system = makeSystem({
         completedResearch: {
-          mining_t1: true,
-          mining_t2: true,
-          mining_t3: true,
-          mining_t4: true,
+          mining_efficiency_t1: true,
+          mining_efficiency_t2: true,
+          mining_efficiency_t3: true,
+          mining_efficiency_t4: true,
         },
         structures: {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
@@ -103,7 +103,7 @@ describe("tech effects on resource rates", () => {
     test("mining multiplier stacks with system richness", () => {
       const system = makeSystem({
         resourceRichness: 1.5,
-        completedResearch: { mining_t1: true },
+        completedResearch: { mining_efficiency_t1: true },
         structures: {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
@@ -113,6 +113,40 @@ describe("tech effects on resource rates", () => {
 
       const rates = calculateRates(system);
       expect(rates.materialsPerSecond).toBeCloseTo((5 + 20) * 1.1 * 1.5);
+    });
+  });
+
+  describe("energy tech multiplier", () => {
+    test("energy_production_t1 gives 1.08x reactor output", () => {
+      const system = makeSystem({
+        completedResearch: { energy_production_t1: true },
+        structures: {
+          miners: [],
+          reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10, operatingCost: 1 })],
+          printers: [],
+        },
+      });
+
+      const rates = calculateRates(system);
+      const probeEnergy = 9;
+      expect(rates.energyPerSecond).toBeCloseTo(probeEnergy + 10 * 1.08 - 1);
+    });
+  });
+
+  describe("types paths", () => {
+    test("mining_types tiers do not affect operating costs", () => {
+      const system = makeSystem({
+        completedResearch: { mining_types_t1: true },
+        structures: {
+          miners: [makeStructure({ type: "miner", productionRate: 20, operatingCost: 10 })],
+          reactors: [],
+          printers: [],
+        },
+      });
+
+      const rates = calculateRates(system);
+      const probeEnergy = 9;
+      expect(rates.energyPerSecond).toBeCloseTo(probeEnergy - 10);
     });
   });
 });

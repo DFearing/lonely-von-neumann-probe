@@ -168,7 +168,6 @@ function applyStartResearch(
   if (!tech) return state;
 
   if (!hasPrerequisites(system, action.techId)) return state;
-  if (!canAfford(system, tech.initialCost)) return state;
 
   const alreadyResearching = system.researchQueue.some(
     (p) => p.techId === action.techId,
@@ -190,10 +189,12 @@ function applyStartResearch(
     paused: false,
   };
 
-  const updated = deductResources(system, tech.initialCost);
+  const newQueue = action.priority
+    ? [project, ...system.researchQueue]
+    : [...system.researchQueue, project];
   return updateSystem(state, action.systemId, {
-    ...updated,
-    researchQueue: [...updated.researchQueue, project],
+    ...system,
+    researchQueue: newQueue,
   });
 }
 

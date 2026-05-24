@@ -32,7 +32,7 @@ function buildActionSequence(): { tick: number; action: PlayerAction }[] {
       action: {
         type: "start_research",
         systemId: "sol",
-        techId: "mining_t1",
+        techId: "mining_efficiency_t1",
       },
     },
     {

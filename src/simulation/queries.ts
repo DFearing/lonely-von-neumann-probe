@@ -26,6 +26,13 @@ export function hasPrerequisites(
       return false;
     }
   }
+
+  for (const prereqId of tech.prerequisites) {
+    if (!system.completedResearch[prereqId]) {
+      return false;
+    }
+  }
+
   return true;
 }
 

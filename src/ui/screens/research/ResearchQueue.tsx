@@ -1,5 +1,7 @@
 import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
+import { TECH_TREE } from "../../../simulation/data/tech-tree";
+import { getTechMultipliers } from "../../../simulation/tech-effects";
 import { FONT_MONO } from "../../tokens";
 import { fmtYears } from "../../format";
 
@@ -24,11 +26,28 @@ function miniBtn(): React.CSSProperties {
 export function ResearchQueue({
   system,
   dispatch,
+  onSelect,
+  selectedTech,
 }: {
   system: SystemState;
   dispatch: (action: PlayerAction) => void;
+  onSelect: (techId: string) => void;
+  selectedTech: string | null;
 }) {
   const active = system.researchQueue.filter((r) => !r.completed);
+  const multipliers = getTechMultipliers(system.completedResearch);
+  const computeRate = system.resourceRates.computingPowerPerSecond;
+
+  function estimateSeconds(project: typeof active[number]): number {
+    const techDef = TECH_TREE[project.techId];
+    if (!techDef) return 0;
+    const required = project.continuousCost;
+    if (required <= 0 || computeRate <= 0) return 0;
+    const effectiveRate = Math.min(computeRate, required) / required;
+    return (1 - project.progress) * techDef.researchTime / (effectiveRate * multipliers.researchSpeedMultiplier);
+  }
+
+  const totalRemaining = active.reduce((sum, project) => sum + estimateSeconds(project), 0);
 
   return (
     <div
@@ -65,6 +84,11 @@ export function ResearchQueue({
         />
         <span style={{ fontFamily: FONT_MONO, fontSize: 9, color: "#6b87a3" }}>
           {active.length} QUEUED
+          {active.length > 0 && (
+            <span style={{ color: "#9ab4cf", marginLeft: 6 }}>
+              ~{fmtYears(totalRemaining)}
+            </span>
+          )}
         </span>
       </div>
 
@@ -85,14 +109,16 @@ export function ResearchQueue({
           {active.map((project, i) => (
             <div
               key={project.id}
+              onClick={() => onSelect(project.techId)}
               style={{
                 display: "grid",
                 gridTemplateColumns: "18px 1fr 60px 48px",
                 gap: 8,
                 alignItems: "center",
                 padding: "6px 8px",
-                background: "rgba(8,16,30,0.5)",
-                border: "1px solid rgba(110,200,255,0.10)",
+                cursor: "pointer",
+                background: selectedTech === project.techId ? "rgba(77,219,255,0.08)" : "rgba(8,16,30,0.5)",
+                border: selectedTech === project.techId ? "1px solid rgba(77,219,255,0.35)" : "1px solid rgba(110,200,255,0.10)",
               }}
             >
               <span
@@ -131,7 +157,7 @@ export function ResearchQueue({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {project.branchId}
+                  {project.branchId.replaceAll("_", " ")}
                 </div>
               </div>
               <span
@@ -142,7 +168,7 @@ export function ResearchQueue({
                   textAlign: "right",
                 }}
               >
-                ~{fmtYears(project.continuousCost > 0 ? project.continuousCost * 100 : 0)}
+                ~{fmtYears(estimateSeconds(project))}
               </span>
               <div style={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <button

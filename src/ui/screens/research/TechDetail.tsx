@@ -3,15 +3,21 @@ import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { getTechStatus, type TechStatus } from "../../../simulation/queries";
 import { FONT_MONO } from "../../tokens";
-import { fmt, fmtYears } from "../../format";
+import { fmt } from "../../format";
 import { btnFlush } from "../../components/buttons";
 
 const BRANCH_META: Record<string, { color: string; icon: string }> = {
-  mining: { color: "#5cc7ff", icon: "⛏" },
-  energy: { color: "#ffcb47", icon: "⚡" },
-  manufacturing: { color: "#4cd8a8", icon: "⊟" },
-  probe_components: { color: "#4ddbff", icon: "◇" },
-  computing: { color: "#b08bff", icon: "◊" },
+  mining_efficiency: { color: "#5cc7ff", icon: "⛏" },
+  mining_types: { color: "#3aa8e0", icon: "⛏" },
+  energy_production: { color: "#ffcb47", icon: "⚡" },
+  energy_types: { color: "#e0a830", icon: "⚡" },
+  manufacturing_efficiency: { color: "#4cd8a8", icon: "⊟" },
+  manufacturing_types: { color: "#38b890", icon: "⊟" },
+  probe_cpu: { color: "#4ddbff", icon: "◇" },
+  probe_propulsion: { color: "#6bc0e0", icon: "▷" },
+  probe_reactors: { color: "#e8b830", icon: "⊙" },
+  computing_speed: { color: "#b08bff", icon: "◊" },
+  computing_architecture: { color: "#9070e0", icon: "◊" },
   communication: { color: "#ff9966", icon: "⟑" },
 };
 
@@ -120,7 +126,7 @@ export function TechDetail({
                 letterSpacing: "0.14em",
               }}
             >
-              {tech.branchId.toUpperCase().replace("_", " ")} · T{tech.tier}
+              {tech.branchId.toUpperCase().replaceAll("_", " ")} · T{tech.tier}
             </span>
             <span
               style={{
@@ -167,10 +173,19 @@ export function TechDetail({
           marginBottom: 10,
         }}
       >
-        <KV k="COMPUTE" v={`${tech.continuousCost} TF/s`} color="#b08bff" />
-        <KV k="DURATION" v={fmtYears(tech.researchTime)} />
-        <KV k="COST" v={`${fmt(tech.initialCost.materials)} t · ${fmt(tech.initialCost.energy)} MW`} />
-        <KV k="PREREQ" v={tech.tier === 1 ? "NONE" : `T${tech.tier - 1}`} />
+        <KV k="COST" v={`${fmt(tech.continuousCost * tech.researchTime)} TF`} color="#b08bff" />
+        <KV
+          k="PREREQ"
+          v={(() => {
+            const parts: string[] = [];
+            if (tech.tier > 1) parts.push(`T${tech.tier - 1}`);
+            for (const prereqId of tech.prerequisites) {
+              const prereq = TECH_TREE[prereqId];
+              if (prereq) parts.push(prereq.name);
+            }
+            return parts.length > 0 ? parts.join(", ") : "NONE";
+          })()}
+        />
       </div>
 
       <div style={{ display: "flex", gap: 6 }}>
@@ -187,39 +202,38 @@ export function TechDetail({
             ✓ COMPLETE
           </button>
         )}
-        {status === "in_progress" && project && (
-          <>
-            <button
-              style={{
-                ...btnFlush(),
-                flex: 1,
-                color: "#b08bff",
-                borderColor: "rgba(176,139,255,0.4)",
-              }}
-              onClick={() =>
-                dispatch({
-                  type: "pause_research",
-                  systemId: system.id,
-                  projectId: project.id,
-                })
-              }
-            >
-              {project.paused ? "RESUME" : "PAUSE"}
-            </button>
-            <button
-              style={{ ...btnFlush(), flex: 1 }}
-              onClick={() =>
-                dispatch({
-                  type: "cancel_research",
-                  systemId: system.id,
-                  projectId: project.id,
-                })
-              }
-            >
-              CANCEL
-            </button>
-          </>
-        )}
+        {status === "in_progress" && project && (() => {
+          const queueIndex = system.researchQueue.filter(r => !r.completed).findIndex(r => r.id === project.id);
+          const isFirst = queueIndex === 0;
+          return (
+            <>
+              <button
+                style={{
+                  ...btnFlush(),
+                  flex: 1,
+                  color: isFirst ? "#b08bff" : "#4ddbff",
+                  borderColor: isFirst ? "rgba(176,139,255,0.4)" : "rgba(77,219,255,0.4)",
+                }}
+                onClick={() =>
+                  isFirst
+                    ? dispatch({
+                        type: "pause_research",
+                        systemId: system.id,
+                        projectId: project.id,
+                      })
+                    : dispatch({
+                        type: "reorder_research",
+                        systemId: system.id,
+                        projectId: project.id,
+                        newIndex: 0,
+                      })
+                }
+              >
+                {isFirst ? (project.paused ? "RESUME" : "PAUSE") : "START"}
+              </button>
+            </>
+          );
+        })()}
         {status === "available" && (
           <>
             <button
@@ -229,10 +243,19 @@ export function TechDetail({
                 borderColor: "rgba(77,219,255,0.4)",
                 flex: 1,
               }}
-              disabled={
-                system.resources.materials < tech.initialCost.materials ||
-                system.resources.energy < tech.initialCost.energy
+              onClick={() =>
+                dispatch({
+                  type: "start_research",
+                  systemId: system.id,
+                  techId: tech.id,
+                  priority: true,
+                })
               }
+            >
+              START
+            </button>
+            <button
+              style={{ ...btnFlush(), flex: 1 }}
               onClick={() =>
                 dispatch({
                   type: "start_research",
@@ -241,9 +264,6 @@ export function TechDetail({
                 })
               }
             >
-              START
-            </button>
-            <button style={{ ...btnFlush(), flex: 1 }} disabled>
               + QUEUE
             </button>
           </>

@@ -32,7 +32,7 @@ function stateWithResourcesAndResearch(
 
 describe("tech gating", () => {
   describe("structure gating", () => {
-    test("reactor tier 2 blocked without energy_t2", () => {
+    test("reactor tier 2 blocked without energy_types_t4", () => {
       const cost = STRUCTURES["reactor_2"]!.cost;
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
@@ -50,12 +50,12 @@ describe("tech gating", () => {
       expect(next.systems["sol"]!.constructionQueue.length).toBe(0);
     });
 
-    test("reactor tier 2 succeeds with energy_t2", () => {
+    test("reactor tier 2 succeeds with energy_types_t4", () => {
       const cost = STRUCTURES["reactor_2"]!.cost;
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { energy_t2: true },
+        { energy_types_t4: true },
       );
 
       const action: PlayerAction = {
@@ -73,7 +73,7 @@ describe("tech gating", () => {
   });
 
   describe("probe component gating", () => {
-    test("cpu_t2 probe blocked without probe_components_t2 tech", () => {
+    test("cpu_t2 probe blocked without probe_cpu_t2 tech", () => {
       const cost = totalProbeCost("cpu_t2", "prop_t1", "rct_t1");
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
@@ -93,12 +93,12 @@ describe("tech gating", () => {
       expect(next.systems["sol"]!.constructionQueue.length).toBe(0);
     });
 
-    test("cpu_t2 probe succeeds with probe_components_t2 tech", () => {
+    test("cpu_t2 probe succeeds with probe_cpu_t2 tech", () => {
       const cost = totalProbeCost("cpu_t2", "prop_t1", "rct_t1");
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { probe_components_t2: true },
+        { probe_cpu_t2: true },
       );
 
       const action: PlayerAction = {
@@ -140,10 +140,10 @@ describe("tech gating", () => {
     test("probe with cpu_t2 + prop_t2 + rct_t2 requires all gates", () => {
       const cost = totalProbeCost("cpu_t2", "prop_t2", "rct_t2");
 
-      const missingOne = stateWithResourcesAndResearch(
+      const missingPropAndReactor = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { probe_components_t2: true },
+        { probe_cpu_t2: true },
       );
 
       const action: PlayerAction = {
@@ -155,13 +155,13 @@ describe("tech gating", () => {
         targetSystemId: "alpha_centauri",
       };
 
-      const nextMissing = tick(missingOne, DT, [action]);
+      const nextMissing = tick(missingPropAndReactor, DT, [action]);
       expect(nextMissing.systems["sol"]!.constructionQueue.length).toBe(0);
 
       const allGates = stateWithResourcesAndResearch(
         cost.materials + 500,
         cost.energy + 500,
-        { probe_components_t2: true, energy_t2: true },
+        { probe_cpu_t2: true, probe_propulsion_t2: true, probe_reactors_t2: true },
       );
 
       const nextAll = tick(allGates, DT, [action]);
@@ -170,7 +170,7 @@ describe("tech gating", () => {
   });
 
   describe("resources not deducted on gated rejection", () => {
-    test("failed tech gate does not deduct resources", () => {
+    test("failed tech gate does not deduct resources (reactor_2 requires energy_types_t4)", () => {
       const cost = STRUCTURES["reactor_2"]!.cost;
       const state = stateWithResourcesAndResearch(
         cost.materials + 500,
