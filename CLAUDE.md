@@ -5,7 +5,7 @@ Bobiverse-inspired idle/progression browser game. Deterministic tick-based simul
 ## Commands
 
 ```bash
-bun test           # 177 tests, ~2s
+bun test           # 186 tests, ~14s
 bun run typecheck  # tsc --noEmit (strict)
 bun run dev        # vite dev server
 bun run build      # production build
@@ -24,7 +24,8 @@ bun run build      # production build
 - `src/simulation/tick.ts` — `tick(state, dt, actions)` is the simulation core
 - `src/simulation/state.ts` — `GameState` type and `createInitialState(seed)`
 - `src/simulation/queries.ts` — read-only helpers for UI: `getTechStatus`, `getAvailableStructures`, `getAvailableComponents`
-- `src/simulation/rates.ts` — `calculateRates(system)` computes resource rates
+- `src/simulation/rates.ts` — `calculateRates(system)` computes resource rates (materials supply/demand/net, energy supply/demand/net, computing)
+- `src/simulation/tech-effects.ts` — `getTechMultipliers(completedResearch)` derives multipliers/flags from completed tech
 - `src/loop/game-loop.ts` — `createGameLoop(state)` bridges simulation to browser
 
 ## TypeScript Strictness
@@ -36,14 +37,23 @@ The project uses aggressive strict settings. Key ones that affect how you write 
 
 ## Adding Game Content
 
-- **New structure type/tier:** Add entry to `src/simulation/data/structures.ts` with cost, production, operating cost, and tech gate.
-- **New probe component:** Add entry to `src/simulation/data/components.ts` in the appropriate Record.
-- **New tech:** Add entry to `src/simulation/data/tech-tree.ts`. Effects are applied via `src/simulation/tech-effects.ts` — add the multiplier/flag there too.
+- **New structure type/tier:** Add entry to `src/simulation/data/structures.ts` with cost, production, operating cost, maintenance cost, and tech gate. Update `src/simulation/systems/construction.ts` to set `maintenanceCost` on the created `StructureInstance`.
+- **New probe component:** Add entry to `src/simulation/data/components.ts` in the appropriate Record (6 tiers, cost scaling 2.2x).
+- **New tech:** Add entry to `src/simulation/data/tech-tree.ts`. Effects are applied via `src/simulation/tech-effects.ts` — add the multiplier/flag there too. Tech tree has 12 branches × 20 tiers; types branches unlock structures/components every 4 tiers.
 - **New player action:** Add variant to the `PlayerAction` union in `actions.ts`, handle in `applyAction` in `tick.ts`.
+
+## Economy Balance
+
+The game is intentionally slow in early game (~30 min to self-sustaining). Key parameters:
+- **Probe starts with**: mining 1/sec, computing 1/sec, print speed 0.5, base energy 3 MW
+- **Structure cost scaling**: 2.2x per tier across all types
+- **Maintenance**: All structures and probes drain nano-materials (0.08-0.2/sec, scaling with tier). Probe maintenance is 0.1/sec flat.
+- **Materials rates** track supply (gross production) and demand (maintenance) separately, like energy tracks supply/demand.
+- **Research**: base cost 40 materials / 10 energy, continuous cost 3 computing/sec, 120 sec base time (1.20x scaling per tier)
 
 ## UI
 
-The `src/ui/` directory has minimal scaffolding. The full interactive UI is being designed and built separately. Don't invest in detailed UI work — focus on simulation and query APIs that the UI will consume.
+The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "year(s)" not "yr" for units throughout the UI.
 
 ## Design Documents
 
