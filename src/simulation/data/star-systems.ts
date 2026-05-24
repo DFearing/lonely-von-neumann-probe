@@ -68,6 +68,9 @@ export const KNOWN_SYSTEMS: readonly StarSystemDefinition[] = [
   { id: "70_ophiuchi", name: "70 Ophiuchi", starType: "orange", distanceFromOrigin: 16.70, knownRichness: 1.0 },
   { id: "pi_mensae", name: "Pi Mensae", starType: "yellow", distanceFromOrigin: 59.74, knownRichness: 1.6 },
   { id: "gliese_436", name: "Gliese 436", starType: "red", distanceFromOrigin: 31.90, knownRichness: 0.9 },
+
+  // Prestige endpoint
+  { id: "cygnus_x1", name: "Cygnus X-1", starType: "black_hole", distanceFromOrigin: 6070, knownRichness: 0 },
 ] as const;
 
 export const STAR_NAME_PARTS = {

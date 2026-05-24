@@ -1,4 +1,6 @@
 import type { StructureInstance, SystemState } from "./state";
+import type { PrestigeState } from "./prestige";
+import { getPrestigeMultipliers } from "./prestige";
 import { getTechMultipliers } from "./tech-effects";
 import { REACTORS } from "./data/components";
 import { STRUCTURES, structureKey } from "./data/structures";
@@ -65,14 +67,15 @@ function sumComputeDemands(structures: readonly StructureInstance[]): number {
 
 export const PROBE_MAINTENANCE = 0.1;
 
-export function calculateRates(system: SystemState): ResourceRates {
+export function calculateRates(system: SystemState, prestige?: PrestigeState): ResourceRates {
   const { structures, resourceRichness, mainProbe } = system;
 
   const multipliers = getTechMultipliers(system.completedResearch);
+  const prestigeMult = prestige ? getPrestigeMultipliers(prestige) : undefined;
 
   const probeMining = mainProbe?.mode === "gathering" ? mainProbe.miningOutput * mainProbe.health : 0;
   const minerOutput = sumProductionRates(structures.miners);
-  const materialsPerSecond = (probeMining + minerOutput) * multipliers.miningMultiplier * resourceRichness;
+  const materialsPerSecond = (probeMining + minerOutput) * multipliers.miningMultiplier * resourceRichness * (prestigeMult?.miningMultiplier ?? 1);
 
   let probeEnergySupply = 0;
   if (mainProbe) {
@@ -80,7 +83,7 @@ export function calculateRates(system: SystemState): ResourceRates {
     const baseOutput = 3 * (reactorDef?.energyMultiplier ?? 1);
     const solarMultiplier =
       REACTORS[mainProbe.components.reactor]?.solarScaling === true ? resourceRichness : 1;
-    probeEnergySupply = baseOutput * solarMultiplier;
+    probeEnergySupply = baseOutput * solarMultiplier * (prestigeMult?.energyMultiplier ?? 1);
   }
 
   let structureReactorOutput = 0;
@@ -91,7 +94,7 @@ export function calculateRates(system: SystemState): ResourceRates {
       structureReactorOutput += reactor.productionRate * reactor.health * solarMultiplier;
     }
   }
-  structureReactorOutput *= multipliers.energyMultiplier;
+  structureReactorOutput *= multipliers.energyMultiplier * (prestigeMult?.energyMultiplier ?? 1);
 
   const energyDemand =
     sumOperatingCosts(structures.miners) +

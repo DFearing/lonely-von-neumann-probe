@@ -15,6 +15,8 @@ import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
 import { hasPrerequisites } from "./queries";
+import { purchaseUpgrade } from "./prestige";
+import type { PrestigeUpgradeId } from "./prestige";
 
 function getSystem(state: GameState, systemId: string): SystemState | undefined {
   return state.systems[systemId];
@@ -371,6 +373,12 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       return { ...state, paused: false };
     case "set_speed":
       return { ...state, speed: action.speed };
+    case "purchase_prestige_upgrade": {
+      const result = purchaseUpgrade(state.prestige, action.upgradeId as PrestigeUpgradeId);
+      return result ? { ...state, prestige: result } : state;
+    }
+    case "enter_black_hole":
+      return state.prestige.blackHoleDiscovered ? { ...state, prestigeTriggered: true } : state;
   }
 }
 

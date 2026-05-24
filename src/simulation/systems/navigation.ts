@@ -265,5 +265,21 @@ export function tickNavigation(
     }
   }
 
-  return { ...state, systems: mergedSystems, log: newLog };
+  let prestige = state.prestige;
+  if (!prestige.blackHoleDiscovered) {
+    const cygnusSystem = mergedSystems["cygnus_x1"];
+    if (cygnusSystem?.discovered) {
+      prestige = { ...prestige, blackHoleDiscovered: true };
+      newLog = [
+        ...newLog,
+        {
+          tick: state.tickCount,
+          message: "Black hole confirmed at Cygnus X-1. Gravitational anomaly detected — prestige pathway unlocked.",
+          category: "milestone" as const,
+        },
+      ];
+    }
+  }
+
+  return { ...state, systems: mergedSystems, log: newLog, prestige };
 }

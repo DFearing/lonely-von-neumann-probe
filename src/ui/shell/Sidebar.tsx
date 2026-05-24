@@ -1,10 +1,11 @@
 import { createContext, useContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGaugeHigh, faPrint, faRocket, faGlobe, faFlask, faTerminal, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faGaugeHigh, faPrint, faRocket, faGlobe, faFlask, faTerminal, faArrowRightFromBracket, faStar } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
+import { useGameState } from "../context";
 
-export type ViewId = "overview" | "printers" | "fleet" | "systems" | "research" | "log";
+export type ViewId = "overview" | "printers" | "fleet" | "systems" | "research" | "log" | "prestige";
 
 export interface LVNPGateValue {
   onBack: (() => void) | null;
@@ -36,6 +37,8 @@ export function Sidebar({
 }) {
   const gate = useContext(LVNPGateContext);
   const [hoveredId, setHoveredId] = useState<ViewId | null>(null);
+  const state = useGameState();
+  const showPrestige = state.prestige.blackHoleDiscovered;
 
   return (
     <div
@@ -90,6 +93,8 @@ export function Sidebar({
         );
       })}
 
+      {showPrestige && <PrestigeNavItem active={activeView === "prestige"} hovered={hoveredId === "prestige"} onNavigate={onNavigate} onHover={setHoveredId} />}
+
       <div
         style={{
           position: "absolute",
@@ -116,6 +121,59 @@ export function Sidebar({
           <SwitchOperatorButton onClick={gate.onBack} />
         )}
       </div>
+    </div>
+  );
+}
+
+const PRESTIGE_GOLD = "#f0c674";
+
+function PrestigeNavItem({
+  active,
+  hovered,
+  onNavigate,
+  onHover,
+}: {
+  active: boolean;
+  hovered: boolean;
+  onNavigate: (view: ViewId) => void;
+  onHover: (id: ViewId | null) => void;
+}) {
+  return (
+    <div
+      onClick={() => onNavigate("prestige")}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 20px",
+        marginTop: 8,
+        borderTop: "1px solid rgba(240,198,116,0.15)",
+        color: active ? PRESTIGE_GOLD : hovered ? PRESTIGE_GOLD : "rgba(240,198,116,0.7)",
+        background: active
+          ? "linear-gradient(90deg, rgba(240,198,116,0.12), transparent)"
+          : "transparent",
+        borderLeft: active
+          ? `2px solid ${PRESTIGE_GOLD}`
+          : "2px solid transparent",
+        cursor: "pointer",
+        fontWeight: active ? 600 : 500,
+        letterSpacing: "0.02em",
+        transition: "color .15s, background .15s",
+      }}
+      onMouseEnter={() => {
+        if (!active) onHover("prestige");
+      }}
+      onMouseLeave={() => onHover(null)}
+    >
+      <FontAwesomeIcon
+        icon={faStar}
+        style={{
+          width: 18,
+          height: 18,
+          color: active ? PRESTIGE_GOLD : hovered ? PRESTIGE_GOLD : "rgba(240,198,116,0.7)",
+        }}
+      />
+      Prestige
     </div>
   );
 }
