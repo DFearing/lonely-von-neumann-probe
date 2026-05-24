@@ -769,7 +769,7 @@ export function StructureColumn({
                 >
                   {q.assignedPrinterIds.length > 0
                     ? q.assignedPrinterIds.join(", ")
-                    : "printer queued"}{" "}
+                    : totalSpeed > 0 ? "probe printing" : "queued"}{" "}
                   &middot; {pct.toFixed(0)}%
                 </div>
               </div>
