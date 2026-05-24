@@ -5,7 +5,7 @@ import { createRng } from "./rng";
 export const MAX_TIER = 20;
 export const MAX_STRUCTURE_TIER = 6;
 
-export type StructureType = "miner" | "reactor" | "printer";
+export type StructureType = "miner" | "reactor" | "printer" | "station";
 export type CpuType = string;
 export type PropulsionType = string;
 export type ReactorType = string;
@@ -35,6 +35,7 @@ export interface SystemState {
     miners: StructureInstance[];
     reactors: StructureInstance[];
     printers: StructureInstance[];
+    stations: StructureInstance[];
   };
   resources: {
     materials: number;
@@ -49,6 +50,10 @@ export interface SystemState {
     energyDemand: number;
     energyNet: number;
     computingPowerPerSecond: number;
+    computeSupply: number;
+    computeDemand: number;
+    computeNet: number;
+    computeEfficiency: number;
   };
   constructionQueue: ConstructionProject[];
   researchQueue: ResearchProject[];
@@ -82,6 +87,7 @@ export interface StructureInstance {
   productionRate: number;
   operatingCost: number;
   maintenanceCost: number;
+  computeDemand: number;
   active: boolean;
   constructionProgress: number;
 }
@@ -153,7 +159,7 @@ function emptySystemState(
     discovered,
     scanned,
     mainProbe: null,
-    structures: { miners: [], reactors: [], printers: [] },
+    structures: { miners: [], reactors: [], printers: [], stations: [] },
     resources: { materials: 0, energy: 0, computingPower: 0 },
     resourceRates: {
       materialsSupply: 0,
@@ -163,6 +169,10 @@ function emptySystemState(
       energyDemand: 0,
       energyNet: 0,
       computingPowerPerSecond: 0,
+      computeSupply: 0,
+      computeDemand: 0,
+      computeNet: 0,
+      computeEfficiency: 1,
     },
     constructionQueue: [],
     researchQueue: [],

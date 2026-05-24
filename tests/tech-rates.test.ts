@@ -11,6 +11,7 @@ function makeStructure(
     productionRate: 10,
     operatingCost: 0,
     maintenanceCost: 0,
+    computeDemand: 0,
     active: true,
     constructionProgress: 1,
     ...overrides,
@@ -42,9 +43,9 @@ function makeSystem(overrides?: Partial<SystemState>): SystemState {
     discovered: true,
     scanned: true,
     mainProbe: makeProbe(),
-    structures: { miners: [], reactors: [], printers: [] },
+    structures: { miners: [], reactors: [], printers: [], stations: [] },
     resources: { materials: 0, energy: 0, computingPower: 0 },
-    resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 0 },
+    resourceRates: { materialsPerSecond: 0, materialsSupply: 0, materialsDemand: 0, energySupply: 0, energyDemand: 0, energyNet: 0, computingPowerPerSecond: 0, computeSupply: 0, computeDemand: 0, computeNet: 0, computeEfficiency: 1 },
     constructionQueue: [],
     researchQueue: [],
     completedResearch: {},
@@ -62,6 +63,7 @@ describe("tech effects on resource rates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
 
@@ -76,6 +78,7 @@ describe("tech effects on resource rates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
 
@@ -95,6 +98,7 @@ describe("tech effects on resource rates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
 
@@ -111,6 +115,7 @@ describe("tech effects on resource rates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
 
@@ -127,6 +132,7 @@ describe("tech effects on resource rates", () => {
           miners: [],
           reactors: [makeStructure({ type: "reactor", tier: 1, productionRate: 10 })],
           printers: [],
+          stations: [],
         },
       });
 
@@ -144,6 +150,7 @@ describe("tech effects on resource rates", () => {
           miners: [makeStructure({ type: "miner", productionRate: 20, operatingCost: 10 })],
           reactors: [],
           printers: [],
+          stations: [],
         },
       });
 

@@ -19,6 +19,7 @@ function makePrinter(id: string): StructureInstance {
     productionRate: 1,
     operatingCost: 0,
     maintenanceCost: 0,
+    computeDemand: 0,
     active: true,
     constructionProgress: 1,
   };

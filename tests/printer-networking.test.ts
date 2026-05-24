@@ -19,6 +19,7 @@ function makePrinter(id: string, productionRate = 1): StructureInstance {
     productionRate,
     operatingCost: 0,
     maintenanceCost: 0,
+    computeDemand: 0,
     active: true,
     constructionProgress: 1,
   };
@@ -53,6 +54,7 @@ function makeStateWithConstruction(
           miners: [],
           reactors: [],
           printers: [],
+          stations: [],
           ...systemOverrides.structures,
         },
       },
@@ -67,7 +69,7 @@ describe("printer networking", () => {
       const projects = [makeProject("proj1"), makeProject("proj2")];
 
       const state = makeStateWithConstruction({
-        structures: { miners: [], reactors: [], printers },
+        structures: { miners: [], reactors: [], printers, stations: [] },
         constructionQueue: projects,
         completedResearch: {},
       });
@@ -87,7 +89,7 @@ describe("printer networking", () => {
       const projects = [makeProject("proj1"), makeProject("proj2")];
 
       const state = makeStateWithConstruction({
-        structures: { miners: [], reactors: [], printers },
+        structures: { miners: [], reactors: [], printers, stations: [] },
         constructionQueue: projects,
         completedResearch: { manufacturing_efficiency_t8: true },
       });
@@ -105,7 +107,7 @@ describe("printer networking", () => {
       const project = makeProject("proj_net", ["p1", "p2"]);
 
       const networkState = makeStateWithConstruction({
-        structures: { miners: [], reactors: [], printers },
+        structures: { miners: [], reactors: [], printers, stations: [] },
         constructionQueue: [project],
         completedResearch: { manufacturing_efficiency_t8: true },
       });
@@ -114,7 +116,7 @@ describe("printer networking", () => {
       const soloProject = makeProject("proj_solo", ["p1_solo"]);
 
       const soloState = makeStateWithConstruction({
-        structures: { miners: [], reactors: [], printers: singlePrinter },
+        structures: { miners: [], reactors: [], printers: singlePrinter, stations: [] },
         constructionQueue: [soloProject],
         completedResearch: {},
       });
@@ -136,13 +138,13 @@ describe("printer networking", () => {
       const projectBoosted = makeProject("proj_boosted", ["p1"]);
 
       const baseState = makeStateWithConstruction({
-        structures: { miners: [], reactors: [], printers },
+        structures: { miners: [], reactors: [], printers, stations: [] },
         constructionQueue: [project],
         completedResearch: {},
       });
 
       const boostedState = makeStateWithConstruction({
-        structures: { miners: [], reactors: [], printers },
+        structures: { miners: [], reactors: [], printers, stations: [] },
         constructionQueue: [projectBoosted],
         completedResearch: { manufacturing_efficiency_t1: true },
       });

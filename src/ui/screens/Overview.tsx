@@ -12,7 +12,7 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
         gridTemplateRows: "minmax(0, 1fr)",
         gap: 16,
         flex: 1,
@@ -33,6 +33,11 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
       <StructureColumn
         system={system}
         category="printers"
+        dispatch={dispatch}
+      />
+      <StructureColumn
+        system={system}
+        category="stations"
         dispatch={dispatch}
       />
     </div>

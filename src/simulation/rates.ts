@@ -11,6 +11,10 @@ export interface ResourceRates {
   energyDemand: number;
   energyNet: number;
   computingPowerPerSecond: number;
+  computeSupply: number;
+  computeDemand: number;
+  computeNet: number;
+  computeEfficiency: number;
 }
 
 function isActiveAndComplete(s: StructureInstance): boolean {
@@ -47,6 +51,16 @@ function sumMaintenanceCosts(structures: readonly StructureInstance[]): number {
   return total;
 }
 
+function sumComputeDemands(structures: readonly StructureInstance[]): number {
+  let total = 0;
+  for (const s of structures) {
+    if (isActiveAndComplete(s)) {
+      total += s.computeDemand;
+    }
+  }
+  return total;
+}
+
 const PROBE_MAINTENANCE = 0.1;
 
 export function calculateRates(system: SystemState): ResourceRates {
@@ -77,27 +91,48 @@ export function calculateRates(system: SystemState): ResourceRates {
   }
   structureReactorOutput *= multipliers.energyMultiplier;
 
-  const energySupply = probeEnergySupply + structureReactorOutput;
-
   const energyDemand =
     sumOperatingCosts(structures.miners) +
-    sumOperatingCosts(structures.printers);
+    sumOperatingCosts(structures.printers) +
+    sumOperatingCosts(structures.stations);
 
-  const computingPowerPerSecond = mainProbe ? mainProbe.computingOutput : 0;
+  const probeCompute = mainProbe ? mainProbe.computingOutput : 0;
+  const stationCompute = sumProductionRates(structures.stations);
+  const computeSupply = probeCompute + stationCompute;
+
+  const computeDemand =
+    sumComputeDemands(structures.miners) +
+    sumComputeDemands(structures.reactors) +
+    sumComputeDemands(structures.printers);
+
+  const computeNet = computeSupply - computeDemand;
+  const computeEfficiency = computeDemand === 0 ? 1 : Math.min(1, computeSupply / computeDemand);
+
+  const throttledMaterials = materialsPerSecond * computeEfficiency;
+
+  const throttledReactorOutput = structureReactorOutput * computeEfficiency;
+  const throttledEnergySupply = probeEnergySupply + throttledReactorOutput;
+
+  const computingPowerPerSecond = Math.max(0, computeSupply - computeDemand);
 
   const materialsDemand =
     sumMaintenanceCosts(structures.miners) +
     sumMaintenanceCosts(structures.reactors) +
     sumMaintenanceCosts(structures.printers) +
+    sumMaintenanceCosts(structures.stations) +
     (mainProbe ? PROBE_MAINTENANCE : 0);
 
   return {
-    materialsSupply: materialsPerSecond,
+    materialsSupply: throttledMaterials,
     materialsDemand,
-    materialsPerSecond: materialsPerSecond - materialsDemand,
-    energySupply,
+    materialsPerSecond: throttledMaterials - materialsDemand,
+    energySupply: throttledEnergySupply,
     energyDemand,
-    energyNet: energySupply - energyDemand,
+    energyNet: throttledEnergySupply - energyDemand,
     computingPowerPerSecond,
+    computeSupply,
+    computeDemand,
+    computeNet,
+    computeEfficiency,
   };
 }

@@ -1,5 +1,5 @@
 import { MAX_TIER } from "../state";
-import { STRUCTURES, MINER_NAMES, STRUCTURE_REACTOR_NAMES, PRINTER_NAMES } from "./structures";
+import { STRUCTURES, MINER_NAMES, STRUCTURE_REACTOR_NAMES, PRINTER_NAMES, STATION_NAMES } from "./structures";
 import { CPUS, PROPULSIONS, REACTORS, CPU_NAMES, PROPULSION_NAMES, PROBE_REACTOR_NAMES } from "./components";
 
 export interface TechDefinition {
@@ -306,11 +306,28 @@ function generateEffects(branchId: string, tier: number): string[] {
       return [`+${bonus}% research speed`];
     }
     case "computing_architecture": {
-      if (tier === 4) return ["Unlock parallel processing (2 concurrent research)"];
-      if (tier === 10) return ["Unlock 3 concurrent research projects"];
-      if (tier === 14) return ["Unlock distributed intelligence"];
-      const bonus = 2 + 0.2 * (tier - 1);
-      return [`+${bonus}% computing efficiency`];
+      const tierToStation: Record<number, number> = { 7: 1, 10: 2, 13: 3, 16: 4, 19: 5, 20: 6 };
+      const stationTier = tierToStation[tier];
+
+      const effects: string[] = [];
+
+      if (tier === 4) effects.push("Unlock parallel processing (2 concurrent research)");
+      if (tier === 10) effects.push("Unlock 3 concurrent research projects");
+      if (tier === 14) effects.push("Unlock distributed intelligence");
+
+      if (stationTier !== undefined) {
+        const stationName = STATION_NAMES[stationTier - 1] ?? `Tier ${stationTier} Station`;
+        const def = STRUCTURES[`station_${stationTier}`];
+        effects.push(`Unlock ${stationName}`);
+        if (def) effects.push(`${def.productionRate} TFLOPS`);
+      }
+
+      if (effects.length === 0) {
+        const bonus = 2 + 0.2 * (tier - 1);
+        effects.push(`+${bonus}% computing efficiency`);
+      }
+
+      return effects;
     }
     case "communication": {
       const bonus = 10 + 5 * (tier - 1);
@@ -341,6 +358,12 @@ function generateUnlocks(branchId: string, tier: number): string[] {
     case "probe_reactors":
       if (tier % 4 === 0) return [`rct_t${tier / 4 + 1}`];
       return [];
+    case "computing_architecture": {
+      const tierToStation: Record<number, number> = { 7: 1, 10: 2, 13: 3, 16: 4, 19: 5, 20: 6 };
+      const stationTier = tierToStation[tier];
+      if (stationTier !== undefined) return [`station_${stationTier}`];
+      return [];
+    }
     default:
       return [];
   }
