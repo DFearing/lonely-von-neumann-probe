@@ -253,6 +253,60 @@ function applyReorderResearch(
   });
 }
 
+function applyDestroyStructure(
+  state: GameState,
+  action: Extract<PlayerAction, { type: "destroy_structure" }>,
+): GameState {
+  const system = getSystem(state, action.systemId);
+  if (!system) return state;
+
+  const arrays = ["miners", "reactors", "printers", "stations"] as const;
+  for (const arrayKey of arrays) {
+    const idx = system.structures[arrayKey].findIndex(
+      (s) => s.id === action.structureId,
+    );
+    if (idx === -1) continue;
+
+    const structure = system.structures[arrayKey][idx]!;
+    const key = structureKey(structure.type, structure.tier);
+    const def = STRUCTURES[key];
+    const refund = def ? Math.floor(def.cost.materials * 0.5) : 0;
+
+    const updatedArray = system.structures[arrayKey].filter(
+      (s) => s.id !== action.structureId,
+    );
+
+    let updatedQueue = system.constructionQueue;
+    if (arrayKey === "printers") {
+      updatedQueue = updatedQueue.map((project) =>
+        project.assignedPrinterIds.includes(action.structureId)
+          ? {
+              ...project,
+              assignedPrinterIds: project.assignedPrinterIds.filter(
+                (id) => id !== action.structureId,
+              ),
+            }
+          : project,
+      );
+    }
+
+    return updateSystem(state, action.systemId, {
+      ...system,
+      resources: {
+        ...system.resources,
+        materials: system.resources.materials + refund,
+      },
+      structures: {
+        ...system.structures,
+        [arrayKey]: updatedArray,
+      },
+      constructionQueue: updatedQueue,
+    });
+  }
+
+  return state;
+}
+
 function applySetProbeMode(
   state: GameState,
   action: Extract<PlayerAction, { type: "set_probe_mode" }>,
@@ -282,6 +336,8 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       return applyCancelResearch(state, action);
     case "reorder_research":
       return applyReorderResearch(state, action);
+    case "destroy_structure":
+      return applyDestroyStructure(state, action);
     case "toggle_structure": {
       const sys = state.systems[action.systemId];
       if (!sys) return state;

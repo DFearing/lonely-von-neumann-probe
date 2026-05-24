@@ -213,13 +213,16 @@ function tickSystemConstruction(
     ? updatedSystem.mainProbe.internalPrinterSpeed * updatedSystem.mainProbe.health
     : 0;
 
+  let probeAssigned = false;
   for (const project of updatedSystem.constructionQueue) {
     const structurePrintSpeed = totalPrintSpeed(
       project.assignedPrinterIds,
       updatedSystem.structures.printers,
       multipliers.manufacturingSpeedMultiplier,
     );
-    const speed = (probePrintSpeed + structurePrintSpeed) * computeEfficiency;
+    const effectiveProbePrint = probeAssigned ? 0 : probePrintSpeed;
+    const speed = (effectiveProbePrint + structurePrintSpeed) * computeEfficiency;
+    if (speed > 0) probeAssigned = true;
 
     if (speed <= 0) {
       updatedQueue.push(project);

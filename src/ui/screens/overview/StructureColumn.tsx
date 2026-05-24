@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip, faPause, faPlay, faTrash } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState, StructureInstance, StructureType } from "../../../simulation/state";
 import type { ResourceRates } from "../../../simulation/rates";
 import type { PlayerAction } from "../../../simulation/actions";
 import { STRUCTURES } from "../../../simulation/data/structures";
 import type { StructureDefinition } from "../../../simulation/data/structures";
+import { structureKey } from "../../../simulation/data/structures";
 import { getAvailableStructures } from "../../../simulation/queries";
 import { calculateRates } from "../../../simulation/rates";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
+import { Tooltip } from "../../components/Tooltip";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { fmt, fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
@@ -561,6 +563,7 @@ export function StructureColumn({
   );
 
   const [showBuild, setShowBuild] = useState(false);
+  const [destroyConfirmId, setDestroyConfirmId] = useState<string | null>(null);
 
   return (
     <Panel
@@ -652,24 +655,26 @@ export function StructureColumn({
             borderBottom: "1px dashed rgba(110,200,255,0.10)",
           }}
         >
-          <div
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 11,
-              color: "#6b87a3",
-              letterSpacing: "0.18em",
-              marginBottom: 8,
-            }}
-          >
-            <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> BUILDING NOW
-          </div>
-          {building.map((q) => {
+          {(() => { const probePrint = system.mainProbe?.mode === "printing"
+              ? system.mainProbe.internalPrinterSpeed
+              : 0;
+            let cumulativeYears = 0;
+            const fullQueue = system.constructionQueue;
+            return building.map((q) => {
             const pct = Math.min(100, q.progress * 100);
             const tierDef = allDefs.find((d) => d.tier === q.targetTier);
             const label = tierDef ? tierDef.name : config.structureType;
-            const probePrint = system.mainProbe?.mode === "printing"
-              ? system.mainProbe.internalPrinterSpeed
-              : 0;
+            const globalIndex = fullQueue.indexOf(q);
+            const probeUsedByEarlier = globalIndex > 0 && probePrint > 0 && fullQueue.slice(0, globalIndex).some((prev) => {
+              let prevSpeed = 0;
+              for (const pid of prev.assignedPrinterIds) {
+                const p = system.structures.printers.find(
+                  (s) => s.id === pid && s.active && s.constructionProgress >= 1,
+                );
+                if (p) prevSpeed += p.productionRate;
+              }
+              return (probePrint + prevSpeed) > 0;
+            });
             let assignedSpeed = 0;
             for (const pid of q.assignedPrinterIds) {
               const p = system.structures.printers.find(
@@ -677,13 +682,40 @@ export function StructureColumn({
               );
               if (p) assignedSpeed += p.productionRate;
             }
-            const totalSpeed = probePrint + assignedSpeed;
+            const effectiveProbePrint = probeUsedByEarlier ? 0 : probePrint;
+            const totalSpeed = effectiveProbePrint + assignedSpeed;
             const buildTime = q.totalCost.materials;
-            const remaining = totalSpeed > 0
-              ? Math.max(0, buildTime * (1 - q.progress) / totalSpeed)
+            const waitSpeed = totalSpeed > 0 ? totalSpeed : (probePrint + assignedSpeed);
+            const remaining = waitSpeed > 0
+              ? Math.max(0, buildTime * (1 - q.progress) / waitSpeed)
               : Infinity;
+            const priorRemaining = fullQueue.slice(0, globalIndex).reduce((sum, prev) => {
+              let prevAssigned = 0;
+              for (const pid of prev.assignedPrinterIds) {
+                const p = system.structures.printers.find(
+                  (s) => s.id === pid && s.active && s.constructionProgress >= 1,
+                );
+                if (p) prevAssigned += p.productionRate;
+              }
+              const prevSpeed = (sum === 0 ? probePrint : 0) + prevAssigned;
+              const prevWait = prevSpeed > 0 ? prevSpeed : probePrint;
+              const prevBuild = prev.totalCost.materials;
+              const prevTime = prevWait > 0 ? Math.max(0, prevBuild * (1 - prev.progress) / prevWait) : 0;
+              return sum + prevTime;
+            }, 0);
+            cumulativeYears = priorRemaining + (remaining === Infinity ? 0 : remaining);
             return (
-              <div key={q.id} style={{ marginBottom: 4 }}>
+              <div key={q.id} style={{ marginBottom: 8 }}>
+                <div style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 10,
+                  color: totalSpeed > 0 ? config.accent : "#3d5572",
+                  letterSpacing: "0.18em",
+                  marginBottom: 4,
+                }}>
+                  <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} />
+                  {totalSpeed > 0 ? "PRINTING NOW" : "QUEUED"}
+                </div>
                 <div
                   style={{
                     display: "flex",
@@ -703,6 +735,9 @@ export function StructureColumn({
                     }}
                   >
                     {fmtYears(remaining)}
+                    {globalIndex > 0 && (
+                      <span style={{ color: "#6b87a3" }}> ({fmtYears(cumulativeYears)})</span>
+                    )}
                   </span>
                 </div>
                 <div
@@ -731,14 +766,11 @@ export function StructureColumn({
                     marginTop: 3,
                   }}
                 >
-                  {q.assignedPrinterIds.length > 0
-                    ? q.assignedPrinterIds.join(", ")
-                    : "printer queued"}{" "}
-                  &middot; {pct.toFixed(0)}%
+                  {pct.toFixed(0)}%
                 </div>
               </div>
             );
-          })}
+          }); })()}
         </div>
       )}
 
@@ -756,6 +788,10 @@ export function StructureColumn({
         {completed.map((inst) => {
           const def = allDefs.find((d) => d.tier === inst.tier);
           if (!def) return null;
+          const key = structureKey(inst.type, inst.tier);
+          const structureDef = STRUCTURES[key];
+          const refundAmount = structureDef ? Math.floor(structureDef.cost.materials * 0.5) : 0;
+          const isConfirming = destroyConfirmId === inst.id;
           return (
             <div
               key={inst.id}
@@ -763,8 +799,70 @@ export function StructureColumn({
                 padding: "12px 14px",
                 background: `${config.accent}06`,
                 border: `1px solid ${inst.active ? `${config.accent}30` : "rgba(110,200,255,0.10)"}`,
+                position: "relative",
               }}
             >
+              {isConfirming && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(8,16,30,0.92)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    zIndex: 2,
+                  }}
+                >
+                  <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: "#d6e8f5" }}>
+                    Destroy {def.name}?
+                  </span>
+                  <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#5fd9c4" }}>
+                    Recovers {fmt(refundAmount)} tons
+                  </span>
+                  <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                    <button
+                      onClick={() => {
+                        dispatch({
+                          type: "destroy_structure",
+                          systemId: system.id,
+                          structureId: inst.id,
+                        });
+                        setDestroyConfirmId(null);
+                      }}
+                      style={{
+                        fontFamily: FONT_MONO,
+                        fontSize: 11,
+                        letterSpacing: "0.14em",
+                        padding: "5px 14px",
+                        background: "rgba(255,107,107,0.15)",
+                        border: "1px solid rgba(255,107,107,0.5)",
+                        color: "#ff6b6b",
+                        cursor: "pointer",
+                      }}
+                    >
+                      CONFIRM
+                    </button>
+                    <button
+                      onClick={() => setDestroyConfirmId(null)}
+                      style={{
+                        fontFamily: FONT_MONO,
+                        fontSize: 11,
+                        letterSpacing: "0.14em",
+                        padding: "5px 14px",
+                        background: "transparent",
+                        border: "1px solid rgba(110,200,255,0.2)",
+                        color: "#6b87a3",
+                        cursor: "pointer",
+                      }}
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              )}
               <div
                 style={{
                   display: "flex",
@@ -795,9 +893,11 @@ export function StructureColumn({
                   >
                     <FontAwesomeIcon icon={inst.active ? faPause : faPlay} />
                   </button>
-                  <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
-                    {def.name}
-                  </span>
+                  <Tooltip content={structureDef?.description ?? def.name}>
+                    <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
+                      {def.name}
+                    </span>
+                  </Tooltip>
                 </span>
                 <span
                   style={{
@@ -826,29 +926,48 @@ export function StructureColumn({
                 <span style={{ color: config.accent }} title="Production output">
                   {formatVariantSpec(def, category)}
                 </span>
-                <span style={{ color: "#6b87a3" }} title="Material upkeep per year">
-                  <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />{inst.maintenanceCost.toFixed(2)} T/year
+                <span style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
+                  {inst.maintenanceCost > 0 && (
+                    <span style={{ color: "#5fd9c4" }}>{inst.maintenanceCost.toFixed(2)} T/yr</span>
+                  )}
+                  {inst.maintenanceCost > 0 && inst.operatingCost > 0 && (
+                    <span style={{ color: "#6b87a3" }}> · </span>
+                  )}
+                  {inst.operatingCost > 0 && (
+                    <span style={{ color: "#6aa9ff" }}>{inst.operatingCost.toFixed(1)} MW/yr</span>
+                  )}
+                  {(inst.maintenanceCost > 0 || inst.operatingCost > 0) && inst.computeDemand > 0 && (
+                    <span style={{ color: "#6b87a3" }}> · </span>
+                  )}
+                  {inst.computeDemand > 0 && (
+                    <span style={{ color: "#b08bff" }}>{inst.computeDemand.toFixed(2)} TFLOPS/yr</span>
+                  )}
                 </span>
               </div>
-              <div style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: "#6aa9ff",
-                marginTop: 4,
-              }} title="Energy demand per year">
-                <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />
-                {inst.operatingCost.toFixed(1)} MW demand
               </div>
-              <div style={{
-                fontFamily: FONT_MONO,
-                fontSize: 12,
-                color: "#b08bff",
-                marginTop: 2,
-              }} title="Computing power demand per year">
-                <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />
-                {inst.computeDemand.toFixed(2)} TFLOPS demand
-              </div>
-              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDestroyConfirmId(inst.id);
+                }}
+                title="Destroy structure"
+                style={{
+                  position: "absolute",
+                  bottom: 8,
+                  right: 8,
+                  background: "transparent",
+                  border: "none",
+                  color: "#3d5572",
+                  cursor: "pointer",
+                  padding: 2,
+                  fontSize: 10,
+                  transition: "color 0.15s",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ff6b6b"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3d5572"; }}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
             </div>
           );
         })}

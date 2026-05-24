@@ -27,7 +27,7 @@ function MaterialsCell({
   demand: number;
 }) {
   const net = supply - demand;
-  const color = resourceColor(supply, demand, "#5fd9c4");
+  const demandColor = resourceColor(supply, demand, "#5fd9c4");
   return (
     <div
       style={{
@@ -54,11 +54,11 @@ function MaterialsCell({
           style={{
             fontSize: 38,
             fontWeight: 500,
-            color,
+            color: "#5fd9c4",
             fontVariantNumeric: "tabular-nums",
             fontFamily: FONT_MONO,
             letterSpacing: "-0.02em",
-            textShadow: `0 0 12px ${color}40`,
+            textShadow: "0 0 12px #5fd9c440",
           }}
         >
           {fmt(Math.floor(value))}
@@ -78,13 +78,13 @@ function MaterialsCell({
           marginTop: 4,
         }}
       >
-        <span style={{ color: net >= 0 ? "#4cd8a8" : "#ff6b6b" }}>
+        <span style={{ color: "#5fd9c4" }}>
           {fmtRate(net)} tons/year net
         </span>
         {demand > 0 && (
-          <span style={{ color: "#6b87a3" }}>
+          <span style={{ color: demandColor }}>
             <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
-            {demand.toFixed(1)} maintenance
+            {demand.toFixed(1)} demand
           </span>
         )}
       </div>
@@ -100,7 +100,7 @@ function EnergyCell({
   demand: number;
 }) {
   const net = supply - demand;
-  const color = resourceColor(supply, demand, "#6aa9ff");
+  const demandColor = resourceColor(supply, demand, "#6aa9ff");
   return (
     <div
       style={{
@@ -127,11 +127,11 @@ function EnergyCell({
           style={{
             fontSize: 38,
             fontWeight: 500,
-            color,
+            color: "#6aa9ff",
             fontVariantNumeric: "tabular-nums",
             fontFamily: FONT_MONO,
             letterSpacing: "-0.02em",
-            textShadow: `0 0 12px ${color}40`,
+            textShadow: "0 0 12px #6aa9ff40",
           }}
         >
           {fmtRate(net)}
@@ -151,11 +151,11 @@ function EnergyCell({
           marginTop: 4,
         }}
       >
-        <span style={{ color: "#4cd8a8" }}>
+        <span style={{ color: "#6aa9ff" }}>
           <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 4 }} />
           {supply.toFixed(1)} supply
         </span>
-        <span style={{ color: demand > 0 ? "#6b87a3" : "#3d5572" }}>
+        <span style={{ color: demandColor }}>
           <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
           {demand.toFixed(1)} demand
         </span>
