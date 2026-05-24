@@ -3,6 +3,7 @@ import type { PlayerAction, GameSpeed } from "../simulation/actions";
 import { tick } from "../simulation/tick";
 
 export const TICK_MS = 100;
+const MAX_TICKS_PER_FRAME = 200;
 
 const SPEED_MULTIPLIERS: Record<GameSpeed, number> = {
   1: 1,
@@ -68,10 +69,15 @@ export function createGameLoop(initialState: GameState): GameLoop {
       accumulator += delta * SPEED_MULTIPLIERS[state.speed];
 
       let ticked = false;
+      let ticksThisFrame = 0;
       while (accumulator >= TICK_MS) {
         runTick();
         accumulator -= TICK_MS;
         ticked = true;
+        if (++ticksThisFrame >= MAX_TICKS_PER_FRAME) {
+          accumulator = 0;
+          break;
+        }
       }
 
       if (ticked) {

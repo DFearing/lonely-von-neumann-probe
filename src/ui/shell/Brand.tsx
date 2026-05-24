@@ -1,6 +1,5 @@
 import type { ViewId } from "./Sidebar";
-
-const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
+import { FONT_MONO } from "../tokens";
 
 export function Brand({ onNavigate }: { onNavigate: (view: ViewId) => void }) {
   return (

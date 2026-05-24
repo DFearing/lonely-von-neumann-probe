@@ -5,7 +5,7 @@ export interface Rng {
   nextInt(min: number, max: number): number;
   chance(p?: number): boolean;
   pick<T>(array: readonly T[]): T;
-  shuffle<T>(array: T[]): T[];
+  shuffle<T>(array: readonly T[]): T[];
   weightedPick<T>(options: readonly { value: T; weight: number }[]): T;
   snapshot(): RngState;
   restore(state: RngState): void;
@@ -60,14 +60,13 @@ function createRngFromMutableState(s: [number, number, number, number]): Rng {
     return array[nextInt(0, array.length - 1)]!;
   }
 
-  function shuffle<T>(array: T[]): T[] {
-    for (let i = array.length - 1; i > 0; i--) {
+  function shuffle<T>(array: readonly T[]): T[] {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
       const j = nextInt(0, i);
-      const temp = array[i]!;
-      array[i] = array[j]!;
-      array[j] = temp;
+      [result[i], result[j]] = [result[j]!, result[i]!];
     }
-    return array;
+    return result;
   }
 
   function weightedPick<T>(

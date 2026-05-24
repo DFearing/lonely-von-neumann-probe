@@ -1,8 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faAtom, faBolt, faIndustry, faMicrochip, faRocket,
-  faSatellite, faTowerBroadcast, faCheck,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState } from "../../../simulation/state";
 import { MAX_TIER } from "../../../simulation/state";
@@ -14,6 +11,7 @@ import {
 import { getTechStatus, type TechStatus } from "../../../simulation/queries";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
+import { BRANCH_META } from "../../data/branch-meta";
 
 const GROUP_COLORS: Record<string, string> = {
   mining: "#4fc7b8",
@@ -23,26 +21,6 @@ const GROUP_COLORS: Record<string, string> = {
   probes: "#b08bff",
   computing: "#d488ec",
   communication: "#ee8cb8",
-};
-
-const BRANCH_META: Record<
-  string,
-  { label: string; color: string; icon: IconDefinition }
-> = {
-  mining_efficiency: { label: "Output", color: "#4fc7b8", icon: faAtom },
-  mining_types: { label: "Structures", color: "#3eafa2", icon: faAtom },
-  energy_production: { label: "Output", color: "#5d8aff", icon: faBolt },
-  energy_types: { label: "Structures", color: "#4a72dd", icon: faBolt },
-  manufacturing_efficiency: { label: "Output", color: "#6cb8e8", icon: faIndustry },
-  manufacturing_types: { label: "Structures", color: "#58a0cc", icon: faIndustry },
-  station_efficiency: { label: "Output", color: "#8a85f0", icon: faSatellite },
-  station_types: { label: "Structures", color: "#726cd0", icon: faSatellite },
-  probe_propulsion: { label: "Propulsion", color: "#9674e0", icon: faRocket },
-  probe_reactors: { label: "Reactor", color: "#8060c8", icon: faAtom },
-  computing_speed: { label: "Efficiency", color: "#d488ec", icon: faMicrochip },
-  computing_architecture: { label: "Architecture", color: "#b870cc", icon: faMicrochip },
-  communication: { label: "Range", color: "#ee8cb8", icon: faTowerBroadcast },
-  communication_speed: { label: "Speed", color: "#d078a2", icon: faTowerBroadcast },
 };
 
 const STATUS_LOOK: Record<
@@ -346,7 +324,7 @@ export function TechWeb({
                       top: -8,
                     }}
                   >
-                    {meta.label}
+                    {meta.label.includes(" · ") ? meta.label.split(" · ")[1] : meta.label}
                   </div>
 
                   {techs.map((tech) => {

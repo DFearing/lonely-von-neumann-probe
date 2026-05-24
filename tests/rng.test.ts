@@ -205,41 +205,48 @@ describe("rng", () => {
   // ── shuffle ──────────────────────────────────────────────────────
 
   describe("shuffle", () => {
-    test("returns the same array reference (in-place)", () => {
+    test("returns a new array reference (non-mutating)", () => {
       const rng = createRng(60);
       const arr = [1, 2, 3, 4, 5];
       const result = rng.shuffle(arr);
-      expect(result).toBe(arr);
+      expect(result).not.toBe(arr);
+    });
+
+    test("does not mutate the input array", () => {
+      const rng = createRng(60);
+      const arr = [1, 2, 3, 4, 5];
+      const copy = [...arr];
+      rng.shuffle(arr);
+      expect(arr).toEqual(copy);
     });
 
     test("contains all original elements", () => {
       const rng = createRng(61);
       const arr = [10, 20, 30, 40, 50];
-      rng.shuffle(arr);
-      expect(arr.sort((a, b) => a - b)).toEqual([10, 20, 30, 40, 50]);
+      const result = rng.shuffle(arr);
+      expect(result.sort((a, b) => a - b)).toEqual([10, 20, 30, 40, 50]);
     });
 
     test("same seed produces same shuffle order", () => {
       const arr1 = [1, 2, 3, 4, 5, 6, 7, 8];
       const arr2 = [1, 2, 3, 4, 5, 6, 7, 8];
-      createRng(62).shuffle(arr1);
-      createRng(62).shuffle(arr2);
-      expect(arr1).toEqual(arr2);
+      const result1 = createRng(62).shuffle(arr1);
+      const result2 = createRng(62).shuffle(arr2);
+      expect(result1).toEqual(result2);
     });
 
-    test("modifies the array for arrays with more than 1 element", () => {
+    test("returned array differs from input order for arrays with more than 1 element", () => {
       const rng = createRng(63);
       const original = Array.from({ length: 20 }, (_, i) => i);
-      const copy = [...original];
-      rng.shuffle(original);
-      expect(original).not.toEqual(copy);
+      const result = rng.shuffle(original);
+      expect(result).not.toEqual(original);
     });
 
     test("single-element array is unchanged", () => {
       const rng = createRng(64);
       const arr = [42];
-      rng.shuffle(arr);
-      expect(arr).toEqual([42]);
+      const result = rng.shuffle(arr);
+      expect(result).toEqual([42]);
     });
   });
 

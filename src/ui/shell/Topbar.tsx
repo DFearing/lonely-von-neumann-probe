@@ -1,19 +1,8 @@
 import { useEffect } from "react";
 import { useGameState, useCurrentSystem, useLoop } from "../context";
+import { FONT_MONO } from "../tokens";
+import { starColor } from "../data/star-colors";
 import type { GameSpeed } from "../../simulation/actions";
-
-const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
-
-const STAR_COLORS: Record<string, string> = {
-  blue: "#6ec0ff",
-  yellow: "#ffe066",
-  orange: "#ffaa44",
-  red: "#ff6655",
-};
-
-function starColor(starType: string): string {
-  return STAR_COLORS[starType] ?? "#aaccee";
-}
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";

@@ -178,7 +178,6 @@ function applyStartResearch(
     branchId: tech.branchId,
     tier: tech.tier,
     name: tech.name,
-    initialCost: { ...tech.initialCost },
     continuousCost: tech.continuousCost,
     progress: 0,
     completed: false,
@@ -221,26 +220,9 @@ function applyCancelResearch(
   const system = getSystem(state, action.systemId);
   if (!system) return state;
 
-  const project = system.researchQueue.find(
-    (p) => p.id === action.projectId,
-  );
-  if (!project) return state;
-
-  let refundedSystem = system;
-  if (project.progress === 0) {
-    refundedSystem = {
-      ...system,
-      resources: {
-        ...system.resources,
-        materials:
-          system.resources.materials + project.initialCost.materials,
-      },
-    };
-  }
-
   return updateSystem(state, action.systemId, {
-    ...refundedSystem,
-    researchQueue: refundedSystem.researchQueue.filter(
+    ...system,
+    researchQueue: system.researchQueue.filter(
       (p) => p.id !== action.projectId,
     ),
   });
