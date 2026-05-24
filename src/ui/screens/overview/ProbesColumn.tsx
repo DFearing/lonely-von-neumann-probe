@@ -95,7 +95,7 @@ function ProbeActions({
   const isActive = mode !== null && mode !== "idle";
 
   return (
-    <div style={{ display: "flex", gap: 6, marginTop: 8, position: "relative" }}>
+    <div data-tour="probe-mode" style={{ display: "flex", gap: 6, marginTop: 8, position: "relative" }}>
       <div style={{ flex: 1, position: "relative" }}>
         <button
           onClick={() => setMenuOpen(!menuOpen)}

@@ -102,7 +102,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
         </span>
       </div>
       <div style={{ flex: 1 }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div data-tour="topbar" style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <button
           onClick={() => paused ? loop.unpause() : loop.pause()}
           style={{

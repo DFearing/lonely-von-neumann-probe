@@ -214,6 +214,7 @@ export function TechWeb({
   const visibleTiers = Math.min(MAX_TIER, 4 * (1 + Math.floor(highestCompleted / 4)));
 
   return (
+    <div data-tour="start-research" style={{ display: "flex", flexDirection: "column", minHeight: 0, minWidth: 0 }}>
     <Panel
       label="TECHNOLOGY"
       style={{
@@ -222,6 +223,7 @@ export function TechWeb({
         minHeight: 0,
         minWidth: 0,
         overflow: "hidden",
+        flex: 1,
       }}
     >
       <div
@@ -350,5 +352,6 @@ export function TechWeb({
         ))}
       </div>
     </Panel>
+    </div>
   );
 }

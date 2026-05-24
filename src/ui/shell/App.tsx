@@ -15,6 +15,8 @@ import { usePrestige, useGameState, useLoop } from "../context";
 import { Printers } from "../screens/Printers";
 import { DevAutopilot } from "../screens/DevAutopilot";
 import { DEV_MODE } from "../../simulation/dev";
+import { TourProvider } from "../tour/TourProvider";
+import { TourOverlay } from "../tour/TourOverlay";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
 
@@ -75,6 +77,7 @@ export function App() {
   }, [state.prestigeTriggered, state.paused, loop]);
 
   return (
+    <TourProvider onNavigate={setView}>
     <div
       style={{
         width: "100%",
@@ -150,6 +153,9 @@ export function App() {
       {DEV_MODE && showDevAutopilot && (
         <DevAutopilot onClose={() => setShowDevAutopilot(false)} />
       )}
+
+      <TourOverlay />
     </div>
+    </TourProvider>
   );
 }

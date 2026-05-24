@@ -579,7 +579,11 @@ export function StructureColumn({
           <span>{config.label}</span>
         </span>
       }
-      right={<HeaderAddButton accent={config.accent} onClick={() => setShowBuild(!showBuild)} />}
+      right={
+        <span {...(category === "miners" ? { "data-tour": "build-miner" } : {})}>
+          <HeaderAddButton accent={config.accent} onClick={() => setShowBuild(!showBuild)} />
+        </span>
+      }
       style={{
         display: "flex",
         flexDirection: "column",

@@ -354,6 +354,7 @@ export function Footer({
 
   return (
     <div
+      data-tour="footer"
       style={{
         gridArea: "footer",
         borderTop: "1px solid rgba(110,200,255,0.12)",
