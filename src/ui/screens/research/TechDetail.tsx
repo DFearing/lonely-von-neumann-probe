@@ -1,31 +1,40 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faAtom, faBolt, faIndustry, faMicrochip, faRocket, faSatellite,
+  faTowerBroadcast, faCheck, faCircleHalfStroke, faCircle, faLock, faPlus,
+} from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { getTechStatus, type TechStatus } from "../../../simulation/queries";
 import { FONT_MONO } from "../../tokens";
-import { fmt } from "../../format";
+import { fmt, fmtYears } from "../../format";
 import { btnFlush } from "../../components/buttons";
 
-const BRANCH_META: Record<string, { color: string; icon: string }> = {
-  mining_efficiency: { color: "#5cc7ff", icon: "⛏" },
-  mining_types: { color: "#3aa8e0", icon: "⛏" },
-  energy_production: { color: "#ffcb47", icon: "⚡" },
-  energy_types: { color: "#e0a830", icon: "⚡" },
-  manufacturing_efficiency: { color: "#4cd8a8", icon: "⊟" },
-  manufacturing_types: { color: "#38b890", icon: "⊟" },
-  probe_cpu: { color: "#4ddbff", icon: "◇" },
-  probe_propulsion: { color: "#6bc0e0", icon: "▷" },
-  probe_reactors: { color: "#e8b830", icon: "⊙" },
-  computing_speed: { color: "#b08bff", icon: "◊" },
-  computing_architecture: { color: "#9070e0", icon: "◊" },
-  communication: { color: "#ff9966", icon: "⟑" },
+const BRANCH_META: Record<string, { label: string; color: string; icon: IconDefinition }> = {
+  mining_efficiency: { label: "Mining · Output", color: "#5cc7ff", icon: faAtom },
+  mining_types: { label: "Mining · Structures", color: "#3aa8e0", icon: faAtom },
+  energy_production: { label: "Energy · Output", color: "#ffcb47", icon: faBolt },
+  energy_types: { label: "Energy · Structures", color: "#e0a830", icon: faBolt },
+  manufacturing_efficiency: { label: "Printing · Output", color: "#4cd8a8", icon: faIndustry },
+  manufacturing_types: { label: "Printing · Structures", color: "#38b890", icon: faIndustry },
+  station_efficiency: { label: "Stations · Output", color: "#b08bff", icon: faSatellite },
+  station_types: { label: "Stations · Structures", color: "#9070e0", icon: faSatellite },
+  probe_cpu: { label: "Probes · Processor", color: "#4ddbff", icon: faMicrochip },
+  probe_propulsion: { label: "Probes · Propulsion", color: "#6bc0e0", icon: faRocket },
+  probe_reactors: { label: "Probes · Reactor", color: "#e8b830", icon: faAtom },
+  computing_speed: { label: "Computing · Speed", color: "#b08bff", icon: faMicrochip },
+  computing_architecture: { label: "Computing · Architecture", color: "#9070e0", icon: faMicrochip },
+  communication: { label: "Communication · Range", color: "#ff9966", icon: faTowerBroadcast },
+  communication_speed: { label: "Communication · Speed", color: "#e07744", icon: faTowerBroadcast },
 };
 
-const STATUS_LABELS: Record<TechStatus, { label: string; color: string }> = {
-  completed: { label: "✓ RESEARCHED", color: "#4cd8a8" },
-  in_progress: { label: "◐ IN PROGRESS", color: "#b08bff" },
-  available: { label: "○ AVAILABLE", color: "#4ddbff" },
-  locked: { label: "◌ LOCKED", color: "#3d5572" },
+const STATUS_LABELS: Record<TechStatus, { label: string; icon: IconDefinition; color: string }> = {
+  completed: { label: "RESEARCHED", icon: faCheck, color: "#4cd8a8" },
+  in_progress: { label: "IN PROGRESS", icon: faCircleHalfStroke, color: "#b08bff" },
+  available: { label: "AVAILABLE", icon: faCircle, color: "#4ddbff" },
+  locked: { label: "LOCKED", icon: faLock, color: "#3d5572" },
 };
 
 function KV({
@@ -42,10 +51,10 @@ function KV({
       <div
         style={{
           fontFamily: FONT_MONO,
-          fontSize: 8,
+          fontSize: 10,
           color: "#6b87a3",
           letterSpacing: "0.16em",
-          marginBottom: 2,
+          marginBottom: 3,
         }}
       >
         {k}
@@ -53,7 +62,7 @@ function KV({
       <div
         style={{
           fontFamily: FONT_MONO,
-          fontSize: 12,
+          fontSize: 18,
           color,
           fontWeight: 500,
         }}
@@ -80,13 +89,15 @@ export function TechDetail({
   const project = system.researchQueue.find((r) => r.techId === techId);
   const meta = BRANCH_META[tech.branchId];
   const branchColor = meta?.color ?? "#9ab4cf";
-  const branchIcon = meta?.icon ?? "?";
+  const branchIcon = meta?.icon;
   const statusInfo = STATUS_LABELS[status];
+  const computeRate = system.resourceRates.computingPowerPerSecond;
+  const etaSeconds = computeRate > 0 ? (tech.continuousCost * tech.researchTime) / computeRate : 0;
 
   return (
     <div
       style={{
-        padding: "14px 16px",
+        padding: "18px 20px",
         borderBottom: "1px solid rgba(110,200,255,0.10)",
       }}
     >
@@ -94,19 +105,19 @@ export function TechDetail({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
-          marginBottom: 10,
+          gap: 14,
+          marginBottom: 14,
         }}
       >
         <span
           style={{
-            width: 36,
-            height: 36,
+            width: 48,
+            height: 48,
             borderRadius: "50%",
             border: `1.5px solid ${branchColor}`,
             background: `${branchColor}10`,
             color: branchColor,
-            fontSize: 18,
+            fontSize: 22,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
@@ -114,33 +125,33 @@ export function TechDetail({
             flexShrink: 0,
           }}
         >
-          {branchIcon}
+          {branchIcon && <FontAwesomeIcon icon={branchIcon} />}
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span
               style={{
                 fontFamily: FONT_MONO,
-                fontSize: 9,
+                fontSize: 11,
                 color: "#6b87a3",
                 letterSpacing: "0.14em",
               }}
             >
-              {tech.branchId.toUpperCase().replaceAll("_", " ")} · T{tech.tier}
+              {meta?.label.toUpperCase() ?? tech.branchId.toUpperCase().replaceAll("_", " ")} · T{tech.tier}
             </span>
             <span
               style={{
                 fontFamily: FONT_MONO,
-                fontSize: 9,
+                fontSize: 11,
                 color: statusInfo.color,
               }}
             >
-              {statusInfo.label}
+              <FontAwesomeIcon icon={statusInfo.icon} style={{ marginRight: 4, fontSize: 10 }} /> {statusInfo.label}
             </span>
           </div>
           <div
             style={{
-              fontSize: 15,
+              fontSize: 18,
               color: "#d6e8f5",
               fontWeight: 500,
               marginTop: 2,
@@ -153,11 +164,11 @@ export function TechDetail({
 
       <div
         style={{
-          padding: "8px 10px",
-          marginBottom: 10,
+          padding: "10px 14px",
+          marginBottom: 14,
           background: `${branchColor}08`,
           borderLeft: `2px solid ${branchColor}`,
-          fontSize: 12,
+          fontSize: 14,
           color: "#d6e8f5",
           lineHeight: 1.4,
         }}
@@ -169,27 +180,13 @@ export function TechDetail({
         ))}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8,
-          marginBottom: 10,
-        }}
-      >
-        <KV k="COST" v={`${fmt(tech.continuousCost * tech.researchTime)} TF`} color="#b08bff" />
-        <KV
-          k="PREREQ"
-          v={(() => {
-            const parts: string[] = [];
-            if (tech.tier > 1) parts.push(`T${tech.tier - 1}`);
-            for (const prereqId of tech.prerequisites) {
-              const prereq = TECH_TREE[prereqId];
-              if (prereq) parts.push(prereq.name);
-            }
-            return parts.length > 0 ? parts.join(", ") : "NONE";
-          })()}
-        />
+      <div style={{ marginBottom: 14 }}>
+        <KV k="COST" v={`${fmt(tech.continuousCost * tech.researchTime)} Teraflops`} color="#b08bff" />
+        {computeRate > 0 && (
+          <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3", marginTop: 4 }}>
+            (~{fmtYears(etaSeconds)})
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 6 }}>
@@ -203,7 +200,7 @@ export function TechDetail({
             }}
             disabled
           >
-            ✓ COMPLETE
+            <FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} /> COMPLETE
           </button>
         )}
         {status === "in_progress" && project && (() => {
@@ -268,7 +265,7 @@ export function TechDetail({
                 })
               }
             >
-              + QUEUE
+              <FontAwesomeIcon icon={faPlus} style={{ marginRight: 4 }} /> QUEUE
             </button>
           </>
         )}

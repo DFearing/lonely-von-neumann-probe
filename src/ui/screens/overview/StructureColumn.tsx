@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faArrowRight, faXmark, faCaretDown, faMicrochip } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState, StructureInstance, StructureType } from "../../../simulation/state";
 import type { ResourceRates } from "../../../simulation/rates";
 import type { PlayerAction } from "../../../simulation/actions";
@@ -17,7 +20,7 @@ interface CategoryConfig {
   structureType: StructureType;
   label: string;
   accent: string;
-  icon: string;
+  icon: IconDefinition;
   description: string;
   formatSummaryRate: (rate: number) => string;
 }
@@ -27,7 +30,7 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     structureType: "miner",
     label: "MINERS",
     accent: "#5cc7ff",
-    icon: "⛏",
+    icon: faAtom,
     description: "Extract Materials",
     formatSummaryRate: (rate) => `+${rate.toFixed(1)} tons/year`,
   },
@@ -35,15 +38,15 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     structureType: "reactor",
     label: "REACTORS",
     accent: "#ffcb47",
-    icon: "⚡",
+    icon: faBolt,
     description: "Generate Energy",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} MW/s`,
+    formatSummaryRate: (rate) => `+${rate.toFixed(1)} Megawatts/year`,
   },
   printers: {
     structureType: "printer",
     label: "PRINTERS",
     accent: "#4cd8a8",
-    icon: "⊟",
+    icon: faIndustry,
     description: "Build structures & probes",
     formatSummaryRate: (rate) => `${rate.toFixed(1)} BP`,
   },
@@ -51,9 +54,9 @@ const CATEGORY_CONFIGS: Record<CategoryId, CategoryConfig> = {
     structureType: "station" as StructureType,
     label: "STATIONS",
     accent: "#b08bff",
-    icon: "◈",
+    icon: faSatellite,
     description: "Provide Computing",
-    formatSummaryRate: (rate) => `+${rate.toFixed(1)} TFLOPS`,
+    formatSummaryRate: (rate) => `+${rate.toFixed(1)} Teraflops`,
   },
 };
 
@@ -92,12 +95,12 @@ function formatVariantSpec(
     return `+${def.productionRate.toFixed(1)} tons/year`;
   }
   if (category === "reactors") {
-    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} MW op` : "";
-    return `+${def.productionRate} MW/s${opCost}`;
+    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} Megawatts op` : "";
+    return `+${def.productionRate} Megawatts/year${opCost}`;
   }
   if (category === "stations") {
-    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} MW op` : "";
-    return `+${def.productionRate.toFixed(1)} TFLOPS${opCost}`;
+    const opCost = def.operatingCost > 0 ? ` · −${def.operatingCost.toFixed(1)} Megawatts op` : "";
+    return `+${def.productionRate.toFixed(1)} Teraflops${opCost}`;
   }
   return `${def.productionRate.toFixed(1)} BP`;
 }
@@ -303,9 +306,7 @@ function BuildStructureModal({
           }}
         >
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: config.accent, fontSize: 14, textShadow: `0 0 8px ${config.accent}80` }}>
-              {config.icon}
-            </span>
+            <FontAwesomeIcon icon={config.icon} style={{ color: config.accent, fontSize: 14, textShadow: `0 0 8px ${config.accent}80` }} />
             <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.22em", color: config.accent }}>
               BUILD {config.label.slice(0, -1).toUpperCase()}
             </span>
@@ -324,7 +325,7 @@ function BuildStructureModal({
               cursor: "pointer",
             }}
           >
-            ESC
+            <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
 
@@ -418,7 +419,7 @@ function BuildStructureModal({
                   <span>
                     <span style={{ color: "#6b87a3", letterSpacing: "0.16em" }}>DRAW </span>
                     <span style={{ color: def.operatingCost > 0 ? "#ff9966" : "#6b87a3" }}>
-                      {def.operatingCost > 0 ? `${def.operatingCost.toFixed(1)} MW` : "none"}
+                      {def.operatingCost > 0 ? `${def.operatingCost.toFixed(1)} Megawatts` : "none"}
                     </span>
                   </span>
                 </div>
@@ -450,7 +451,7 @@ function BuildStructureModal({
                         label="Energy supply"
                         before={currentRates.energySupply}
                         after={afterRates.energySupply}
-                        unit="MW"
+                        unit="Megawatts"
                         accent={config.accent}
                       />
                     )}
@@ -468,7 +469,7 @@ function BuildStructureModal({
                         label="Energy demand"
                         before={currentRates.energyDemand}
                         after={afterRates.energyDemand}
-                        unit="MW"
+                        unit="Megawatts"
                         accent="#ff9966"
                       />
                     )}
@@ -525,7 +526,7 @@ function BuildStructureModal({
                 boxShadow: canBuild ? `0 0 12px ${config.accent}30` : "none",
               }}
             >
-              CONSTRUCT →
+              CONSTRUCT <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: 6 }} />
             </button>
           </div>
         )}
@@ -566,17 +567,10 @@ export function StructureColumn({
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <span
             style={{
-              width: 18,
-              height: 18,
-              color: config.accent,
-              fontSize: 13,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textShadow: `0 0 6px ${config.accent}60`,
+              fontSize: 16,
             }}
           >
-            {config.icon}
+            <FontAwesomeIcon icon={config.icon} />
           </span>
           <span>{config.label}</span>
         </span>
@@ -622,7 +616,7 @@ export function StructureColumn({
                 marginTop: 4,
               }}
             >
-              ⚡ {draw.toFixed(1)} MW draw
+              <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />{draw.toFixed(1)} Megawatts draw
             </div>
           ) : null;
         })()}
@@ -669,7 +663,7 @@ export function StructureColumn({
               marginBottom: 8,
             }}
           >
-            &#9680; BUILDING NOW
+            <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> BUILDING NOW
           </div>
           {building.map((q) => {
             const pct = Math.min(100, q.progress * 100);
@@ -768,7 +762,7 @@ export function StructureColumn({
             <div
               key={inst.id}
               style={{
-                padding: "8px 10px",
+                padding: "12px 14px",
                 background: `${config.accent}06`,
                 border: `1px solid ${config.accent}30`,
               }}
@@ -782,19 +776,22 @@ export function StructureColumn({
                 }}
               >
                 <span
-                  style={{ fontSize: 12, color: "#d6e8f5", fontWeight: 500 }}
+                  style={{ fontSize: 14, color: "#d6e8f5", fontWeight: 500 }}
                 >
                   {def.name}
                 </span>
                 <span
                   style={{
                     fontFamily: FONT_MONO,
-                    fontSize: 8,
+                    fontSize: 10,
                     color: inst.active ? "#4cd8a8" : "#6b87a3",
                     letterSpacing: "0.14em",
                   }}
                 >
-                  {inst.active ? "● ACTIVE" : "○ IDLE"}
+                  {inst.active
+                    ? <><FontAwesomeIcon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} /> ACTIVE</>
+                    : <><FontAwesomeIcon icon={faCircle} style={{ fontSize: 6, marginRight: 4, opacity: 0.4 }} /> IDLE</>
+                  }
                 </span>
               </div>
               <div
@@ -802,7 +799,7 @@ export function StructureColumn({
                   display: "flex",
                   justifyContent: "space-between",
                   fontFamily: FONT_MONO,
-                  fontSize: 10,
+                  fontSize: 12,
                 }}
               >
                 <span style={{ color: config.accent }}>
@@ -810,10 +807,32 @@ export function StructureColumn({
                 </span>
                 {inst.operatingCost > 0 && (
                   <span style={{ color: "#ffcb47" }}>
-                    ⚡ {inst.operatingCost.toFixed(1)} MW
+                    <FontAwesomeIcon icon={faBolt} style={{ marginRight: 4 }} />{inst.operatingCost.toFixed(1)} Megawatts
                   </span>
                 )}
               </div>
+              {inst.maintenanceCost > 0 && (
+                <div style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 10,
+                  color: "#6b87a3",
+                  marginTop: 4,
+                }}>
+                  <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
+                  {inst.maintenanceCost.toFixed(2)} tons/year maint
+                </div>
+              )}
+              {inst.computeDemand > 0 && (
+                <div style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 10,
+                  color: "#b08bff",
+                  marginTop: 2,
+                }}>
+                  <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4 }} />
+                  {inst.computeDemand.toFixed(2)} Teraflops demand
+                </div>
+              )}
             </div>
           );
         })}

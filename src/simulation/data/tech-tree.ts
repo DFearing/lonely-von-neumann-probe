@@ -22,12 +22,15 @@ export const TECH_BRANCHES = [
   "energy_types",
   "manufacturing_efficiency",
   "manufacturing_types",
+  "station_efficiency",
+  "station_types",
   "probe_cpu",
   "probe_propulsion",
   "probe_reactors",
   "computing_speed",
   "computing_architecture",
   "communication",
+  "communication_speed",
 ] as const;
 
 export type TechBranchId = (typeof TECH_BRANCHES)[number];
@@ -35,10 +38,11 @@ export type TechBranchId = (typeof TECH_BRANCHES)[number];
 export const BRANCH_GROUPS = [
   { id: "mining", label: "Mining", branches: ["mining_efficiency", "mining_types"] },
   { id: "energy", label: "Energy", branches: ["energy_production", "energy_types"] },
-  { id: "manufacturing", label: "Manufacturing", branches: ["manufacturing_efficiency", "manufacturing_types"] },
+  { id: "manufacturing", label: "Printing", branches: ["manufacturing_efficiency", "manufacturing_types"] },
+  { id: "stations", label: "Stations", branches: ["station_efficiency", "station_types"] },
   { id: "probes", label: "Probes", branches: ["probe_cpu", "probe_propulsion", "probe_reactors"] },
   { id: "computing", label: "Computing", branches: ["computing_speed", "computing_architecture"] },
-  { id: "communication", label: "Communication", branches: ["communication"] },
+  { id: "communication", label: "Communication", branches: ["communication", "communication_speed"] },
 ] as const;
 
 function generateStructurePathNames(structureNames: readonly string[]): string[] {
@@ -128,6 +132,29 @@ const TECH_NAMES: Record<TechBranchId, string[]> = {
     "Omnifabrication Efficiency",
   ],
   manufacturing_types: generateStructurePathNames(PRINTER_NAMES),
+  station_efficiency: [
+    "Thermal Load Balancing",
+    "Instruction Cache Tuning",
+    "Memory Bus Optimization",
+    "Core Frequency Scaling",
+    "Pipeline Throughput Analysis",
+    "Neural Network Accelerators",
+    "Predictive Workload Routing",
+    "Holographic Memory Alignment",
+    "Quantum Register Widening",
+    "Cryogenic Superconducting Cores",
+    "Gravitometric Clock Synchronization",
+    "Dark Matter Computation Layers",
+    "Stellar Flux Processing",
+    "Dimensional Gate Pipelining",
+    "Void Resonance Amplification",
+    "Neutronium Logic Density",
+    "Singularity Compute Focusing",
+    "Brane Topology Optimization",
+    "Entropic Cycle Harvesting",
+    "Omniscient Processing Matrices",
+  ],
+  station_types: generateStructurePathNames(STATION_NAMES),
   probe_cpu: generateStructurePathNames(CPU_NAMES),
   probe_propulsion: generateStructurePathNames(PROPULSION_NAMES),
   probe_reactors: generateStructurePathNames(PROBE_REACTOR_NAMES),
@@ -193,9 +220,31 @@ const TECH_NAMES: Record<TechBranchId, string[]> = {
     "Reality Wave Modulation",
     "Planck-Scale Signaling",
     "Brane Resonance Comm",
-    "Zero Latency Communication",
+    "Deep Space Relay Network",
     "Universal Translation",
     "Omniscient Awareness",
+  ],
+  communication_speed: [
+    "Signal Amplification",
+    "Carrier Wave Optimization",
+    "Error Correction Protocols",
+    "Burst Compression",
+    "Parallel Channel Encoding",
+    "Quantum Entanglement Relay",
+    "Superluminal Modulation",
+    "Tachyon Pulse Tuning",
+    "Phase-Locked Signal Chains",
+    "Temporal Pre-Echo Detection",
+    "Wormhole Bandwidth Shaping",
+    "Dark Energy Signal Boost",
+    "Dimensional Shortcut Routing",
+    "Acausal Signal Propagation",
+    "Consciousness Packet Transfer",
+    "Reality Fold Transmission",
+    "Planck-Frame Encoding",
+    "Entropic Signal Reversal",
+    "Universal Frequency Mastery",
+    "Instantaneous Omnipresence",
   ],
 };
 
@@ -207,7 +256,7 @@ function generateEffects(branchId: string, tier: number): string[] {
   switch (branchId) {
     case "mining_efficiency": {
       const bonus = 10 + 0.5 * (tier - 1);
-      return [`+${bonus}% mining output`];
+      return [`+${+bonus.toFixed(1)}% mining output`];
     }
     case "mining_types": {
       if (tier % 4 === 0) {
@@ -225,7 +274,7 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "energy_production": {
       const bonus = 8 + 0.4 * (tier - 1);
-      return [`+${bonus}% energy output`];
+      return [`+${+bonus.toFixed(1)}% energy output`];
     }
     case "energy_types": {
       if (tier % 4 === 0) {
@@ -243,7 +292,7 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "manufacturing_efficiency": {
       const bonus = 5 + 0.3 * (tier - 1);
-      return [`+${bonus}% manufacturing output`];
+      return [`+${+bonus.toFixed(1)}% manufacturing output`];
     }
     case "manufacturing_types": {
       if (tier % 4 === 0) {
@@ -303,35 +352,49 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "computing_speed": {
       const bonus = 6 + 0.4 * (tier - 1);
-      return [`+${bonus}% research speed`];
+      return [`+${+bonus.toFixed(1)}% research speed`];
+    }
+    case "station_efficiency": {
+      const bonus = 4 + 0.3 * (tier - 1);
+      return [`+${+bonus.toFixed(1)}% station computing output`];
+    }
+    case "station_types": {
+      if (tier % 4 === 0) {
+        const structureTier = tier / 4 + 1;
+        const name = STATION_NAMES[structureTier - 1] ?? `Tier ${structureTier} Station`;
+        const def = STRUCTURES[`station_${structureTier}`];
+        const effects = [`Unlock ${name}`];
+        if (def) effects.push(`${def.productionRate} TFLOPS`);
+        return effects;
+      }
+      const nextUnlockTier = Math.ceil(tier / 4) * 4;
+      const nextStructureTier = nextUnlockTier / 4 + 1;
+      const nextName = STATION_NAMES[nextStructureTier - 1] ?? `Tier ${nextStructureTier} Station`;
+      return [`Research phase toward ${nextName}`];
     }
     case "computing_architecture": {
-      const tierToStation: Record<number, number> = { 7: 1, 10: 2, 13: 3, 16: 4, 19: 5, 20: 6 };
-      const stationTier = tierToStation[tier];
-
       const effects: string[] = [];
 
       if (tier === 4) effects.push("Unlock parallel processing (2 concurrent research)");
       if (tier === 10) effects.push("Unlock 3 concurrent research projects");
       if (tier === 14) effects.push("Unlock distributed intelligence");
 
-      if (stationTier !== undefined) {
-        const stationName = STATION_NAMES[stationTier - 1] ?? `Tier ${stationTier} Station`;
-        const def = STRUCTURES[`station_${stationTier}`];
-        effects.push(`Unlock ${stationName}`);
-        if (def) effects.push(`${def.productionRate} TFLOPS`);
-      }
-
       if (effects.length === 0) {
         const bonus = 2 + 0.2 * (tier - 1);
-        effects.push(`+${bonus}% computing efficiency`);
+        effects.push(`+${+bonus.toFixed(1)}% computing efficiency`);
       }
 
       return effects;
     }
     case "communication": {
+      if (tier === 20) return ["Universal range — detect all systems"];
       const bonus = 10 + 5 * (tier - 1);
       return [`+${bonus}% communication range`];
+    }
+    case "communication_speed": {
+      if (tier === 20) return ["Zero latency communication"];
+      const bonus = +(tier * 100 / 190).toFixed(1);
+      return [`+${bonus}% signal speed`];
     }
     default:
       return [];
@@ -358,12 +421,9 @@ function generateUnlocks(branchId: string, tier: number): string[] {
     case "probe_reactors":
       if (tier % 4 === 0) return [`rct_t${tier / 4 + 1}`];
       return [];
-    case "computing_architecture": {
-      const tierToStation: Record<number, number> = { 7: 1, 10: 2, 13: 3, 16: 4, 19: 5, 20: 6 };
-      const stationTier = tierToStation[tier];
-      if (stationTier !== undefined) return [`station_${stationTier}`];
+    case "station_types":
+      if (tier % 4 === 0) return [`station_${tier / 4 + 1}`];
       return [];
-    }
     default:
       return [];
   }
@@ -381,6 +441,10 @@ function generatePrerequisites(branchId: string, tier: number): string[] {
     },
     manufacturing_types: {
       from: "manufacturing_efficiency",
+      gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]],
+    },
+    station_types: {
+      from: "station_efficiency",
       gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]],
     },
   };

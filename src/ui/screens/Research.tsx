@@ -30,7 +30,7 @@ export function Research() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 340px",
+          gridTemplateColumns: "1fr 420px",
           gridTemplateRows: "minmax(0, 1fr)",
           gap: 16,
           flex: 1,

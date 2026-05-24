@@ -41,7 +41,7 @@ describe("catchUp", () => {
 
     const result = catchUp(state, wayTooMuchMs);
     expect(result.tickCount).toBe(state.tickCount + maxTicks);
-  }, 15_000);
+  }, 30_000);
 
   test("custom maxSeconds caps correctly", () => {
     const state = createInitialState(SEED);

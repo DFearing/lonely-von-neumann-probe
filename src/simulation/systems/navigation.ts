@@ -235,7 +235,7 @@ export function tickNavigation(
   }
 
   const anyZeroLatency = Object.values(state.systems).some(
-    (sys) => sys.completedResearch["communication_t18"],
+    (sys) => sys.completedResearch["communication_speed_t20"],
   );
 
   if (!changed && !anyZeroLatency) return state;

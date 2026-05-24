@@ -1,4 +1,7 @@
 import { createContext, useContext, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGaugeHigh, faRocket, faGlobe, faFlask, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 export type ViewId = "overview" | "fleet" | "systems" | "research";
 
@@ -11,13 +14,14 @@ export const LVNPGateContext = createContext<LVNPGateValue>({ onBack: null });
 interface NavItem {
   id: ViewId;
   label: string;
+  icon: IconDefinition;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "overview", label: "Overview" },
-  { id: "fleet", label: "Fleet" },
-  { id: "systems", label: "Systems" },
-  { id: "research", label: "Research" },
+  { id: "overview", label: "Overview", icon: faGaugeHigh },
+  { id: "fleet", label: "Fleet", icon: faRocket },
+  { id: "systems", label: "Systems", icon: faGlobe },
+  { id: "research", label: "Research", icon: faFlask },
 ];
 
 const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
@@ -39,7 +43,7 @@ export function Sidebar({
         borderRight: "1px solid rgba(110,200,255,0.12)",
         background: "rgba(6,12,24,0.6)",
         padding: "18px 0",
-        fontSize: 13,
+        fontSize: 15,
         position: "relative",
       }}
     >
@@ -54,7 +58,7 @@ export function Sidebar({
               display: "flex",
               alignItems: "center",
               gap: 10,
-              padding: "8px 18px",
+              padding: "10px 20px",
               color: active ? "#4ddbff" : hovered ? "#d6e8f5" : "#9ab4cf",
               background: active
                 ? "linear-gradient(90deg, rgba(77,219,255,0.12), transparent)"
@@ -72,12 +76,12 @@ export function Sidebar({
             }}
             onMouseLeave={() => setHoveredId(null)}
           >
-            <span
+            <FontAwesomeIcon
+              icon={item.icon}
               style={{
-                width: 5,
-                height: 5,
-                background: active ? "#4ddbff" : "#3d5572",
-                boxShadow: active ? "0 0 6px #4ddbff" : "none",
+                width: 18,
+                height: 18,
+                color: active ? "#4ddbff" : hovered ? "#d6e8f5" : "#9ab4cf",
               }}
             />
             {item.label}
@@ -90,7 +94,7 @@ export function Sidebar({
           position: "absolute",
           bottom: 0,
           left: 0,
-          width: 160,
+          width: 200,
           padding: "14px 18px",
           borderTop: "1px solid rgba(110,200,255,0.08)",
           fontFamily: FONT_MONO,
@@ -143,7 +147,7 @@ function SwitchOperatorButton({ onClick }: { onClick: () => void }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      ↩
+      <FontAwesomeIcon icon={faArrowRightFromBracket} style={{ width: 12, height: 12 }} />
     </button>
   );
 }

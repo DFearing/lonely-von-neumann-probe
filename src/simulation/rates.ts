@@ -97,7 +97,7 @@ export function calculateRates(system: SystemState): ResourceRates {
     sumOperatingCosts(structures.stations);
 
   const probeCompute = mainProbe ? mainProbe.computingOutput : 0;
-  const stationCompute = sumProductionRates(structures.stations);
+  const stationCompute = sumProductionRates(structures.stations) * multipliers.stationComputingMultiplier;
   const computeSupply = probeCompute + stationCompute;
 
   const computeDemand =

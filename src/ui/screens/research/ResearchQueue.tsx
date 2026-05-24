@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
@@ -7,8 +9,8 @@ import { fmtYears } from "../../format";
 
 function miniBtn(): React.CSSProperties {
   return {
-    width: 18,
-    height: 18,
+    width: 24,
+    height: 24,
     padding: 0,
     borderRadius: 2,
     background: "transparent",
@@ -16,7 +18,7 @@ function miniBtn(): React.CSSProperties {
     color: "#9ab4cf",
     cursor: "pointer",
     fontFamily: FONT_MONO,
-    fontSize: 9,
+    fontSize: 11,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -52,7 +54,7 @@ export function ResearchQueue({
   return (
     <div
       style={{
-        padding: "14px 16px",
+        padding: "18px 20px",
         borderBottom: "1px solid rgba(110,200,255,0.10)",
       }}
     >
@@ -67,7 +69,7 @@ export function ResearchQueue({
         <span
           style={{
             fontFamily: FONT_MONO,
-            fontSize: 10,
+            fontSize: 12,
             color: "#4ddbff",
             letterSpacing: "0.18em",
             fontWeight: 600,
@@ -82,7 +84,7 @@ export function ResearchQueue({
             background: "rgba(110,200,255,0.10)",
           }}
         />
-        <span style={{ fontFamily: FONT_MONO, fontSize: 9, color: "#6b87a3" }}>
+        <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#6b87a3" }}>
           {active.length} QUEUED
           {active.length > 0 && (
             <span style={{ color: "#9ab4cf", marginLeft: 6 }}>
@@ -96,26 +98,26 @@ export function ResearchQueue({
         <div
           style={{
             fontFamily: FONT_MONO,
-            fontSize: 10,
+            fontSize: 12,
             color: "#6b87a3",
             textAlign: "center",
-            padding: "12px 0",
+            padding: "14px 0",
           }}
         >
           queue empty · click + QUEUE on any tech
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {active.map((project, i) => (
             <div
               key={project.id}
               onClick={() => onSelect(project.techId)}
               style={{
                 display: "grid",
-                gridTemplateColumns: "18px 1fr 60px 48px",
-                gap: 8,
+                gridTemplateColumns: "22px 1fr 70px 48px",
+                gap: 10,
                 alignItems: "center",
-                padding: "6px 8px",
+                padding: "8px 10px",
                 cursor: "pointer",
                 background: selectedTech === project.techId ? "rgba(77,219,255,0.08)" : "rgba(8,16,30,0.5)",
                 border: selectedTech === project.techId ? "1px solid rgba(77,219,255,0.35)" : "1px solid rgba(110,200,255,0.10)",
@@ -124,7 +126,7 @@ export function ResearchQueue({
               <span
                 style={{
                   fontFamily: FONT_MONO,
-                  fontSize: 9,
+                  fontSize: 11,
                   color: "#6b87a3",
                 }}
               >
@@ -133,7 +135,7 @@ export function ResearchQueue({
               <div style={{ minWidth: 0 }}>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: "#d6e8f5",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -142,7 +144,7 @@ export function ResearchQueue({
                 >
                   {project.name}
                   {project.paused && (
-                    <span style={{ color: "#ffcb47", marginLeft: 6, fontSize: 9 }}>
+                    <span style={{ color: "#ffcb47", marginLeft: 6, fontSize: 11 }}>
                       PAUSED
                     </span>
                   )}
@@ -150,7 +152,7 @@ export function ResearchQueue({
                 <div
                   style={{
                     fontFamily: FONT_MONO,
-                    fontSize: 9,
+                    fontSize: 11,
                     color: "#6b87a3",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -163,7 +165,7 @@ export function ResearchQueue({
               <span
                 style={{
                   fontFamily: FONT_MONO,
-                  fontSize: 10,
+                  fontSize: 12,
                   color: "#9ab4cf",
                   textAlign: "right",
                 }}
@@ -182,7 +184,7 @@ export function ResearchQueue({
                     });
                   }}
                 >
-                  ✕
+                  <FontAwesomeIcon icon={faXmark} />
                 </button>
               </div>
             </div>

@@ -48,8 +48,8 @@ function buildCpuVariants(available: CpuDefinition[]): ComponentVariant[] {
   return available.map((c) => ({
     id: c.type,
     name: c.name,
-    costLabel: `${fmt(c.cost.materials)} tons · ${fmt(c.cost.energy)} MW`,
-    spec: `${c.computingOutput} TFLOPS · ${c.miningOutput} tons/year gather`,
+    costLabel: `${fmt(c.cost.materials)} tons · ${fmt(c.cost.energy)} Megawatts`,
+    spec: `${c.computingOutput} Teraflops · ${c.miningOutput} tons/year gather`,
     techGate: c.techGate,
     unlocked: true,
   }));
@@ -59,7 +59,7 @@ function buildPropVariants(available: PropulsionDefinition[]): ComponentVariant[
   return available.map((p) => ({
     id: p.type,
     name: p.name,
-    costLabel: `${fmt(p.cost.materials)} tons · ${fmt(p.cost.energy)} MW`,
+    costLabel: `${fmt(p.cost.materials)} tons · ${fmt(p.cost.energy)} Megawatts`,
     spec: `${p.travelSpeed}× speed`,
     techGate: p.techGate,
     unlocked: true,
@@ -70,8 +70,8 @@ function buildReactorVariants(available: ReactorDefinition[]): ComponentVariant[
   return available.map((r) => ({
     id: r.type,
     name: r.name,
-    costLabel: `${fmt(r.cost.materials)} tons · ${fmt(r.cost.energy)} MW`,
-    spec: `${r.energyMultiplier}× MW output`,
+    costLabel: `${fmt(r.cost.materials)} tons · ${fmt(r.cost.energy)} Megawatts`,
+    spec: `${r.energyMultiplier}× Megawatts output`,
     techGate: r.techGate,
     unlocked: true,
   }));
@@ -240,7 +240,7 @@ function BuildColumn({
     { k: "COMPUTE", v: `${cpu.computingOutput}× TF`, acc: "#b08bff" },
     { k: "MINING", v: `${cpu.miningOutput}× tons/year`, acc: "#5cc7ff" },
     { k: "TRAVEL", v: `${propulsion.travelSpeed}× speed`, acc: "#5cc7ff" },
-    { k: "ENERGY", v: `${reactor.energyMultiplier}× MW`, acc: "#ffcb47" },
+    { k: "ENERGY", v: `${reactor.energyMultiplier}× Megawatts`, acc: "#ffcb47" },
   ];
 
   return (
@@ -301,7 +301,7 @@ function BuildColumn({
         }}
       >
         <SpecCard k="MATERIALS" v={`${fmt(cost.materials, { decimals: 0 })} tons`} accent="#5cc7ff" />
-        <SpecCard k="ENERGY" v={`${fmt(cost.energy, { decimals: 0 })} MW`} accent="#ffcb47" />
+        <SpecCard k="ENERGY" v={`${fmt(cost.energy, { decimals: 0 })} Megawatts`} accent="#ffcb47" />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>

@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretDown, faCaretUp, faAtom, faBolt, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import { useCurrentSystem } from "../context";
 import { fmt, fmtRate, fmtYears } from "../format";
 import type { ViewId } from "./Sidebar";
@@ -45,7 +47,7 @@ function MaterialsCell({
           marginBottom: 6,
         }}
       >
-        NANO MATERIAL
+        <FontAwesomeIcon icon={faAtom} style={{ fontSize: 14, marginRight: 6 }} />NANO MATERIAL
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
         <span
@@ -81,7 +83,8 @@ function MaterialsCell({
         </span>
         {demand > 0 && (
           <span style={{ color: "#ff9966" }}>
-            ▼ {demand.toFixed(1)} maint
+            <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
+            {demand.toFixed(1)} maint
           </span>
         )}
       </div>
@@ -117,7 +120,7 @@ function EnergyCell({
           marginBottom: 6,
         }}
       >
-        ENERGY
+        <FontAwesomeIcon icon={faBolt} style={{ fontSize: 14, marginRight: 6 }} />ENERGY
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
         <span
@@ -136,7 +139,7 @@ function EnergyCell({
         <span
           style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
         >
-          MW net
+          Megawatts net
         </span>
       </div>
       <div
@@ -149,10 +152,12 @@ function EnergyCell({
         }}
       >
         <span style={{ color: "#4cd8a8" }}>
-          ▲ {supply.toFixed(1)} supply
+          <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 4 }} />
+          {supply.toFixed(1)} supply
         </span>
         <span style={{ color: demand > 0 ? "#ff9966" : "#3d5572" }}>
-          ▼ {demand.toFixed(1)} draw
+          <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
+          {demand.toFixed(1)} draw
         </span>
       </div>
     </div>
@@ -170,7 +175,6 @@ function ComputeResearchCell({
   computeSupply,
   computeDemand,
   computeEfficiency,
-  hasStations,
   researchName,
   researchTier,
   researchProgress,
@@ -181,7 +185,6 @@ function ComputeResearchCell({
   computeSupply: number;
   computeDemand: number;
   computeEfficiency: number;
-  hasStations: boolean;
   researchName: string | null;
   researchTier: number | null;
   researchProgress: number;
@@ -223,7 +226,7 @@ function ComputeResearchCell({
             letterSpacing: "0.18em",
           }}
         >
-          COMPUTE
+          <FontAwesomeIcon icon={faMicrochip} style={{ fontSize: 14, marginRight: 6 }} />COMPUTE
         </span>
         {researchName != null && (
           <span
@@ -275,32 +278,32 @@ function ComputeResearchCell({
         <span
           style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
         >
-          TFLOPS
+          Teraflops
         </span>
       </div>
-      {hasStations && (
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            fontFamily: FONT_MONO,
-            fontSize: 14,
-            marginTop: 4,
-          }}
-        >
-          <span style={{ color: "#4cd8a8" }}>
-            ▲ {computeSupply.toFixed(1)} supply
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          fontFamily: FONT_MONO,
+          fontSize: 14,
+          marginTop: 4,
+        }}
+      >
+        <span style={{ color: "#4cd8a8" }}>
+          <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 4 }} />
+          {computeSupply.toFixed(1)} supply
+        </span>
+        <span style={{ color: computeDemand > 0 ? "#ff9966" : "#3d5572" }}>
+          <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
+          {computeDemand.toFixed(1)} demand
+        </span>
+        {computeEfficiency < 1 && (
+          <span style={{ color }}>
+            {(computeEfficiency * 100).toFixed(0)}% eff
           </span>
-          <span style={{ color: computeDemand > 0 ? "#ff9966" : "#3d5572" }}>
-            ▼ {computeDemand.toFixed(1)} demand
-          </span>
-          {computeEfficiency < 1 && (
-            <span style={{ color }}>
-              {(computeEfficiency * 100).toFixed(0)}% eff
-            </span>
-          )}
-        </div>
-      )}
+        )}
+      </div>
       <div
         style={{
           height: 2,
@@ -372,7 +375,6 @@ export function Footer({
           computeSupply={system.resourceRates.computeSupply}
           computeDemand={system.resourceRates.computeDemand}
           computeEfficiency={system.resourceRates.computeEfficiency}
-          hasStations={system.structures.stations.length > 0}
           researchName={activeResearch?.name ?? null}
           researchTier={activeResearch?.tier ?? null}
           researchProgress={activeResearch?.progress ?? 0}

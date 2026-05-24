@@ -83,7 +83,7 @@ describe("cross-system tech sharing", () => {
     });
   });
 
-  describe("communication_t18", () => {
+  describe("communication_speed_t20", () => {
     test("without tech: no automatic sync between systems", () => {
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
@@ -119,7 +119,7 @@ describe("cross-system tech sharing", () => {
             ...sol,
             completedResearch: {
               mining_efficiency_t1: true,
-              communication_t18: true,
+              communication_speed_t20: true,
             },
           },
           alpha_centauri: {
@@ -141,7 +141,7 @@ describe("cross-system tech sharing", () => {
         expect(sys.completedResearch["mining_efficiency_t1"]).toBe(true);
         expect(sys.completedResearch["energy_production_t1"]).toBe(true);
         expect(sys.completedResearch["manufacturing_efficiency_t1"]).toBe(true);
-        expect(sys.completedResearch["communication_t18"]).toBe(true);
+        expect(sys.completedResearch["communication_speed_t20"]).toBe(true);
       }
     });
   });

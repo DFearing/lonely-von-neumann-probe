@@ -1,3 +1,9 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faAtom, faBolt, faIndustry, faMicrochip, faRocket,
+  faSatellite, faTowerBroadcast, faCheck,
+} from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { SystemState } from "../../../simulation/state";
 import { MAX_TIER } from "../../../simulation/state";
 import {
@@ -11,20 +17,23 @@ import { FONT_MONO } from "../../tokens";
 
 const BRANCH_META: Record<
   string,
-  { label: string; color: string; icon: string }
+  { label: string; color: string; icon: IconDefinition }
 > = {
-  mining_efficiency: { label: "Output", color: "#5cc7ff", icon: "⛏" },
-  mining_types: { label: "Structures", color: "#3aa8e0", icon: "⛏" },
-  energy_production: { label: "Output", color: "#ffcb47", icon: "⚡" },
-  energy_types: { label: "Structures", color: "#e0a830", icon: "⚡" },
-  manufacturing_efficiency: { label: "Output", color: "#4cd8a8", icon: "⊟" },
-  manufacturing_types: { label: "Structures", color: "#38b890", icon: "⊟" },
-  probe_cpu: { label: "Processor", color: "#4ddbff", icon: "◇" },
-  probe_propulsion: { label: "Propulsion", color: "#6bc0e0", icon: "▷" },
-  probe_reactors: { label: "Reactor", color: "#e8b830", icon: "⊙" },
-  computing_speed: { label: "Speed", color: "#b08bff", icon: "◊" },
-  computing_architecture: { label: "Architecture", color: "#9070e0", icon: "◊" },
-  communication: { label: "Range", color: "#ff9966", icon: "⟑" },
+  mining_efficiency: { label: "Output", color: "#5cc7ff", icon: faAtom },
+  mining_types: { label: "Structures", color: "#3aa8e0", icon: faAtom },
+  energy_production: { label: "Output", color: "#ffcb47", icon: faBolt },
+  energy_types: { label: "Structures", color: "#e0a830", icon: faBolt },
+  manufacturing_efficiency: { label: "Output", color: "#4cd8a8", icon: faIndustry },
+  manufacturing_types: { label: "Structures", color: "#38b890", icon: faIndustry },
+  station_efficiency: { label: "Output", color: "#b08bff", icon: faSatellite },
+  station_types: { label: "Structures", color: "#9070e0", icon: faSatellite },
+  probe_cpu: { label: "Processor", color: "#4ddbff", icon: faMicrochip },
+  probe_propulsion: { label: "Propulsion", color: "#6bc0e0", icon: faRocket },
+  probe_reactors: { label: "Reactor", color: "#e8b830", icon: faAtom },
+  computing_speed: { label: "Speed", color: "#b08bff", icon: faMicrochip },
+  computing_architecture: { label: "Architecture", color: "#9070e0", icon: faMicrochip },
+  communication: { label: "Range", color: "#ff9966", icon: faTowerBroadcast },
+  communication_speed: { label: "Speed", color: "#e07744", icon: faTowerBroadcast },
 };
 
 const STATUS_LOOK: Record<
@@ -54,8 +63,8 @@ const STATUS_LOOK: Record<
 };
 
 function formatTechLabel(name: string): string {
-  const match = name.match(/^Research Phase (\d+)\/\d+ for .+$/);
-  if (match) return `Phase ${match[1]}`;
+  const match = name.match(/^Research Phase (\d+)\/(\d+) for (.+)$/);
+  if (match) return `${match[3]} (${match[1]}/${match[2]})`;
   return name;
 }
 
@@ -72,7 +81,7 @@ function TechNode({
   tech: TechDefinition;
   status: TechStatus;
   branchColor: string;
-  branchIcon: string;
+  branchIcon: IconDefinition;
   isSelected: boolean;
   onSelect: () => void;
   onQueue: () => void;
@@ -96,7 +105,7 @@ function TechNode({
         cursor: "pointer",
         padding: "12px 2px 12px",
         width: "100%",
-        height: 74,
+        height: 90,
         boxSizing: "border-box",
         overflow: "hidden",
       }}
@@ -104,8 +113,8 @@ function TechNode({
       <div style={{ position: "relative" }}>
         <div
           style={{
-            width: 34,
-            height: 34,
+            width: 44,
+            height: 44,
             borderRadius: "50%",
             background: isCompleted ? "rgba(76,216,168,0.35)" : look.bg,
             border: `1.5px solid ${isSelected ? "#4ddbff" : isCompleted ? "#4cd8a8" : look.ring}`,
@@ -125,7 +134,7 @@ function TechNode({
         >
           <span
             style={{
-              fontSize: 14,
+              fontSize: 18,
               color: isCompleted ? "#4cd8a8" : branchColor,
               opacity: status === "locked" ? 0.5 : 1,
               textShadow:
@@ -136,7 +145,7 @@ function TechNode({
                     : "none",
             }}
           >
-            {isCompleted ? "✓" : branchIcon}
+            {isCompleted ? <FontAwesomeIcon icon={faCheck} /> : <FontAwesomeIcon icon={branchIcon} />}
           </span>
         </div>
         {queuePosition !== null && (
@@ -146,13 +155,13 @@ function TechNode({
               top: -4,
               right: -6,
               fontFamily: FONT_MONO,
-              fontSize: 8,
+              fontSize: 10,
               fontWeight: 700,
               color: "#0a1929",
               background: "#b08bff",
               borderRadius: "50%",
-              width: 14,
-              height: 14,
+              width: 18,
+              height: 18,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -166,7 +175,7 @@ function TechNode({
       <span
         style={{
           fontFamily: FONT_MONO,
-          fontSize: 9,
+          fontSize: 11,
           color:
             isCompleted
               ? "#4cd8a8"
@@ -206,6 +215,17 @@ export function TechWeb({
     queueMap.set(project.techId, idx + 1);
   });
 
+  let highestCompleted = 0;
+  for (const [key, val] of Object.entries(system.completedResearch)) {
+    if (!val) continue;
+    const tierMatch = key.match(/_t(\d+)$/);
+    if (tierMatch) {
+      const t = parseInt(tierMatch[1]!, 10);
+      if (t > highestCompleted) highestCompleted = t;
+    }
+  }
+  const visibleTiers = Math.min(MAX_TIER, 4 * (1 + Math.floor(highestCompleted / 4)));
+
   return (
     <Panel
       label="TECHNOLOGY"
@@ -230,26 +250,26 @@ export function TechWeb({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: `140px repeat(${MAX_TIER}, 100px)`,
+            gridTemplateColumns: `140px repeat(${visibleTiers}, 1fr)`,
             gap: 0,
             marginBottom: 8,
           }}
         >
           <div />
-          {Array.from({ length: MAX_TIER }, (_, i) => i + 1).map((tier) => (
+          {Array.from({ length: visibleTiers }, (_, i) => i + 1).map((tier) => (
             <div
               key={tier}
               style={{
                 textAlign: "center",
                 fontFamily: FONT_MONO,
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: 600,
                 color: "#9ab4cf",
                 letterSpacing: "0.22em",
                 padding: "4px 0",
               }}
             >
-              T{tier}
+              Tier {tier}
             </div>
           ))}
         </div>
@@ -260,7 +280,7 @@ export function TechWeb({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: `140px repeat(${MAX_TIER}, 100px)`,
+                gridTemplateColumns: `140px repeat(${visibleTiers}, 1fr)`,
                 gap: 0,
                 padding: "10px 0 2px",
               }}
@@ -284,7 +304,7 @@ export function TechWeb({
             {group.branches.map((branchId, branchIdx) => {
               const meta = BRANCH_META[branchId];
               if (!meta) return null;
-              const techs = techsInBranch(branchId);
+              const techs = techsInBranch(branchId).filter((t) => t.tier <= visibleTiers);
               const bgOpacity = branchIdx % 2 === 0 ? 0.025 : 0.008;
 
               return (
@@ -292,17 +312,17 @@ export function TechWeb({
                   key={branchId}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: `140px repeat(${MAX_TIER}, 100px)`,
+                    gridTemplateColumns: `140px repeat(${visibleTiers}, 1fr)`,
                     gap: 0,
                     background: `${meta.color}${Math.round(bgOpacity * 255).toString(16).padStart(2, "0")}`,
                     alignItems: "center",
-                    minHeight: 64,
+                    minHeight: 80,
                   }}
                 >
                   <div
                     style={{
                       fontFamily: FONT_MONO,
-                      fontSize: 10,
+                      fontSize: 12,
                       color: meta.color,
                       letterSpacing: "0.14em",
                       textTransform: "uppercase",

@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircle, faStarOfLife, faPlus } from "@fortawesome/free-solid-svg-icons";
 import type { ProbeState } from "../../../simulation/state";
 import { CPUS, PROPULSIONS, REACTORS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
@@ -52,7 +54,7 @@ export function ProbeDetail({
 
   const telemetry = [
     { k: "MINING", v: `${probe.miningOutput.toFixed(1)} tons/year`, acc: "#5cc7ff" },
-    { k: "COMPUTE", v: `${probe.computingOutput.toFixed(1)} TFLOPS`, acc: "#b08bff" },
+    { k: "COMPUTE", v: `${probe.computingOutput.toFixed(1)} Teraflops`, acc: "#b08bff" },
     { k: "SPEED", v: `×${prop.travelSpeed.toFixed(1)}`, acc: "#4ddbff" },
   ];
 
@@ -68,7 +70,7 @@ export function ProbeDetail({
             letterSpacing: "0.16em",
           }}
         >
-          ● STATION-KEEPING
+          <FontAwesomeIcon icon={faCircle} style={{ fontSize: 6, marginRight: 4 }} /> STATION-KEEPING
         </span>
       }
       style={{ display: "flex", flexDirection: "column", minHeight: 0 }}
@@ -241,7 +243,7 @@ export function ProbeDetail({
             marginBottom: 14,
           }}
         >
-          ✦ VON NEUMANN SELF-REPLICATOR
+          <FontAwesomeIcon icon={faStarOfLife} style={{ marginRight: 6 }} /> VON NEUMANN SELF-REPLICATOR
         </div>
       )}
 
@@ -262,7 +264,7 @@ export function ProbeDetail({
             borderRadius: 2,
           }}
         >
-          + BUILD PROBE
+          <FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} /> BUILD PROBE
         </button>
       </div>
     </Panel>
