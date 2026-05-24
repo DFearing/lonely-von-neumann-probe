@@ -684,8 +684,9 @@ export function StructureColumn({
             const totalSpeed = effectiveProbePrint + assignedSpeed;
             if (totalSpeed > 0 && !probeUsed && probePrint > 0) probeUsed = true;
             const buildTime = q.totalCost.materials;
-            const remaining = totalSpeed > 0
-              ? Math.max(0, buildTime * (1 - q.progress) / totalSpeed)
+            const waitSpeed = totalSpeed > 0 ? totalSpeed : (probePrint + assignedSpeed);
+            const remaining = waitSpeed > 0
+              ? Math.max(0, buildTime * (1 - q.progress) / waitSpeed)
               : Infinity;
             cumulativeYears += remaining === Infinity ? 0 : remaining;
             return (
@@ -708,8 +709,8 @@ export function StructureColumn({
                       color: config.accent,
                     }}
                   >
-                    {fmtYears(remaining)}
-                    {qi > 0 && remaining !== Infinity && (
+                    {totalSpeed > 0 ? fmtYears(remaining) : fmtYears(remaining)}
+                    {qi > 0 && (
                       <span style={{ color: "#6b87a3" }}> ({fmtYears(cumulativeYears)})</span>
                     )}
                   </span>
