@@ -13,6 +13,7 @@ function makeStructure(overrides: Partial<StructureInstance> & Pick<StructureIns
     computeDemand: 0,
     active: true,
     constructionProgress: 1,
+    health: 1,
     ...overrides,
   };
 }

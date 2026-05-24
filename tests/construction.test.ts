@@ -22,6 +22,7 @@ function makePrinter(id: string): StructureInstance {
     computeDemand: 0,
     active: true,
     constructionProgress: 1,
+    health: 1,
   };
 }
 

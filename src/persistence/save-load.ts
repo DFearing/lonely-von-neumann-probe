@@ -112,7 +112,8 @@ function deriveSlotStats(state: GameState): {
       sum +
       s.structures.miners.length +
       s.structures.reactors.length +
-      s.structures.printers.length,
+      s.structures.printers.length +
+      s.structures.stations.length,
     0,
   );
   const year = Math.floor(state.elapsedSeconds);
