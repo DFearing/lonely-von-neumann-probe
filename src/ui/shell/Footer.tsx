@@ -2,9 +2,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCaretUp, faAtom, faBolt, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import { useCurrentSystem } from "../context";
 import { fmt, fmtRate, fmtYears } from "../format";
+import { FONT_MONO } from "../tokens";
+import { TECH_TREE } from "../../simulation/data/tech-tree";
 import type { ViewId } from "./Sidebar";
-
-const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
 
 function resourceColor(
   supply: number,
@@ -179,6 +179,7 @@ function ComputeResearchCell({
   researchTier,
   researchProgress,
   researchContinuousCost,
+  researchTechId,
   onNavigate,
 }: {
   computeRate: number;
@@ -189,12 +190,15 @@ function ComputeResearchCell({
   researchTier: number | null;
   researchProgress: number;
   researchContinuousCost: number;
+  researchTechId: string | null;
   onNavigate: (view: ViewId) => void;
 }) {
   const pct = researchProgress * 100;
+  const techDef = researchTechId ? TECH_TREE[researchTechId] : undefined;
+  const researchTime = techDef?.researchTime ?? 0;
   const eta =
-    researchContinuousCost > 0 && computeRate > 0
-      ? ((1 - researchProgress) * researchContinuousCost * 100) / computeRate
+    researchContinuousCost > 0 && computeRate > 0 && researchTime > 0
+      ? ((1 - researchProgress) * researchContinuousCost * researchTime) / computeRate
       : 0;
   const color = computeColor(computeEfficiency);
 
@@ -390,6 +394,7 @@ export function Footer({
           researchTier={activeResearch?.tier ?? null}
           researchProgress={activeResearch?.progress ?? 0}
           researchContinuousCost={activeResearch?.continuousCost ?? 0}
+          researchTechId={activeResearch?.techId ?? null}
           onNavigate={onNavigate}
         />
       </div>

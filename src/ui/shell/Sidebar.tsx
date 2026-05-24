@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGaugeHigh, faRocket, faGlobe, faFlask, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { FONT_MONO } from "../tokens";
 
 export type ViewId = "overview" | "fleet" | "systems" | "research";
 
@@ -23,8 +24,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: "systems", label: "Systems", icon: faGlobe },
   { id: "research", label: "Research", icon: faFlask },
 ];
-
-const FONT_MONO = "'JetBrains Mono', 'Courier New', monospace";
 
 export function Sidebar({
   activeView,

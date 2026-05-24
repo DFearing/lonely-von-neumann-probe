@@ -1,4 +1,4 @@
-import { MAX_STRUCTURE_TIER } from "../state";
+import { MAX_STRUCTURE_TIER } from "../constants";
 
 export interface CpuDefinition {
   type: string;
@@ -74,8 +74,8 @@ function generateCpus(): Record<string, CpuDefinition> {
         energy: Math.round(3 * 2.2 ** (tier - 1)),
       },
       computingOutput: +(1 * 1.15 ** (tier - 1)).toFixed(2),
-      miningOutput: +(5 * (1 + 0.30 * (tier - 1))).toFixed(2),
-      printSpeed: +(1 * (1 + 0.12 * (tier - 1))).toFixed(2),
+      miningOutput: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
+      printSpeed: +(0.5 * (1 + 0.12 * (tier - 1))).toFixed(2),
       techGate: componentTechGate("computing_architecture", tier),
     };
   }

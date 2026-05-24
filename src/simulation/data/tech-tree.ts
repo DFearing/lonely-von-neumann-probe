@@ -1,4 +1,4 @@
-import { MAX_TIER } from "../state";
+import { MAX_TIER } from "../constants";
 import { STRUCTURES, MINER_NAMES, STRUCTURE_REACTOR_NAMES, PRINTER_NAMES, STATION_NAMES } from "./structures";
 import { CPUS, PROPULSIONS, REACTORS, CPU_NAMES, PROPULSION_NAMES, PROBE_REACTOR_NAMES } from "./components";
 

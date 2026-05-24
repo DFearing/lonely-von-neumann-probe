@@ -15,9 +15,9 @@ function createArrivingProbe(
     mode: "idle",
     systemId,
     components: probe.components,
-    miningOutput: cpuDef?.miningOutput ?? 5,
+    miningOutput: cpuDef?.miningOutput ?? 1,
     computingOutput: cpuDef?.computingOutput ?? 1,
-    internalPrinterSpeed: cpuDef?.printSpeed ?? 1,
+    internalPrinterSpeed: cpuDef?.printSpeed ?? 0.5,
     autoReplicating: propDef?.autoReplicate ?? false,
     health: 1,
   };

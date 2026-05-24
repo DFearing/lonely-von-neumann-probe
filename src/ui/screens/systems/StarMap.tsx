@@ -2,19 +2,7 @@ import type { GameState } from "../../../simulation/state";
 import { getSystemCoord } from "../../data/system-coords";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
-
-function starColor(starType: string): string {
-  switch (starType) {
-    case "yellow":
-      return "#ffcb47";
-    case "red":
-      return "#ff8a6e";
-    case "blue":
-      return "#bcd5ff";
-    default:
-      return "#f0f0ff";
-  }
-}
+import { starColor } from "../../data/star-colors";
 
 const SCALE = 6;
 

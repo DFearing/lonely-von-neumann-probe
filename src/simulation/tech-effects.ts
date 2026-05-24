@@ -1,4 +1,4 @@
-import { MAX_TIER } from "./state";
+import { MAX_TIER } from "./constants";
 
 export interface TechMultipliers {
   miningMultiplier: number;

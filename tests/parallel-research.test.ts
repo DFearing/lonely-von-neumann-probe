@@ -18,7 +18,6 @@ function makeResearchProject(
     branchId: tech.branchId,
     tier: tech.tier,
     name: tech.name,
-    initialCost: { ...tech.initialCost },
     continuousCost: tech.continuousCost,
     progress: 0,
     completed: false,

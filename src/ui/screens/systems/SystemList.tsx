@@ -1,20 +1,8 @@
 import type { GameState, SystemState } from "../../../simulation/state";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
+import { starColor } from "../../data/star-colors";
 import { fmt } from "../../format";
-
-function starColor(starType: string): string {
-  switch (starType) {
-    case "yellow":
-      return "#ffcb47";
-    case "red":
-      return "#ff8a6e";
-    case "blue":
-      return "#bcd5ff";
-    default:
-      return "#f0f0ff";
-  }
-}
 
 function systemStatus(sys: SystemState, isHome: boolean): string {
   if (isHome) return "HOME";

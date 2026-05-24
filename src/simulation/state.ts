@@ -1,9 +1,9 @@
 import type { RngState } from "./rng";
 import type { GameSpeed } from "./actions";
 import { createRng } from "./rng";
+import { CPUS } from "./data/components";
 
-export const MAX_TIER = 20;
-export const MAX_STRUCTURE_TIER = 6;
+export { MAX_TIER, MAX_STRUCTURE_TIER } from "./constants";
 
 export type StructureType = "miner" | "reactor" | "printer" | "station";
 export type CpuType = string;
@@ -116,7 +116,6 @@ export interface ResearchProject {
   branchId: string;
   tier: number;
   name: string;
-  initialCost: { materials: number; energy: number };
   continuousCost: number;
   progress: number;
   completed: boolean;
@@ -192,6 +191,7 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
   const rng = createRng(seed);
 
   const sol = emptySystemState("sol", "Sol", "yellow", 0, 1.0, true, true);
+  const cpuDef = CPUS["cpu_t1"];
   sol.mainProbe = {
     id: "probe_sol_0",
     name: probeName,
@@ -202,9 +202,9 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
       propulsion: "prop_t1",
       reactor: "rct_t1",
     },
-    miningOutput: 1,
-    computingOutput: 1,
-    internalPrinterSpeed: 0.5,
+    miningOutput: cpuDef?.miningOutput ?? 1,
+    computingOutput: cpuDef?.computingOutput ?? 1,
+    internalPrinterSpeed: cpuDef?.printSpeed ?? 0.5,
     autoReplicating: false,
     health: 1,
   };

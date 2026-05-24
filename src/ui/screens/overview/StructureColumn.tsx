@@ -67,12 +67,11 @@ function computeSummaryRate(
   system: SystemState,
   category: CategoryId,
 ): number {
-  const rates = calculateRates(system);
   switch (category) {
     case "miners":
-      return rates.materialsPerSecond;
+      return system.resourceRates.materialsPerSecond;
     case "reactors":
-      return rates.energyNet;
+      return system.resourceRates.energyNet;
     case "printers": {
       let total = 0;
       for (const p of system.structures.printers) {
@@ -86,7 +85,7 @@ function computeSummaryRate(
       return total;
     }
     case "stations":
-      return rates.computeSupply - (system.mainProbe?.computingOutput ?? 0);
+      return system.resourceRates.computeSupply - (system.mainProbe?.computingOutput ?? 0);
   }
 }
 
@@ -249,7 +248,7 @@ function BuildStructureModal({
 }) {
   const [selected, setSelected] = useState(availableForType[0]?.tier ?? 1);
   const selectedDef = allDefs.find((d) => d.tier === selected);
-  const currentRates = calculateRates(system);
+  const currentRates = system.resourceRates;
   const currentBP = computeSummaryRate(system, "printers");
 
   const selAffordable = selectedDef

@@ -1,5 +1,5 @@
 import type { StructureType } from "../state";
-import { MAX_STRUCTURE_TIER } from "../state";
+import { MAX_STRUCTURE_TIER } from "../constants";
 
 export interface StructureDefinition {
   type: StructureType;

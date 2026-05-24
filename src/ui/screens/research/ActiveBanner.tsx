@@ -1,4 +1,5 @@
 import type { ResearchProject } from "../../../simulation/state";
+import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { FONT_MONO } from "../../tokens";
 import { fmtYears } from "../../format";
 
@@ -10,9 +11,11 @@ export function ActiveBanner({
   computeRate: number;
 }) {
   const pct = project.progress * 100;
+  const techDef = TECH_TREE[project.techId];
+  const researchTime = techDef?.researchTime ?? 0;
   const remaining =
-    project.continuousCost > 0 && computeRate > 0
-      ? ((1 - project.progress) * project.continuousCost * 100) / computeRate
+    project.continuousCost > 0 && computeRate > 0 && researchTime > 0
+      ? ((1 - project.progress) * project.continuousCost * researchTime) / computeRate
       : 0;
 
   const circumference = 2 * Math.PI * 22;
