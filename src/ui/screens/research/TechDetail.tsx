@@ -14,21 +14,21 @@ import { fmt, fmtYears } from "../../format";
 import { btnFlush } from "../../components/buttons";
 
 const BRANCH_META: Record<string, { label: string; color: string; icon: IconDefinition }> = {
-  mining_efficiency: { label: "Mining · Output", color: "#5cc7ff", icon: faAtom },
-  mining_types: { label: "Mining · Structures", color: "#3aa8e0", icon: faAtom },
-  energy_production: { label: "Energy · Output", color: "#ffcb47", icon: faBolt },
-  energy_types: { label: "Energy · Structures", color: "#e0a830", icon: faBolt },
-  manufacturing_efficiency: { label: "Printing · Output", color: "#4cd8a8", icon: faIndustry },
-  manufacturing_types: { label: "Printing · Structures", color: "#38b890", icon: faIndustry },
-  station_efficiency: { label: "Stations · Output", color: "#b08bff", icon: faSatellite },
-  station_types: { label: "Stations · Structures", color: "#9070e0", icon: faSatellite },
-  probe_cpu: { label: "Probes · Processor", color: "#4ddbff", icon: faMicrochip },
-  probe_propulsion: { label: "Probes · Propulsion", color: "#6bc0e0", icon: faRocket },
-  probe_reactors: { label: "Probes · Reactor", color: "#e8b830", icon: faAtom },
-  computing_speed: { label: "Computing · Speed", color: "#b08bff", icon: faMicrochip },
-  computing_architecture: { label: "Computing · Architecture", color: "#9070e0", icon: faMicrochip },
-  communication: { label: "Communication · Range", color: "#ff9966", icon: faTowerBroadcast },
-  communication_speed: { label: "Communication · Speed", color: "#e07744", icon: faTowerBroadcast },
+  mining_efficiency: { label: "Mining · Output", color: "#4fc7b8", icon: faAtom },
+  mining_types: { label: "Mining · Structures", color: "#3eafa2", icon: faAtom },
+  energy_production: { label: "Energy · Output", color: "#5d8aff", icon: faBolt },
+  energy_types: { label: "Energy · Structures", color: "#4a72dd", icon: faBolt },
+  manufacturing_efficiency: { label: "Printing · Output", color: "#6cb8e8", icon: faIndustry },
+  manufacturing_types: { label: "Printing · Structures", color: "#58a0cc", icon: faIndustry },
+  station_efficiency: { label: "Stations · Output", color: "#8a85f0", icon: faSatellite },
+  station_types: { label: "Stations · Structures", color: "#726cd0", icon: faSatellite },
+  probe_cpu: { label: "Probes · Processor", color: "#b08bff", icon: faMicrochip },
+  probe_propulsion: { label: "Probes · Propulsion", color: "#9674e0", icon: faRocket },
+  probe_reactors: { label: "Probes · Reactor", color: "#8060c8", icon: faAtom },
+  computing_speed: { label: "Computing · Speed", color: "#d488ec", icon: faMicrochip },
+  computing_architecture: { label: "Computing · Architecture", color: "#b870cc", icon: faMicrochip },
+  communication: { label: "Communication · Range", color: "#ee8cb8", icon: faTowerBroadcast },
+  communication_speed: { label: "Communication · Speed", color: "#d078a2", icon: faTowerBroadcast },
 };
 
 const STATUS_LABELS: Record<TechStatus, { label: string; icon: IconDefinition; color: string }> = {
