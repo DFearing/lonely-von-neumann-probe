@@ -48,9 +48,7 @@ function tickSystemResearch(
     const effectiveRate =
       requiredComputing > 0 ? availableComputing / requiredComputing : 1;
 
-    const progressIncrement =
-      (effectiveRate * dt * multipliers.researchSpeedMultiplier) /
-      techDef.researchTime;
+    const progressIncrement = (effectiveRate * dt) / techDef.researchTime;
     const newProgress = Math.min(project.progress + progressIncrement, 1);
 
     if (newProgress >= 1) {

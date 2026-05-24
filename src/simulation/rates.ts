@@ -96,7 +96,7 @@ export function calculateRates(system: SystemState): ResourceRates {
   const energyDemand =
     sumOperatingCosts(structures.miners) +
     sumOperatingCosts(structures.printers) +
-    sumOperatingCosts(structures.stations);
+    sumOperatingCosts(structures.stations) / multipliers.stationCostDivisor;
 
   const probeCompute = mainProbe ? mainProbe.computingOutput * mainProbe.health : 0;
   const stationCompute = sumProductionRates(structures.stations) * multipliers.stationComputingMultiplier;
@@ -121,7 +121,7 @@ export function calculateRates(system: SystemState): ResourceRates {
     sumMaintenanceCosts(structures.miners) +
     sumMaintenanceCosts(structures.reactors) +
     sumMaintenanceCosts(structures.printers) +
-    sumMaintenanceCosts(structures.stations) +
+    sumMaintenanceCosts(structures.stations) / multipliers.stationCostDivisor +
     (mainProbe ? PROBE_MAINTENANCE : 0);
 
   return {

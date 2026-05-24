@@ -7,7 +7,7 @@ describe("getTechMultipliers", () => {
       const m = getTechMultipliers({});
       expect(m.miningMultiplier).toBe(1.0);
       expect(m.energyMultiplier).toBe(1.0);
-      expect(m.researchSpeedMultiplier).toBe(1.0);
+      expect(m.stationCostDivisor).toBe(1.0);
       expect(m.manufacturingSpeedMultiplier).toBe(1.0);
       expect(m.maxConcurrentResearch).toBe(1);
       expect(m.printerNetworking).toBe(false);
@@ -49,10 +49,10 @@ describe("getTechMultipliers", () => {
     });
   });
 
-  describe("research speed multiplier", () => {
-    test("computing_speed_t1 adds 0.06", () => {
+  describe("station cost divisor", () => {
+    test("computing_speed_t1 adds 0.05", () => {
       const m = getTechMultipliers({ computing_speed_t1: true });
-      expect(m.researchSpeedMultiplier).toBeCloseTo(1.06);
+      expect(m.stationCostDivisor).toBeCloseTo(1.05);
     });
 
     test("computing_speed_t1 + computing_speed_t3 stack", () => {
@@ -60,7 +60,7 @@ describe("getTechMultipliers", () => {
         computing_speed_t1: true,
         computing_speed_t3: true,
       });
-      expect(m.researchSpeedMultiplier).toBeCloseTo(1.0 + 0.060 + 0.068);
+      expect(m.stationCostDivisor).toBeCloseTo(1.0 + 0.050 + 0.056);
     });
   });
 

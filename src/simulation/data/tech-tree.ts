@@ -24,7 +24,6 @@ export const TECH_BRANCHES = [
   "manufacturing_types",
   "station_efficiency",
   "station_types",
-  "probe_cpu",
   "probe_propulsion",
   "probe_reactors",
   "computing_speed",
@@ -40,7 +39,7 @@ export const BRANCH_GROUPS = [
   { id: "energy", label: "Energy", branches: ["energy_production", "energy_types"] },
   { id: "manufacturing", label: "Printing", branches: ["manufacturing_efficiency", "manufacturing_types"] },
   { id: "stations", label: "Stations", branches: ["station_efficiency", "station_types"] },
-  { id: "probes", label: "Probes", branches: ["probe_cpu", "probe_propulsion", "probe_reactors"] },
+  { id: "probes", label: "Probes", branches: ["probe_propulsion", "probe_reactors"] },
   { id: "computing", label: "Computing", branches: ["computing_speed", "computing_architecture"] },
   { id: "communication", label: "Communication", branches: ["communication", "communication_speed"] },
 ] as const;
@@ -155,7 +154,6 @@ const TECH_NAMES: Record<TechBranchId, string[]> = {
     "Omniscient Processing Matrices",
   ],
   station_types: generateStructurePathNames(STATION_NAMES),
-  probe_cpu: generateStructurePathNames(CPU_NAMES),
   probe_propulsion: generateStructurePathNames(PROPULSION_NAMES),
   probe_reactors: generateStructurePathNames(PROBE_REACTOR_NAMES),
   computing_speed: [
@@ -308,20 +306,6 @@ function generateEffects(branchId: string, tier: number): string[] {
       const nextName = PRINTER_NAMES[nextStructureTier - 1] ?? `Tier ${nextStructureTier} Printer`;
       return [`Research phase toward ${nextName}`];
     }
-    case "probe_cpu": {
-      if (tier % 4 === 0) {
-        const componentTier = tier / 4 + 1;
-        const name = CPU_NAMES[componentTier - 1] ?? `Tier ${componentTier} CPU`;
-        const def = CPUS[`cpu_t${componentTier}`];
-        const effects = [`Unlock ${name}`];
-        if (def) effects.push(`${def.computingOutput} TFLOPS, ${def.miningOutput} tons/year gather, ${def.printSpeed}× print`);
-        return effects;
-      }
-      const nextTier = Math.ceil(tier / 4) * 4;
-      const nextComponentTier = nextTier / 4 + 1;
-      const nextName = CPU_NAMES[nextComponentTier - 1] ?? `Tier ${nextComponentTier} CPU`;
-      return [`Research phase toward ${nextName}`];
-    }
     case "probe_propulsion": {
       if (tier % 4 === 0) {
         const componentTier = tier / 4 + 1;
@@ -351,8 +335,8 @@ function generateEffects(branchId: string, tier: number): string[] {
       return [`Research phase toward ${nextName}`];
     }
     case "computing_speed": {
-      const bonus = 6 + 0.4 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% research speed`];
+      const bonus = 5 + 0.3 * (tier - 1);
+      return [`+${+bonus.toFixed(1)}% station efficiency`];
     }
     case "station_efficiency": {
       const bonus = 4 + 0.3 * (tier - 1);
@@ -374,16 +358,21 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "computing_architecture": {
       const effects: string[] = [];
-
       if (tier === 4) effects.push("Unlock parallel processing (2 concurrent research)");
       if (tier === 10) effects.push("Unlock 3 concurrent research projects");
       if (tier === 14) effects.push("Unlock distributed intelligence");
-
-      if (effects.length === 0) {
-        const bonus = 2 + 0.2 * (tier - 1);
-        effects.push(`+${+bonus.toFixed(1)}% computing efficiency`);
+      if (tier % 4 === 0) {
+        const componentTier = tier / 4 + 1;
+        const name = CPU_NAMES[componentTier - 1] ?? `Tier ${componentTier} CPU`;
+        effects.push(`Unlock ${name}`);
+        const def = CPUS[`cpu_t${componentTier}`];
+        if (def) effects.push(`${def.computingOutput} TFLOPS, ${def.miningOutput} tons/year gather, ${def.printSpeed}× print`);
+      } else if (effects.length === 0) {
+        const nextUnlockTier = Math.ceil(tier / 4) * 4;
+        const nextComponentTier = nextUnlockTier / 4 + 1;
+        const nextName = CPU_NAMES[nextComponentTier - 1] ?? `Tier ${nextComponentTier} CPU`;
+        effects.push(`Research phase toward ${nextName}`);
       }
-
       return effects;
     }
     case "communication": {
@@ -412,9 +401,6 @@ function generateUnlocks(branchId: string, tier: number): string[] {
     case "manufacturing_types":
       if (tier % 4 === 0) return [`printer_${tier / 4 + 1}`];
       return [];
-    case "probe_cpu":
-      if (tier % 4 === 0) return [`cpu_t${tier / 4 + 1}`];
-      return [];
     case "probe_propulsion":
       if (tier % 4 === 0) return [`prop_t${tier / 4 + 1}`];
       return [];
@@ -423,6 +409,9 @@ function generateUnlocks(branchId: string, tier: number): string[] {
       return [];
     case "station_types":
       if (tier % 4 === 0) return [`station_${tier / 4 + 1}`];
+      return [];
+    case "computing_architecture":
+      if (tier % 4 === 0) return [`cpu_t${tier / 4 + 1}`];
       return [];
     default:
       return [];
