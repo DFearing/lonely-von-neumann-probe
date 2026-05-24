@@ -3,6 +3,7 @@ import { faCircle, faStarOfLife, faPlus } from "@fortawesome/free-solid-svg-icon
 import type { ProbeState } from "../../../simulation/state";
 import { CPUS, PROPULSIONS, REACTORS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
+import { HealthGauge } from "../../components/HealthGauge";
 import { FONT_MONO } from "../../tokens";
 
 function ProbeSchematic({ size = 60, accent = "#4ddbff" }: { size?: number; accent?: string }) {
@@ -53,8 +54,8 @@ export function ProbeDetail({
   ];
 
   const telemetry = [
-    { k: "MINING", v: `${probe.miningOutput.toFixed(1)} tons/year`, acc: "#5cc7ff" },
-    { k: "COMPUTE", v: `${probe.computingOutput.toFixed(1)} Teraflops`, acc: "#b08bff" },
+    { k: "MINING", v: `${(probe.miningOutput * probe.health).toFixed(1)} tons/year`, acc: "#5cc7ff" },
+    { k: "COMPUTE", v: `${(probe.computingOutput * probe.health).toFixed(1)} Teraflops`, acc: "#b08bff" },
     { k: "SPEED", v: `×${prop.travelSpeed.toFixed(1)}`, acc: "#4ddbff" },
   ];
 
@@ -143,6 +144,29 @@ export function ProbeDetail({
         <div style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
           stationed
         </div>
+      </div>
+
+      {/* Structural Integrity */}
+      <div
+        style={{
+          padding: "12px 14px",
+          marginBottom: 14,
+          background: "rgba(8,16,30,0.5)",
+          border: "1px solid rgba(110,200,255,0.12)",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 9,
+            color: "#6b87a3",
+            letterSpacing: "0.18em",
+            marginBottom: 8,
+          }}
+        >
+          STRUCTURAL INTEGRITY
+        </div>
+        <HealthGauge health={probe.health} />
       </div>
 
       {/* Technology */}

@@ -19,6 +19,7 @@ function createArrivingProbe(
     computingOutput: cpuDef?.computingOutput ?? 1,
     internalPrinterSpeed: cpuDef?.printSpeed ?? 1,
     autoReplicating: propDef?.autoReplicate ?? false,
+    health: 1,
   };
 }
 

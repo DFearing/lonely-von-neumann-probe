@@ -210,7 +210,7 @@ function tickSystemConstruction(
   const computeEfficiency = updatedSystem.resourceRates.computeEfficiency;
 
   const probePrintSpeed = updatedSystem.mainProbe?.mode === "printing"
-    ? updatedSystem.mainProbe.internalPrinterSpeed
+    ? updatedSystem.mainProbe.internalPrinterSpeed * updatedSystem.mainProbe.health
     : 0;
 
   for (const project of updatedSystem.constructionQueue) {

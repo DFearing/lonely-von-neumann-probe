@@ -1,5 +1,5 @@
-import type { GameState, SystemState, StructureInstance } from "../state";
-import { calculateRates } from "../rates";
+import type { GameState, SystemState, StructureInstance, ProbeState } from "../state";
+import { calculateRates, PROBE_MAINTENANCE } from "../rates";
 
 const HEALTH_DRAIN_RATE = 0.01;
 const HEALTH_RECOVERY_RATE = 0.005;
@@ -46,18 +46,40 @@ function updateStructureHealth(
   return changed ? result : null;
 }
 
+function updateProbeHealth(
+  probe: ProbeState,
+  dt: number,
+  shouldDrain: boolean,
+  totalSystemMaintenance: number,
+): ProbeState | null {
+  if (shouldDrain) {
+    if (totalSystemMaintenance <= 0) return null;
+    const drain = HEALTH_DRAIN_RATE * (PROBE_MAINTENANCE / totalSystemMaintenance) * dt;
+    const newHealth = Math.max(0, probe.health - drain);
+    if (newHealth === probe.health) return null;
+    return { ...probe, health: newHealth };
+  }
+
+  if (probe.health >= 1) return null;
+  const newHealth = Math.min(1, probe.health + HEALTH_RECOVERY_RATE * dt);
+  if (newHealth === probe.health) return null;
+  return { ...probe, health: newHealth };
+}
+
 function tickSystem(system: SystemState, dt: number): SystemState {
   const rates = calculateRates(system);
   const clampedMaterials = Math.max(0, system.resources.materials + rates.materialsPerSecond * dt);
   const shouldDrain = clampedMaterials <= 0 && rates.materialsPerSecond < 0;
-  const shouldRecover = clampedMaterials > 0;
+  const shouldRecover = !shouldDrain && clampedMaterials >= 0;
 
   let structures = system.structures;
+  let mainProbe = system.mainProbe;
   if (shouldDrain || shouldRecover) {
     const totalMaintenance = sumMaintenance(structures.miners)
       + sumMaintenance(structures.reactors)
       + sumMaintenance(structures.printers)
-      + sumMaintenance(structures.stations);
+      + sumMaintenance(structures.stations)
+      + (mainProbe ? PROBE_MAINTENANCE : 0);
 
     const minersUpdate = updateStructureHealth(structures.miners, dt, shouldDrain, totalMaintenance);
     const reactorsUpdate = updateStructureHealth(structures.reactors, dt, shouldDrain, totalMaintenance);
@@ -72,10 +94,18 @@ function tickSystem(system: SystemState, dt: number): SystemState {
         stations: stationsUpdate ?? structures.stations,
       };
     }
+
+    if (mainProbe) {
+      const probeUpdate = updateProbeHealth(mainProbe, dt, shouldDrain, totalMaintenance);
+      if (probeUpdate) {
+        mainProbe = probeUpdate;
+      }
+    }
   }
 
   return {
     ...system,
+    mainProbe,
     structures,
     resources: {
       materials: clampedMaterials,

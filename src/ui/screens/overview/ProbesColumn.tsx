@@ -6,6 +6,7 @@ import type { PlayerAction } from "../../../simulation/actions";
 import type { ViewId } from "../../shell/Sidebar";
 import { CPUS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
+import { HealthGauge } from "../../components/HealthGauge";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { fmtTime, fmtYears } from "../../format";
 import { FONT_MONO } from "../../tokens";
@@ -21,6 +22,7 @@ interface FleetProbe {
   location: string;
   dotColor: string;
   etaYrs: number | null;
+  health: number;
   miningOutput: number;
   computingOutput: number;
   printerSpeed: number;
@@ -40,6 +42,7 @@ function gatherFleet(state: GameState): FleetProbe[] {
         location: sys.name,
         dotColor: "#4cd8a8",
         etaYrs: null,
+        health: sys.mainProbe.health,
         miningOutput: sys.mainProbe.miningOutput,
         computingOutput: sys.mainProbe.computingOutput,
         printerSpeed: sys.mainProbe.internalPrinterSpeed,
@@ -63,6 +66,7 @@ function gatherFleet(state: GameState): FleetProbe[] {
         location: `→ ${destName}`,
         dotColor: ACCENT,
         etaYrs: remainingYrs,
+        health: 1,
         miningOutput: cpuDef?.miningOutput ?? 0,
         computingOutput: cpuDef?.computingOutput ?? 0,
         printerSpeed: cpuDef?.printSpeed ?? 0,
@@ -481,6 +485,11 @@ export function ProbesColumn({
                       : "IDLE"}
               </span>
             </div>
+            {p.status === "station-keeping" && (
+              <div style={{ marginTop: 6 }}>
+                <HealthGauge health={p.health} compact />
+              </div>
+            )}
             <div style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr",
@@ -493,15 +502,15 @@ export function ProbesColumn({
             }}>
               <span style={{ color: "#5cc7ff" }}>
                 <FontAwesomeIcon icon={faGem} style={{ marginRight: 4, fontSize: 9 }} />
-                {p.miningOutput.toFixed(1)}
+                {(p.miningOutput * p.health).toFixed(1)}
               </span>
               <span style={{ color: "#b08bff" }}>
                 <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4, fontSize: 9 }} />
-                {p.computingOutput.toFixed(1)}
+                {(p.computingOutput * p.health).toFixed(1)}
               </span>
               <span style={{ color: "#4cd8a8" }}>
                 <FontAwesomeIcon icon={faIndustry} style={{ marginRight: 4, fontSize: 9 }} />
-                {p.printerSpeed.toFixed(1)}
+                {(p.printerSpeed * p.health).toFixed(1)}
               </span>
             </div>
             {p.status === "station-keeping" && p.systemId && (

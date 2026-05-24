@@ -40,6 +40,7 @@ function makeProbe(overrides?: Partial<ProbeState>): ProbeState {
     computingOutput: 1,
     internalPrinterSpeed: 0.5,
     autoReplicating: false,
+    health: 1,
     ...overrides,
   };
 }
@@ -720,6 +721,282 @@ describe("structure health system", () => {
       expect(finalRates.materialsPerSecond).toBeLessThan(
         initialRates.materialsPerSecond,
       );
+    });
+  });
+});
+
+// ── Probe Health Tests ──────────────────────────────────────────────
+
+const PROBE_MAINTENANCE = 0.1;
+
+describe("probe health system", () => {
+  describe("drain conditions", () => {
+    test("probe health drains when materials = 0 and net rate is negative", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ mode: "idle" }),
+        resources: { materials: 0, energy: 0, computingPower: 0 },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [],
+        },
+      });
+
+      const state = wrapSystem(system);
+      const next = tickResources(state, 1);
+      const nextSys = getSystem(next);
+
+      expect(nextSys.mainProbe!.health).toBeLessThan(1);
+    });
+
+    test("no probe health drain when materials are positive", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ mode: "gathering" }),
+        resources: { materials: 100, energy: 0, computingPower: 0 },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [],
+        },
+      });
+
+      const state = wrapSystem(system);
+      const next = tickResources(state, 1);
+      const nextSys = getSystem(next);
+
+      expect(nextSys.mainProbe!.health).toBe(1);
+    });
+  });
+
+  describe("drain proportionality", () => {
+    test("probe drain is proportional to its maintenance share", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ mode: "idle" }),
+        resources: { materials: 0, energy: 0, computingPower: 0 },
+        structures: {
+          miners: [
+            makeStructure({
+              id: "m1",
+              type: "miner",
+              productionRate: 0,
+              maintenanceCost: 0.3,
+            }),
+          ],
+          reactors: [],
+          printers: [],
+          stations: [],
+        },
+      });
+
+      const state = wrapSystem(system);
+      const next = tickResources(state, 1);
+      const nextSys = getSystem(next);
+
+      const totalMaintenance = 0.3 + PROBE_MAINTENANCE;
+      const expectedProbeDrain = HEALTH_DRAIN_RATE * (PROBE_MAINTENANCE / totalMaintenance);
+      const expectedMinerDrain = HEALTH_DRAIN_RATE * (0.3 / totalMaintenance);
+
+      expect(nextSys.mainProbe!.health).toBeCloseTo(1 - expectedProbeDrain);
+      expect(nextSys.structures.miners[0]!.health).toBeCloseTo(1 - expectedMinerDrain);
+    });
+  });
+
+  describe("recovery", () => {
+    test("probe health recovers when materials are positive", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ mode: "gathering", health: 0.5 }),
+        resources: { materials: 100, energy: 0, computingPower: 0 },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [],
+        },
+      });
+
+      const state = wrapSystem(system);
+      const next = tickResources(state, 1);
+      const nextSys = getSystem(next);
+
+      expect(nextSys.mainProbe!.health).toBeCloseTo(0.5 + HEALTH_RECOVERY_RATE);
+    });
+
+    test("probe health recovery caps at 1.0", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ mode: "gathering", health: 0.999 }),
+        resources: { materials: 100, energy: 0, computingPower: 0 },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [],
+        },
+      });
+
+      const state = wrapSystem(system);
+      const next = tickResources(state, 1);
+      const nextSys = getSystem(next);
+
+      expect(nextSys.mainProbe!.health).toBe(1);
+    });
+  });
+
+  describe("production scaling by health", () => {
+    test("probe mining scales by health", () => {
+      const fullHealth = makeSystem({
+        mainProbe: makeProbe({ mode: "gathering", health: 1, miningOutput: 10 }),
+      });
+      const halfHealth = makeSystem({
+        mainProbe: makeProbe({ mode: "gathering", health: 0.5, miningOutput: 10 }),
+      });
+
+      const fullRates = calculateRates(fullHealth);
+      const halfRates = calculateRates(halfHealth);
+
+      expect(fullRates.materialsSupply).toBeGreaterThan(0);
+      expect(halfRates.materialsSupply).toBeCloseTo(fullRates.materialsSupply * 0.5);
+    });
+
+    test("probe compute scales by health", () => {
+      const fullHealth = makeSystem({
+        mainProbe: makeProbe({ health: 1, computingOutput: 10 }),
+      });
+      const halfHealth = makeSystem({
+        mainProbe: makeProbe({ health: 0.5, computingOutput: 10 }),
+      });
+
+      const fullRates = calculateRates(fullHealth);
+      const halfRates = calculateRates(halfHealth);
+
+      expect(fullRates.computeSupply).toBeGreaterThan(0);
+      expect(halfRates.computeSupply).toBeCloseTo(fullRates.computeSupply * 0.5);
+    });
+
+    test("probe energy does NOT scale by health", () => {
+      const fullHealth = makeSystem({
+        mainProbe: makeProbe({ health: 1 }),
+      });
+      const halfHealth = makeSystem({
+        mainProbe: makeProbe({ health: 0.5 }),
+      });
+
+      const fullRates = calculateRates(fullHealth);
+      const halfRates = calculateRates(halfHealth);
+
+      expect(fullRates.energySupply).toBeGreaterThan(0);
+      expect(halfRates.energySupply).toBe(fullRates.energySupply);
+    });
+  });
+
+  describe("probe printer speed scaling", () => {
+    test("damaged probe prints slower", () => {
+      const base = createInitialState(42);
+      const sol = base.systems["sol"]!;
+
+      const project = {
+        id: "build_miner",
+        targetType: "miner",
+        targetTier: 1,
+        targetConfig: null,
+        totalCost: { materials: 100, energy: 20 },
+        remainingCost: { materials: 50, energy: 10 },
+        progress: 0.5,
+        assignedPrinterIds: [] as string[],
+      };
+
+      const makeState = (health: number): GameState => ({
+        ...base,
+        systems: {
+          ...base.systems,
+          sol: {
+            ...sol,
+            mainProbe: { ...sol.mainProbe!, mode: "printing", health },
+            constructionQueue: [project],
+          },
+        },
+      });
+
+      const fullResult = tickConstruction(makeState(1), 1);
+      const halfResult = tickConstruction(makeState(0.5), 1);
+
+      const fullProgress = fullResult.systems["sol"]!.constructionQueue[0]!.progress;
+      const halfProgress = halfResult.systems["sol"]!.constructionQueue[0]!.progress;
+
+      const fullDelta = fullProgress - 0.5;
+      const halfDelta = halfProgress - 0.5;
+
+      expect(fullDelta).toBeGreaterThan(0);
+      expect(halfDelta).toBeCloseTo(fullDelta * 0.5);
+    });
+  });
+
+  describe("drain formula", () => {
+    test("probe-only system drains at full HEALTH_DRAIN_RATE", () => {
+      const system = makeSystem({
+        mainProbe: makeProbe({ mode: "idle" }),
+        resources: { materials: 0, energy: 0, computingPower: 0 },
+        structures: {
+          miners: [],
+          reactors: [],
+          printers: [],
+          stations: [],
+        },
+      });
+
+      const state = wrapSystem(system);
+      const next = tickResources(state, 1);
+      const nextSys = getSystem(next);
+
+      expect(nextSys.mainProbe!.health).toBeCloseTo(1 - HEALTH_DRAIN_RATE);
+    });
+
+    test("probe drain scales with dt", () => {
+      const makeState = () =>
+        wrapSystem(
+          makeSystem({
+            mainProbe: makeProbe({ mode: "idle" }),
+            resources: { materials: 0, energy: 0, computingPower: 0 },
+            structures: {
+              miners: [],
+              reactors: [],
+              printers: [],
+              stations: [],
+            },
+          }),
+        );
+
+      const after1s = tickResources(makeState(), 1);
+      const after5s = tickResources(makeState(), 5);
+
+      const drain1s = 1 - getSystem(after1s).mainProbe!.health;
+      const drain5s = 1 - getSystem(after5s).mainProbe!.health;
+
+      expect(drain5s).toBeCloseTo(drain1s * 5);
+    });
+  });
+
+  describe("multi-tick probe behavior", () => {
+    test("probe health floors at 0 after sustained drain", () => {
+      let state = wrapSystem(
+        makeSystem({
+          mainProbe: makeProbe({ mode: "idle" }),
+          resources: { materials: 0, energy: 0, computingPower: 0 },
+          structures: {
+            miners: [],
+            reactors: [],
+            printers: [],
+            stations: [],
+          },
+        }),
+      );
+
+      for (let i = 0; i < 200; i++) {
+        state = tickResources(state, 1);
+      }
+
+      expect(getSystem(state).mainProbe!.health).toBe(0);
     });
   });
 });
