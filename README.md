@@ -7,7 +7,7 @@ A Bobiverse-inspired idle/progression browser game where players manage autonomo
 ```bash
 bun install
 bun run dev        # start dev server
-bun test           # run 177 tests
+bun test           # run 186 tests
 bun run typecheck  # strict TypeScript check
 bun run build      # production build
 ```
@@ -42,19 +42,19 @@ src/
 
 **Resources:** Materials (mined), Energy (reactors + probe), Computing Power (probe CPU, used as research rate)
 
-**Structures:** Miners, Reactors (4 tiers), 3D Printers (4 tiers) — built via printer-driven construction queue
+**Structures:** Miners, Reactors, 3D Printers (6 tiers each, cost scaling 2.2x per tier) — built via printer-driven construction queue. All structures consume nano-materials for ongoing maintenance.
 
-**Tech Tree:** 6 branches × 4 tiers — Mining, Energy, Manufacturing, Probe Components, Computing, Communication. Researched tech applies multipliers and unlocks higher-tier structures/components.
+**Tech Tree:** 12 branches × 20 tiers organized in 6 groups (Mining, Energy, Manufacturing, Probes, Computing, Communication). Each group has efficiency and types branches. Efficiency branches boost output multipliers; types branches unlock higher-tier structures/components (every 4 tiers).
 
-**Probes:** Customizable (CPU + Propulsion + Reactor). Launch to new star systems. Arrive, generate system, begin resource loop.
+**Probes:** Customizable (CPU + Propulsion + Reactor, 6 tiers each). Launch to new star systems. Arrive, generate system, begin resource loop. Each probe incurs ongoing maintenance costs.
 
-**Progression:** Tech gating enforces build order. Parallel research, printer networking, distributed intelligence, and zero-latency communication unlock as late-game mechanics.
+**Progression:** Tech gating enforces build order. Economy starts deliberately slow (probe mines 1 ton/sec) with a ~30-minute early game phase. Parallel research, printer networking, distributed intelligence, and zero-latency communication unlock as late-game mechanics.
 
 ## Stack
 
-- Vanilla TypeScript + DOM (no framework)
-- Bun + Vite (dev tooling only)
-- Zero runtime dependencies
+- TypeScript + React (UI layer)
+- Bun + Vite (dev tooling and bundling)
+- Zero runtime dependencies beyond React
 - TypeScript strict mode (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
 
 ## Design Documents
