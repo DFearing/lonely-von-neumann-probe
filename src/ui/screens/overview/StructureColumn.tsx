@@ -655,17 +655,6 @@ export function StructureColumn({
             borderBottom: "1px dashed rgba(110,200,255,0.10)",
           }}
         >
-          <div
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 11,
-              color: "#6b87a3",
-              letterSpacing: "0.18em",
-              marginBottom: 8,
-            }}
-          >
-            <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> PRINT QUEUE
-          </div>
           {(() => { const probePrint = system.mainProbe?.mode === "printing"
               ? system.mainProbe.internalPrinterSpeed
               : 0;
@@ -716,7 +705,17 @@ export function StructureColumn({
             }, 0);
             cumulativeYears = priorRemaining + (remaining === Infinity ? 0 : remaining);
             return (
-              <div key={q.id} style={{ marginBottom: 4 }}>
+              <div key={q.id} style={{ marginBottom: 8 }}>
+                <div style={{
+                  fontFamily: FONT_MONO,
+                  fontSize: 10,
+                  color: totalSpeed > 0 ? config.accent : "#3d5572",
+                  letterSpacing: "0.18em",
+                  marginBottom: 4,
+                }}>
+                  <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} />
+                  {totalSpeed > 0 ? "PRINTING NOW" : "QUEUED"}
+                </div>
                 <div
                   style={{
                     display: "flex",
@@ -767,12 +766,7 @@ export function StructureColumn({
                     marginTop: 3,
                   }}
                 >
-                  {totalSpeed > 0 ? (
-                    <span style={{ color: config.accent }}>printing</span>
-                  ) : (
-                    <span>queued</span>
-                  )}{" "}
-                  &middot; {pct.toFixed(0)}%
+                  {pct.toFixed(0)}%
                 </div>
               </div>
             );
