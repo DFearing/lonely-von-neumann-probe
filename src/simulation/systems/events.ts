@@ -1,10 +1,9 @@
 import type { GameState, LogEntry, SystemState } from "../state";
 import type { Rng } from "../rng";
 
-type EventType = "resource_cache" | "signal_detected" | "asteroid_impact";
+type EventType = "signal_detected" | "asteroid_impact";
 
 const EVENT_TYPES: readonly EventType[] = [
-  "resource_cache",
   "signal_detected",
   "asteroid_impact",
 ];
@@ -18,23 +17,6 @@ function applyEvent(
   tickCount: number,
 ): { system: SystemState; log: LogEntry } {
   switch (eventType) {
-    case "resource_cache": {
-      const bonus = rng.nextInt(10, 50);
-      return {
-        system: {
-          ...system,
-          resources: {
-            ...system.resources,
-            materials: system.resources.materials + bonus,
-          },
-        },
-        log: {
-          tick: tickCount,
-          message: `Resource cache discovered in ${system.name}: +${bonus} materials`,
-          category: "info",
-        },
-      };
-    }
     case "signal_detected":
       return {
         system,
@@ -74,7 +56,7 @@ export function tickEvents(
   let changed = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    if (!system.mainProbe) {
+    if (!system.mainProbe || system.mainProbe.health <= 0) {
       updatedSystems[id] = system;
       continue;
     }

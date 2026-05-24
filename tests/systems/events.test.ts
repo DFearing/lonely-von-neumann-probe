@@ -42,21 +42,6 @@ describe("tickEvents", () => {
     });
   });
 
-  describe("resource_cache event", () => {
-    test("adds materials to system resources", () => {
-      const seed = findEventSeed("resource cache");
-      const state = createInitialState(seed);
-      const materialsBefore = state.systems["sol"]!.resources.materials;
-
-      const rng = createRngFromState(state.rngState);
-      const next = tickEvents(state, DT, rng);
-
-      expect(next.systems["sol"]!.resources.materials).toBeGreaterThan(
-        materialsBefore,
-      );
-    });
-  });
-
   describe("asteroid_impact event", () => {
     test("reduces materials (clamped to 0)", () => {
       const seed = findEventSeed("asteroid impact");
