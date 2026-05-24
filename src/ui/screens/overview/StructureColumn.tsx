@@ -671,7 +671,7 @@ export function StructureColumn({
               : 0;
             let cumulativeYears = 0;
             const fullQueue = system.constructionQueue;
-            return building.map((q, qi) => {
+            return building.map((q) => {
             const pct = Math.min(100, q.progress * 100);
             const tierDef = allDefs.find((d) => d.tier === q.targetTier);
             const label = tierDef ? tierDef.name : config.structureType;
@@ -735,8 +735,8 @@ export function StructureColumn({
                       color: config.accent,
                     }}
                   >
-                    {totalSpeed > 0 ? fmtYears(remaining) : fmtYears(remaining)}
-                    {qi > 0 && (
+                    {fmtYears(remaining)}
+                    {globalIndex > 0 && (
                       <span style={{ color: "#6b87a3" }}> ({fmtYears(cumulativeYears)})</span>
                     )}
                   </span>
