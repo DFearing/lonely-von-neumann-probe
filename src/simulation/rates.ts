@@ -61,14 +61,14 @@ function sumComputeDemands(structures: readonly StructureInstance[]): number {
   return total;
 }
 
-const PROBE_MAINTENANCE = 0.1;
+export const PROBE_MAINTENANCE = 0.1;
 
 export function calculateRates(system: SystemState): ResourceRates {
   const { structures, resourceRichness, mainProbe } = system;
 
   const multipliers = getTechMultipliers(system.completedResearch);
 
-  const probeMining = mainProbe?.mode === "gathering" ? mainProbe.miningOutput : 0;
+  const probeMining = mainProbe?.mode === "gathering" ? mainProbe.miningOutput * mainProbe.health : 0;
   const minerOutput = sumProductionRates(structures.miners);
   const materialsPerSecond = (probeMining + minerOutput) * multipliers.miningMultiplier * resourceRichness;
 
@@ -96,7 +96,7 @@ export function calculateRates(system: SystemState): ResourceRates {
     sumOperatingCosts(structures.printers) +
     sumOperatingCosts(structures.stations);
 
-  const probeCompute = mainProbe ? mainProbe.computingOutput : 0;
+  const probeCompute = mainProbe ? mainProbe.computingOutput * mainProbe.health : 0;
   const stationCompute = sumProductionRates(structures.stations) * multipliers.stationComputingMultiplier;
   const computeSupply = probeCompute + stationCompute;
 

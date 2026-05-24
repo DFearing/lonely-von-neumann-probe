@@ -78,6 +78,7 @@ export interface ProbeState {
   computingOutput: number;
   internalPrinterSpeed: number;
   autoReplicating: boolean;
+  health: number;
 }
 
 export interface StructureInstance {
@@ -205,6 +206,7 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
     computingOutput: 1,
     internalPrinterSpeed: 0.5,
     autoReplicating: false,
+    health: 1,
   };
 
   const alphaCentauri = emptySystemState(

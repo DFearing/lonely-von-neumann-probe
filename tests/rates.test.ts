@@ -28,6 +28,7 @@ function makeProbe(overrides?: Partial<ProbeState>): ProbeState {
     computingOutput: 1,
     internalPrinterSpeed: 0.5,
     autoReplicating: false,
+    health: 1,
     ...overrides,
   };
 }

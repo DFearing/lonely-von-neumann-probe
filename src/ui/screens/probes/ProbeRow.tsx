@@ -1,4 +1,5 @@
 import type { ProbeState, ProbeInTransit } from "../../../simulation/state";
+import { HealthGauge } from "../../components/HealthGauge";
 import { FONT_MONO } from "../../tokens";
 import { fmtTime, fmtPercent } from "../../format";
 
@@ -124,6 +125,10 @@ export function ProbeRow({
         >
           <span style={{ color: "#3d5572" }}>UPLINK · </span>NOMINAL
         </span>
+      </div>
+
+      <div style={{ gridColumn: "1 / -1" }}>
+        <HealthGauge health={probe.health} compact />
       </div>
 
       <div style={{ gridColumn: "1 / -1" }}>
