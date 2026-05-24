@@ -3,6 +3,7 @@ import { useGameState, useCurrentSystem, useLoop } from "../context";
 import { FONT_MONO } from "../tokens";
 import { starColor } from "../data/star-colors";
 import type { GameSpeed } from "../../simulation/actions";
+import { useSoundSettings } from "../../audio/use-sound-events";
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";
@@ -16,10 +17,11 @@ function richnessLabel(value: number): string {
 const SPEEDS: GameSpeed[] = [1, 10, 100, 1000];
 const SPEED_LABELS: Record<GameSpeed, string> = { 1: "1×", 10: "10×", 100: "100×", 1000: "1000×" };
 
-export function Topbar() {
+export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
   const state = useGameState();
   const system = useCurrentSystem();
   const loop = useLoop();
+  const { settings: soundSettings, setVolume, setMuted } = useSoundSettings();
   const paused = loop.isPaused();
   const currentSpeed = loop.getSpeed();
   const year = 2026 + Math.floor(state.elapsedSeconds);
@@ -126,6 +128,55 @@ export function Topbar() {
             {SPEED_LABELS[s]}
           </button>
         ))}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <button
+          onClick={() => setMuted(!soundSettings.muted)}
+          title={soundSettings.muted ? "Unmute" : "Mute"}
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 14,
+            color: soundSettings.muted ? "#6b87a3" : "#d6e8f5",
+            background: "transparent",
+            border: "1px solid rgba(110,200,255,0.15)",
+            padding: "4px 8px",
+            cursor: "pointer",
+            lineHeight: 1,
+          }}
+        >
+          {soundSettings.muted ? "\u{1F507}" : "\u{1F50A}"}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={Math.round(soundSettings.volume * 100)}
+          onChange={(e) => setVolume(Number(e.target.value) / 100)}
+          style={{
+            width: 60,
+            height: 4,
+            accentColor: "#4ddbff",
+            cursor: "pointer",
+          }}
+        />
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            title="Sound settings"
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 14,
+              color: "#6b87a3",
+              background: "transparent",
+              border: "1px solid rgba(110,200,255,0.15)",
+              padding: "4px 8px",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+          >
+            {"⚙"}
+          </button>
+        )}
       </div>
       <div style={{ flex: 1 }} />
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>

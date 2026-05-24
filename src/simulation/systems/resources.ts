@@ -1,4 +1,4 @@
-import type { GameState, SystemState, StructureInstance, ProbeState } from "../state";
+import type { GameState, SystemState, StructureInstance, ProbeState, LogEntry } from "../state";
 import { calculateRates, PROBE_MAINTENANCE } from "../rates";
 
 const HEALTH_DRAIN_RATE = 0.01;
@@ -116,14 +116,90 @@ function tickSystem(system: SystemState, dt: number): SystemState {
   };
 }
 
+const HEALTH_THRESHOLDS = [0.75, 0.5, 0.25] as const;
+
+function detectHealthThresholdCrossings(
+  oldSystem: SystemState,
+  newSystem: SystemState,
+  tickCount: number,
+): LogEntry[] {
+  const hasOldStructures =
+    oldSystem.structures.miners.length > 0 ||
+    oldSystem.structures.reactors.length > 0 ||
+    oldSystem.structures.printers.length > 0 ||
+    oldSystem.structures.stations.length > 0;
+
+  if (!hasOldStructures && !oldSystem.mainProbe) return [];
+
+  let worstCrossing = Infinity;
+
+  if (hasOldStructures) {
+    const oldById = new Map<string, StructureInstance>();
+    for (const s of oldSystem.structures.miners) oldById.set(s.id, s);
+    for (const s of oldSystem.structures.reactors) oldById.set(s.id, s);
+    for (const s of oldSystem.structures.printers) oldById.set(s.id, s);
+    for (const s of oldSystem.structures.stations) oldById.set(s.id, s);
+
+    const allNew = [
+      ...newSystem.structures.miners,
+      ...newSystem.structures.reactors,
+      ...newSystem.structures.printers,
+      ...newSystem.structures.stations,
+    ];
+
+    for (const newStruct of allNew) {
+      const oldStruct = oldById.get(newStruct.id);
+      if (!oldStruct) continue;
+      for (const threshold of HEALTH_THRESHOLDS) {
+        if (oldStruct.health > threshold && newStruct.health <= threshold) {
+          worstCrossing = Math.min(worstCrossing, newStruct.health);
+          break;
+        }
+      }
+    }
+  }
+
+  if (oldSystem.mainProbe && newSystem.mainProbe) {
+    for (const threshold of HEALTH_THRESHOLDS) {
+      if (oldSystem.mainProbe.health > threshold && newSystem.mainProbe.health <= threshold) {
+        worstCrossing = Math.min(worstCrossing, newSystem.mainProbe.health);
+        break;
+      }
+    }
+  }
+
+  if (worstCrossing < Infinity) {
+    const pct = Math.round(worstCrossing * 100);
+    return [{
+      tick: tickCount,
+      message: `Equipment health critical in ${newSystem.name}: ${pct}%`,
+      category: "warning",
+      soundEvent: "health_threshold",
+    }];
+  }
+
+  return [];
+}
+
 export function tickResources(state: GameState, dt: number): GameState {
   const updatedSystems: Record<string, SystemState> = {};
+  let newLog = state.log;
+  let logChanged = false;
+
   for (const [id, system] of Object.entries(state.systems)) {
-    updatedSystems[id] = tickSystem(system, dt);
+    const updated = tickSystem(system, dt);
+    updatedSystems[id] = updated;
+
+    const crossings = detectHealthThresholdCrossings(system, updated, state.tickCount);
+    if (crossings.length > 0) {
+      newLog = [...newLog, ...crossings];
+      logChanged = true;
+    }
   }
 
   return {
     ...state,
     systems: updatedSystems,
+    log: logChanged ? newLog : state.log,
   };
 }
