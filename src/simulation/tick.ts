@@ -6,6 +6,7 @@ import type {
 } from "./state";
 import type { PlayerAction } from "./actions";
 import { createRngFromState } from "./rng";
+import { DEV_MODE } from "./dev";
 import { tickResources } from "./systems/resources";
 import { tickConstruction } from "./systems/construction";
 import { tickResearch } from "./systems/research";
@@ -15,7 +16,7 @@ import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
 import { hasPrerequisites } from "./queries";
-import { purchaseUpgrade } from "./prestige";
+import { purchaseUpgrade, calculatePrestigePoints } from "./prestige";
 import type { PrestigeUpgradeId } from "./prestige";
 
 function getSystem(state: GameState, systemId: string): SystemState | undefined {
@@ -377,8 +378,18 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       const result = purchaseUpgrade(state.prestige, action.upgradeId as PrestigeUpgradeId);
       return result ? { ...state, prestige: result } : state;
     }
-    case "enter_black_hole":
-      return state.prestige.blackHoleDiscovered ? { ...state, prestigeTriggered: true } : state;
+    case "enter_black_hole": {
+      if (!DEV_MODE && !state.prestige.blackHoleDiscovered) return state;
+      const pointsEarned = calculatePrestigePoints(state);
+      const awardedPrestige = {
+        ...state.prestige,
+        totalPrestigePoints: state.prestige.totalPrestigePoints + pointsEarned,
+        availablePrestigePoints: state.prestige.availablePrestigePoints + pointsEarned,
+      };
+      return { ...state, prestigeTriggered: true, prestige: awardedPrestige, prestigeSnapshot: awardedPrestige };
+    }
+    case "reset_prestige_choices":
+      return state.prestigeSnapshot ? { ...state, prestige: state.prestigeSnapshot } : state;
   }
 }
 

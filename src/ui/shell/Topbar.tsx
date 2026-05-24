@@ -4,6 +4,7 @@ import { FONT_MONO } from "../tokens";
 import { starColor } from "../data/star-colors";
 import type { GameSpeed } from "../../simulation/actions";
 import { useSoundSettings } from "../../audio/use-sound-events";
+import { DEV_MODE } from "../../simulation/dev";
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";
@@ -14,8 +15,10 @@ function richnessLabel(value: number): string {
   return "Plentiful";
 }
 
-const SPEEDS: GameSpeed[] = [1, 10, 100, 1000];
-const SPEED_LABELS: Record<GameSpeed, string> = { 1: "1×", 10: "10×", 100: "100×", 1000: "1000×" };
+const SPEEDS: GameSpeed[] = DEV_MODE ? [1, 10, 100, 1000] : [1, 2, 3, 4, 5];
+const SPEED_LABELS: Record<GameSpeed, string> = DEV_MODE
+  ? { 1: "1×", 10: "10×", 100: "100×", 1000: "1000×" }
+  : { 1: "1×", 2: "2×", 3: "3×", 4: "4×", 5: "5×" };
 
 export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
   const state = useGameState();
@@ -31,11 +34,11 @@ export function Topbar({ onOpenSettings }: { onOpenSettings?: () => void }) {
       if (!e.ctrlKey && !e.metaKey) return;
       const key = e.key;
       if (key === "0") { e.preventDefault(); loop.pause(); }
-      else if (key === "1") { e.preventDefault(); loop.setSpeed(1); if (loop.isPaused()) loop.unpause(); }
-      else if (key === "2") { e.preventDefault(); loop.setSpeed(10); if (loop.isPaused()) loop.unpause(); }
-      else if (key === "3") { e.preventDefault(); loop.setSpeed(100); if (loop.isPaused()) loop.unpause(); }
-      else if (key === "4") { e.preventDefault(); loop.setSpeed(1000); if (loop.isPaused()) loop.unpause(); }
-      else if (key === "=" || key === "+") {
+      else if (key >= "1" && key <= String(SPEEDS.length)) {
+        e.preventDefault();
+        loop.setSpeed(SPEEDS[Number(key) - 1]!);
+        if (loop.isPaused()) loop.unpause();
+      } else if (key === "=" || key === "+") {
         e.preventDefault();
         const idx = SPEEDS.indexOf(loop.getSpeed());
         if (idx < SPEEDS.length - 1) loop.setSpeed(SPEEDS[idx + 1]!);

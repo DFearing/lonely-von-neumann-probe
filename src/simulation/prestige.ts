@@ -161,11 +161,8 @@ export function performPrestige(
   seed: number,
   probeName: string,
 ): GameState {
-  const pointsEarned = calculatePrestigePoints(currentState);
   const updatedPrestige: PrestigeState = {
     ...currentState.prestige,
-    totalPrestigePoints: currentState.prestige.totalPrestigePoints + pointsEarned,
-    availablePrestigePoints: currentState.prestige.availablePrestigePoints + pointsEarned,
     timesPrestiged: currentState.prestige.timesPrestiged + 1,
     blackHoleDiscovered: false,
   };

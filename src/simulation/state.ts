@@ -23,6 +23,7 @@ export interface GameState {
   log: LogEntry[];
   paused: boolean;
   prestige: PrestigeState;
+  prestigeSnapshot: PrestigeState | null;
   prestigeTriggered: boolean;
 }
 
@@ -299,6 +300,7 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
     ],
     paused: false,
     prestige: createPrestigeState(),
+    prestigeSnapshot: null,
     prestigeTriggered: false,
   };
 }

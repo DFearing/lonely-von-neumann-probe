@@ -259,11 +259,15 @@ describe("prestige", () => {
     });
   });
 
-  describe("performPrestige", () => {
+  describe("enter_black_hole action", () => {
     it("awards points calculated from current state", () => {
-      const state = stateWithResources(200, 100);
+      const base = stateWithResources(200, 100);
+      const state: GameState = {
+        ...base,
+        prestige: makePrestige({ blackHoleDiscovered: true }),
+      };
       const pointsBefore = calculatePrestigePoints(state);
-      const newState = performPrestige(state, SEED + 1, "Probe");
+      const newState = tick(state, DT, [{ type: "enter_black_hole" }]);
 
       expect(newState.prestige.totalPrestigePoints).toBe(
         state.prestige.totalPrestigePoints + pointsBefore,
@@ -271,7 +275,11 @@ describe("prestige", () => {
       expect(newState.prestige.availablePrestigePoints).toBe(
         state.prestige.availablePrestigePoints + pointsBefore,
       );
+      expect(newState.prestigeTriggered).toBe(true);
     });
+  });
+
+  describe("performPrestige", () => {
 
     it("resets game state to a fresh initial state", () => {
       const state = stateWithResources(9999, 9999);

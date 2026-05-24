@@ -4,6 +4,7 @@ import { faGaugeHigh, faPrint, faRocket, faGlobe, faFlask, faTerminal, faArrowRi
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
+import { DEV_MODE } from "../../simulation/dev";
 
 export type ViewId = "overview" | "printers" | "fleet" | "systems" | "research" | "log" | "prestige";
 
@@ -38,7 +39,7 @@ export function Sidebar({
   const gate = useContext(LVNPGateContext);
   const [hoveredId, setHoveredId] = useState<ViewId | null>(null);
   const state = useGameState();
-  const showPrestige = state.prestige.blackHoleDiscovered;
+  const showPrestige = DEV_MODE || state.prestige.blackHoleDiscovered;
 
   return (
     <div
