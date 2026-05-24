@@ -136,10 +136,21 @@ export interface ProbeInTransit {
   elapsedSeconds: number;
 }
 
+export type SoundEventType =
+  | "research_complete"
+  | "probe_constructed"
+  | "miner_constructed"
+  | "reactor_constructed"
+  | "printer_constructed"
+  | "station_constructed"
+  | "asteroid_impact"
+  | "health_threshold";
+
 export interface LogEntry {
   tick: number;
   message: string;
   category: "info" | "discovery" | "warning" | "milestone";
+  soundEvent?: SoundEventType;
 }
 
 function emptySystemState(

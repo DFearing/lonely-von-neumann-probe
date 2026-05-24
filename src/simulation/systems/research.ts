@@ -58,6 +58,7 @@ function tickSystemResearch(
         tick: tickCount,
         message: `Research complete: ${project.name}`,
         category: "milestone",
+        soundEvent: "research_complete",
       });
     } else {
       updatedProgressMap.set(project.id, newProgress);

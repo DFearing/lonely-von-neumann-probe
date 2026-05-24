@@ -40,6 +40,7 @@ function applyEvent(
           tick: tickCount,
           message: `Asteroid impact in ${system.name}: -${damage} materials`,
           category: "warning",
+          soundEvent: "asteroid_impact",
         },
       };
     }

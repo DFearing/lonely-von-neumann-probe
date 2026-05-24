@@ -14,6 +14,7 @@ bun run build      # production build
 ## Architecture Rules
 
 - **Simulation is pure.** `src/simulation/` has zero DOM dependencies. All functions are `(state, ...) -> state` with no side effects. Never import browser APIs here.
+- **Sound system is browser-only.** `src/audio/` contains a Web Audio API synthesis engine (no external deps) that reads `soundEvent` fields off `LogEntry` values. It never touches simulation state.
 - **All randomness through seeded RNG.** Use `Rng` from `rng.ts`, never `Math.random()`. The RNG state is part of `GameState` and advances deterministically.
 - **State is immutable.** Update via spread operators. No mutation of input state. No `Map`, `Set`, `Date`, or class instances in state — everything must survive `JSON.stringify` round-trip.
 - **Sub-systems run in fixed order** in `tick.ts`: resources → construction → research → navigation → events. This order is load-bearing for determinism (RNG consumption sequence).
@@ -27,6 +28,7 @@ bun run build      # production build
 - `src/simulation/rates.ts` — `calculateRates(system)` computes resource rates (materials supply/demand/net, energy supply/demand/net, computing)
 - `src/simulation/tech-effects.ts` — `getTechMultipliers(completedResearch)` derives multipliers/flags from completed tech
 - `src/loop/game-loop.ts` — `createGameLoop(state)` bridges simulation to browser
+- `src/audio/sound-manager.ts` — singleton `SoundManager`; lazy `AudioContext`, 8 procedural recipes, localStorage-persisted settings
 
 ## TypeScript Strictness
 
@@ -41,6 +43,7 @@ The project uses aggressive strict settings. Key ones that affect how you write 
 - **New probe component:** Add entry to `src/simulation/data/components.ts` in the appropriate Record (6 tiers, cost scaling 2.2x).
 - **New tech:** Add entry to `src/simulation/data/tech-tree.ts`. Effects are applied via `src/simulation/tech-effects.ts` — add the multiplier/flag there too. Tech tree has 12 branches × 20 tiers; types branches unlock structures/components every 4 tiers.
 - **New player action:** Add variant to the `PlayerAction` union in `actions.ts`, handle in `applyAction` in `tick.ts`.
+- **New sound event:** Add a variant to `SoundEventType` in `src/simulation/state.ts`, add a matching recipe in `src/audio/sound-recipes.ts`, and attach `soundEvent` to the relevant `LogEntry` in the responsible system (construction, research, events, or resources).
 
 ## Economy Balance
 
@@ -53,7 +56,7 @@ The game is intentionally slow in early game (~30 min to self-sustaining). Key p
 
 ## UI
 
-The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "year(s)" not "yr" for units throughout the UI.
+The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "year(s)" not "yr" for units throughout the UI. The Topbar hosts a volume slider and mute toggle; a full `SoundSettings` modal (`src/ui/screens/SoundSettings.tsx`) is opened from there and rendered in `App.tsx`.
 
 ## Persistence
 

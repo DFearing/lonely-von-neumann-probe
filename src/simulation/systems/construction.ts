@@ -4,11 +4,20 @@ import type {
   StructureInstance,
   ConstructionProject,
   ProbeInTransit,
+  SoundEventType,
+  StructureType,
 } from "../state";
 import { STRUCTURES, structureKey } from "../data/structures";
 import { PROPULSIONS } from "../data/components";
 import { KNOWN_SYSTEMS } from "../data/star-systems";
 import { getTechMultipliers } from "../tech-effects";
+
+const STRUCTURE_SOUND_MAP: Record<StructureType, SoundEventType> = {
+  miner: "miner_constructed",
+  reactor: "reactor_constructed",
+  printer: "printer_constructed",
+  station: "station_constructed",
+};
 
 function buildTimeForProject(project: ConstructionProject): number {
   return project.totalCost.materials;
@@ -242,10 +251,14 @@ function tickSystemConstruction(
         );
         const def = STRUCTURES[key];
         const name = def?.name ?? project.targetType;
+        const soundEvent = project.targetType in STRUCTURE_SOUND_MAP
+          ? STRUCTURE_SOUND_MAP[project.targetType as StructureType]
+          : undefined;
         log.push({
           tick: tickCount,
           message: `Construction complete: ${name}`,
           category: "milestone",
+          ...(soundEvent !== undefined && { soundEvent }),
         });
       } else {
         updatedSystem = completeProbe(
@@ -258,6 +271,7 @@ function tickSystemConstruction(
           tick: tickCount,
           message: `Probe constructed and launched toward ${project.targetConfig.targetSystemId}`,
           category: "milestone",
+          soundEvent: "probe_constructed",
         });
       }
     } else {

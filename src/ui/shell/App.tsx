@@ -7,6 +7,8 @@ import { Overview } from "../screens/Overview";
 import { Probes } from "../screens/Probes";
 import { Systems } from "../screens/Systems";
 import { Research } from "../screens/Research";
+import { SoundSettings } from "../screens/SoundSettings";
+import { useSoundEvents } from "../../audio/use-sound-events";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
 
@@ -41,6 +43,8 @@ function Screen({
 
 export function App() {
   const [view, setView] = useState<ViewId>("overview");
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
+  useSoundEvents();
 
   return (
     <div
@@ -71,7 +75,7 @@ export function App() {
       />
 
       <Brand onNavigate={setView} />
-      <Topbar />
+      <Topbar onOpenSettings={() => setShowSoundSettings(true)} />
       <Sidebar activeView={view} onNavigate={setView} />
 
       <div
@@ -88,6 +92,10 @@ export function App() {
       </div>
 
       <Footer onNavigate={setView} />
+
+      {showSoundSettings && (
+        <SoundSettings onClose={() => setShowSoundSettings(false)} />
+      )}
     </div>
   );
 }
