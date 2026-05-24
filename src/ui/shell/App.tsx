@@ -9,6 +9,7 @@ import { Systems } from "../screens/Systems";
 import { Research } from "../screens/Research";
 import { SoundSettings } from "../screens/SoundSettings";
 import { useSoundEvents } from "../../audio/use-sound-events";
+import { Log } from "../screens/Log";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
 
@@ -38,6 +39,8 @@ function Screen({
       return <Systems onNavigate={onNavigate} />;
     case "research":
       return <Research />;
+    case "log":
+      return <Log />;
   }
 }
 
