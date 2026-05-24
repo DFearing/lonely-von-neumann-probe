@@ -664,7 +664,7 @@ export function StructureColumn({
               marginBottom: 8,
             }}
           >
-            <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> BUILDING NOW
+            <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> PRINT QUEUE
           </div>
           {(() => { const probePrint = system.mainProbe?.mode === "printing"
               ? system.mainProbe.internalPrinterSpeed
@@ -767,9 +767,11 @@ export function StructureColumn({
                     marginTop: 3,
                   }}
                 >
-                  {q.assignedPrinterIds.length > 0
-                    ? q.assignedPrinterIds.join(", ")
-                    : totalSpeed > 0 ? "probe printing" : "queued"}{" "}
+                  {totalSpeed > 0 ? (
+                    <span style={{ color: config.accent }}>printing</span>
+                  ) : (
+                    <span>queued</span>
+                  )}{" "}
                   &middot; {pct.toFixed(0)}%
                 </div>
               </div>
