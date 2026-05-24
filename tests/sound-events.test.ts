@@ -100,6 +100,7 @@ function wrapSystem(system: SystemState): GameState {
       timesPrestiged: 0,
       blackHoleDiscovered: false,
     },
+    prestigeSnapshot: null,
     prestigeTriggered: false,
   };
 }

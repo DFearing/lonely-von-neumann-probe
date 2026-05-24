@@ -50,124 +50,80 @@ function makePrestige(overrides?: Partial<PrestigeState>): PrestigeState {
 
 describe("prestige", () => {
   describe("calculatePrestigePoints", () => {
-    it("returns floor of materials in each system", () => {
+    it("returns 0 for a fresh game with no colonies or advanced tech", () => {
       const state = createInitialState(SEED);
-      const sol = state.systems["sol"]!;
-      const stateWithMaterials: GameState = {
-        ...state,
-        systems: {
-          ...state.systems,
-          sol: {
-            ...sol,
-            resources: { ...sol.resources, materials: 150.9 },
-          },
-        },
-      };
-
-      const points = calculatePrestigePoints(stateWithMaterials);
-      const otherSystemMaterials = 5 * 4;
-      expect(points).toBe(150 + otherSystemMaterials);
+      expect(calculatePrestigePoints(state)).toBe(0);
     });
 
-    it("includes material cost of completed structures", () => {
+    it("awards 150 per colonized system excluding Sol", () => {
       const state = createInitialState(SEED);
-      const sol = state.systems["sol"]!;
-      const minerDef = STRUCTURES[structureKey("miner", 1)]!;
-
-      const stateWithStructures: GameState = {
+      const ac = state.systems["alpha_centauri"]!;
+      const stateWithColony: GameState = {
         ...state,
         systems: {
           ...state.systems,
-          sol: {
-            ...sol,
-            resources: { ...sol.resources, materials: 0 },
-            structures: {
-              ...sol.structures,
-              miners: [
-                {
-                  id: "m1",
-                  type: "miner",
-                  tier: 1,
-                  productionRate: minerDef.productionRate,
-                  operatingCost: minerDef.operatingCost,
-                  maintenanceCost: minerDef.maintenanceCost,
-                  computeDemand: minerDef.computeDemand,
-                  active: true,
-                  constructionProgress: 1,
-                  health: 1,
-                },
-              ],
+          alpha_centauri: {
+            ...ac,
+            mainProbe: {
+              id: "probe_ac", name: "Probe", mode: "idle", systemId: "alpha_centauri",
+              components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
+              miningOutput: 1, computingOutput: 1, internalPrinterSpeed: 0.5,
+              autoReplicating: false, health: 1,
             },
           },
         },
       };
-
-      const points = calculatePrestigePoints(stateWithStructures);
-      const otherSystemMaterials = 5 * 4;
-      expect(points).toBe(minerDef.cost.materials + otherSystemMaterials);
+      expect(calculatePrestigePoints(stateWithColony)).toBe(150);
     });
 
-    it("sums across multiple systems", () => {
+    it("ignores techs below tier 10", () => {
+      const state = createInitialState(SEED);
+      const sol = state.systems["sol"]!;
+      const stateWithLowTech: GameState = {
+        ...state,
+        systems: {
+          ...state.systems,
+          sol: { ...sol, completedResearch: { mining_efficiency_t1: true, mining_efficiency_t9: true } },
+        },
+      };
+      expect(calculatePrestigePoints(stateWithLowTech)).toBe(0);
+    });
+
+    it("awards 10 per tech at tier 10 or above", () => {
+      const state = createInitialState(SEED);
+      const sol = state.systems["sol"]!;
+      const stateWithAdvancedTech: GameState = {
+        ...state,
+        systems: {
+          ...state.systems,
+          sol: { ...sol, completedResearch: { mining_efficiency_t10: true, energy_production_t15: true } },
+        },
+      };
+      expect(calculatePrestigePoints(stateWithAdvancedTech)).toBe(20);
+    });
+
+    it("sums colonies and advanced techs across systems", () => {
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
       const ac = state.systems["alpha_centauri"]!;
-
-      const stateMultiSystem: GameState = {
+      const stateMulti: GameState = {
         ...state,
         systems: {
           ...state.systems,
-          sol: {
-            ...sol,
-            resources: { ...sol.resources, materials: 100 },
-          },
+          sol: { ...sol, completedResearch: { mining_efficiency_t12: true } },
           alpha_centauri: {
             ...ac,
-            resources: { ...ac.resources, materials: 50 },
-          },
-        },
-      };
-
-      const points = calculatePrestigePoints(stateMultiSystem);
-      const otherSystemMaterials = 5 * 3;
-      expect(points).toBe(100 + 50 + otherSystemMaterials);
-    });
-
-    it("ignores in-progress structures", () => {
-      const state = createInitialState(SEED);
-      const sol = state.systems["sol"]!;
-      const minerDef = STRUCTURES[structureKey("miner", 1)]!;
-
-      const stateWithIncomplete: GameState = {
-        ...state,
-        systems: {
-          ...state.systems,
-          sol: {
-            ...sol,
-            resources: { ...sol.resources, materials: 10 },
-            structures: {
-              ...sol.structures,
-              miners: [
-                {
-                  id: "m1",
-                  type: "miner",
-                  tier: 1,
-                  productionRate: minerDef.productionRate,
-                  operatingCost: minerDef.operatingCost,
-                  maintenanceCost: minerDef.maintenanceCost,
-                  computeDemand: minerDef.computeDemand,
-                  active: true,
-                  constructionProgress: 0.5,
-                  health: 1,
-                },
-              ],
+            mainProbe: {
+              id: "probe_ac", name: "Probe", mode: "idle", systemId: "alpha_centauri",
+              components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
+              miningOutput: 1, computingOutput: 1, internalPrinterSpeed: 0.5,
+              autoReplicating: false, health: 1,
             },
+            completedResearch: { energy_production_t10: true },
           },
         },
       };
-
-      const points = calculatePrestigePoints(stateWithIncomplete);
-      const otherSystemMaterials = 5 * 4;
-      expect(points).toBe(10 + otherSystemMaterials);
+      expect(calculatePrestigePoints(stateMulti)).toBe(150 + 10 + 10);
     });
   });
 
@@ -259,11 +215,15 @@ describe("prestige", () => {
     });
   });
 
-  describe("performPrestige", () => {
+  describe("enter_black_hole action", () => {
     it("awards points calculated from current state", () => {
-      const state = stateWithResources(200, 100);
+      const base = stateWithResources(200, 100);
+      const state: GameState = {
+        ...base,
+        prestige: makePrestige({ blackHoleDiscovered: true }),
+      };
       const pointsBefore = calculatePrestigePoints(state);
-      const newState = performPrestige(state, SEED + 1, "Probe");
+      const newState = tick(state, DT, [{ type: "enter_black_hole" }]);
 
       expect(newState.prestige.totalPrestigePoints).toBe(
         state.prestige.totalPrestigePoints + pointsBefore,
@@ -271,7 +231,11 @@ describe("prestige", () => {
       expect(newState.prestige.availablePrestigePoints).toBe(
         state.prestige.availablePrestigePoints + pointsBefore,
       );
+      expect(newState.prestigeTriggered).toBe(true);
     });
+  });
+
+  describe("performPrestige", () => {
 
     it("resets game state to a fresh initial state", () => {
       const state = stateWithResources(9999, 9999);

@@ -432,13 +432,25 @@ function BranchPanel({
 function PrestigeFooter({
   availableCores,
   acquiredCount,
+  committed,
+  onEnterBlackHole,
+  onResetChoices,
   onBeginNewMission,
+  onClose,
 }: {
   availableCores: number;
   acquiredCount: number;
+  committed: boolean;
+  onEnterBlackHole: () => void;
+  onResetChoices: () => void;
   onBeginNewMission: () => void;
+  onClose?: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
+  const [enterHovered, setEnterHovered] = useState(false);
+  const [resetHovered, setResetHovered] = useState(false);
+  const [missionHovered, setMissionHovered] = useState(false);
+  const [closeHovered, setCloseHovered] = useState(false);
+
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 14, paddingTop: 14,
@@ -464,28 +476,87 @@ function PrestigeFooter({
         </div>
       </div>
 
-      <button
-        onClick={onBeginNewMission}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          position: "relative",
-          background: hovered
-            ? "linear-gradient(135deg, rgba(240,198,116,0.28), rgba(240,198,116,0.08))"
-            : "linear-gradient(135deg, rgba(240,198,116,0.18), rgba(240,198,116,0.04))",
-          border: `1px solid ${CORE}`,
-          color: CORE,
-          padding: "14px 32px",
-          fontFamily: FONT_MONO, fontSize: 12,
-          letterSpacing: "0.24em", fontWeight: 600,
-          cursor: "pointer", borderRadius: 2,
-          textShadow: `0 0 6px ${CORE_DIM}`,
-          boxShadow: hovered
-            ? `0 0 28px ${CORE_DIM}, inset 0 0 28px rgba(240,198,116,0.1)`
-            : `0 0 18px ${CORE_DIM}, inset 0 0 18px rgba(240,198,116,0.06)`,
-          transition: "all .15s",
-        }}
-      >{"▸"} ENTER BLACK HOLE</button>
+      {onClose && (
+        <span
+          onClick={onClose}
+          onMouseEnter={() => setCloseHovered(true)}
+          onMouseLeave={() => setCloseHovered(false)}
+          style={{
+            color: closeHovered ? "#d6e8f5" : "#6b87a3",
+            fontFamily: FONT_MONO, fontSize: 11,
+            letterSpacing: "0.12em",
+            cursor: "pointer",
+            textDecoration: closeHovered ? "underline" : "none",
+            transition: "color .15s",
+          }}
+        >Close</span>
+      )}
+
+      {committed ? (
+        <>
+          <button
+            onClick={onResetChoices}
+            onMouseEnter={() => setResetHovered(true)}
+            onMouseLeave={() => setResetHovered(false)}
+            style={{
+              background: resetHovered ? "rgba(110,200,255,0.12)" : "transparent",
+              border: "1px solid rgba(110,200,255,0.25)",
+              color: resetHovered ? "#d6e8f5" : "#9ab4cf",
+              padding: "14px 24px",
+              fontFamily: FONT_MONO, fontSize: 12,
+              letterSpacing: "0.18em", fontWeight: 500,
+              cursor: "pointer", borderRadius: 2,
+              transition: "all .15s",
+            }}
+          >RESET CHOICES</button>
+
+          <button
+            onClick={onBeginNewMission}
+            onMouseEnter={() => setMissionHovered(true)}
+            onMouseLeave={() => setMissionHovered(false)}
+            style={{
+              position: "relative",
+              background: missionHovered
+                ? "linear-gradient(135deg, rgba(240,198,116,0.28), rgba(240,198,116,0.08))"
+                : "linear-gradient(135deg, rgba(240,198,116,0.18), rgba(240,198,116,0.04))",
+              border: `1px solid ${CORE}`,
+              color: CORE,
+              padding: "14px 32px",
+              fontFamily: FONT_MONO, fontSize: 12,
+              letterSpacing: "0.24em", fontWeight: 600,
+              cursor: "pointer", borderRadius: 2,
+              textShadow: `0 0 6px ${CORE_DIM}`,
+              boxShadow: missionHovered
+                ? `0 0 28px ${CORE_DIM}, inset 0 0 28px rgba(240,198,116,0.1)`
+                : `0 0 18px ${CORE_DIM}, inset 0 0 18px rgba(240,198,116,0.06)`,
+              transition: "all .15s",
+            }}
+          >{"▸"} BEGIN NEW MISSION</button>
+        </>
+      ) : (
+        <button
+          onClick={onEnterBlackHole}
+          onMouseEnter={() => setEnterHovered(true)}
+          onMouseLeave={() => setEnterHovered(false)}
+          style={{
+            position: "relative",
+            background: enterHovered
+              ? "linear-gradient(135deg, rgba(240,198,116,0.28), rgba(240,198,116,0.08))"
+              : "linear-gradient(135deg, rgba(240,198,116,0.18), rgba(240,198,116,0.04))",
+            border: `1px solid ${CORE}`,
+            color: CORE,
+            padding: "14px 32px",
+            fontFamily: FONT_MONO, fontSize: 12,
+            letterSpacing: "0.24em", fontWeight: 600,
+            cursor: "pointer", borderRadius: 2,
+            textShadow: `0 0 6px ${CORE_DIM}`,
+            boxShadow: enterHovered
+              ? `0 0 28px ${CORE_DIM}, inset 0 0 28px rgba(240,198,116,0.1)`
+              : `0 0 18px ${CORE_DIM}, inset 0 0 18px rgba(240,198,116,0.06)`,
+            transition: "all .15s",
+          }}
+        >{"▸"} ENTER BLACK HOLE</button>
+      )}
     </div>
   );
 }
@@ -499,10 +570,11 @@ const UPGRADE_IDS: PrestigeUpgradeId[] = [
   "swift_start",
 ];
 
-export function Prestige({ onBeginNewMission }: { onBeginNewMission: () => void }) {
+export function Prestige({ onBeginNewMission, onClose }: { onBeginNewMission: () => void; onClose?: () => void }) {
   const state = useGameState();
   const dispatch = useDispatch();
   const prestige = state.prestige;
+  const committed = state.prestigeTriggered;
 
   const coresEarned = calculatePrestigePoints(state);
 
@@ -525,7 +597,16 @@ export function Prestige({ onBeginNewMission }: { onBeginNewMission: () => void 
   const totalUpgradeCount = UPGRADE_IDS.length * 5;
 
   function handleAcquire(upgradeId: PrestigeUpgradeId) {
+    if (!committed) return;
     dispatch({ type: "purchase_prestige_upgrade", upgradeId });
+  }
+
+  function handleEnterBlackHole() {
+    dispatch({ type: "enter_black_hole" });
+  }
+
+  function handleResetChoices() {
+    dispatch({ type: "reset_prestige_choices" });
   }
 
   return (
@@ -579,7 +660,11 @@ export function Prestige({ onBeginNewMission }: { onBeginNewMission: () => void 
       <PrestigeFooter
         availableCores={prestige.availablePrestigePoints}
         acquiredCount={acquiredCount}
+        committed={committed}
+        onEnterBlackHole={handleEnterBlackHole}
+        onResetChoices={handleResetChoices}
         onBeginNewMission={onBeginNewMission}
+        {...(onClose ? { onClose } : {})}
       />
     </>
   );

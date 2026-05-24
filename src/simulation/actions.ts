@@ -1,6 +1,6 @@
 import type { ProbeMode, StructureType } from "./state";
 
-export type GameSpeed = 1 | 10 | 100 | 1000;
+export type GameSpeed = number;
 
 export type PlayerAction =
   | { type: "build_structure"; systemId: string; structureType: StructureType; tier: number }
@@ -18,4 +18,5 @@ export type PlayerAction =
   | { type: "pause" }
   | { type: "unpause" }
   | { type: "purchase_prestige_upgrade"; upgradeId: string }
-  | { type: "enter_black_hole" };
+  | { type: "enter_black_hole" }
+  | { type: "reset_prestige_choices" };

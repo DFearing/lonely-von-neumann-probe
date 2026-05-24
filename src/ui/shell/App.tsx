@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Brand } from "./Brand";
 import { Topbar } from "./Topbar";
 import { Sidebar, LVNPGateContext, type ViewId } from "./Sidebar";
@@ -11,8 +11,9 @@ import { SoundSettings } from "../screens/SoundSettings";
 import { useSoundEvents } from "../../audio/use-sound-events";
 import { Log } from "../screens/Log";
 import { Prestige } from "../screens/Prestige";
-import { usePrestige } from "../context";
+import { usePrestige, useGameState, useLoop } from "../context";
 import { Printers } from "../screens/Printers";
+import { DEV_MODE } from "../../simulation/dev";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
 
@@ -29,12 +30,12 @@ const STARFIELD_BACKGROUND =
 function Screen({
   view,
   onNavigate,
+  onPrestige,
 }: {
   view: ViewId;
   onNavigate: (view: ViewId) => void;
+  onPrestige: (() => void) | null;
 }) {
-  const onPrestige = usePrestige();
-
   switch (view) {
     case "overview":
       return <Overview onNavigate={onNavigate} />;
@@ -49,6 +50,7 @@ function Screen({
     case "log":
       return <Log />;
     case "prestige":
+      if (DEV_MODE) return <Overview onNavigate={onNavigate} />;
       return <Prestige onBeginNewMission={onPrestige ?? (() => {})} />;
   }
 }
@@ -56,8 +58,19 @@ function Screen({
 export function App() {
   const [view, setView] = useState<ViewId>("overview");
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const onPrestige = usePrestige();
+  const state = useGameState();
+  const loop = useLoop();
   const gate = useContext(LVNPGateContext);
   useSoundEvents();
+
+  const showPrestigeOverlay = state.prestigeTriggered || (DEV_MODE && view === "prestige");
+
+  useEffect(() => {
+    if (state.prestigeTriggered && !state.paused) {
+      loop.pause();
+    }
+  }, [state.prestigeTriggered, state.paused, loop]);
 
   return (
     <div
@@ -101,10 +114,28 @@ export function App() {
           minHeight: 0,
         }}
       >
-        <Screen view={view} onNavigate={setView} />
+        <Screen view={view} onNavigate={setView} onPrestige={onPrestige} />
       </div>
 
       <Footer onNavigate={setView} />
+
+      {showPrestigeOverlay && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 100,
+          background: "radial-gradient(ellipse at top, #0a1a30 0%, #050913 70%)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "20px 24px",
+          overflow: "hidden",
+        }}>
+          <Prestige
+            onBeginNewMission={() => { setView("overview"); onPrestige?.(); }}
+            {...(DEV_MODE && !state.prestigeTriggered ? { onClose: () => setView("overview") } : {})}
+          />
+        </div>
+      )}
 
       {showSoundSettings && (
         <SoundSettings onClose={() => setShowSoundSettings(false)} />
