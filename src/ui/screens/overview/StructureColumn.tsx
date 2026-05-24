@@ -666,7 +666,7 @@ export function StructureColumn({
           >
             <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> BUILDING NOW
           </div>
-          {building.map((q) => {
+          {(() => { let probeUsed = false; let cumulativeYears = 0; return building.map((q, qi) => {
             const pct = Math.min(100, q.progress * 100);
             const tierDef = allDefs.find((d) => d.tier === q.targetTier);
             const label = tierDef ? tierDef.name : config.structureType;
@@ -680,11 +680,14 @@ export function StructureColumn({
               );
               if (p) assignedSpeed += p.productionRate;
             }
-            const totalSpeed = probePrint + assignedSpeed;
+            const effectiveProbePrint = probeUsed ? 0 : probePrint;
+            const totalSpeed = effectiveProbePrint + assignedSpeed;
+            if (totalSpeed > 0 && !probeUsed && probePrint > 0) probeUsed = true;
             const buildTime = q.totalCost.materials;
             const remaining = totalSpeed > 0
               ? Math.max(0, buildTime * (1 - q.progress) / totalSpeed)
               : Infinity;
+            cumulativeYears += remaining === Infinity ? 0 : remaining;
             return (
               <div key={q.id} style={{ marginBottom: 4 }}>
                 <div
@@ -706,6 +709,9 @@ export function StructureColumn({
                     }}
                   >
                     {fmtYears(remaining)}
+                    {qi > 0 && remaining !== Infinity && (
+                      <span style={{ color: "#6b87a3" }}> ({fmtYears(cumulativeYears)})</span>
+                    )}
                   </span>
                 </div>
                 <div
@@ -741,7 +747,7 @@ export function StructureColumn({
                 </div>
               </div>
             );
-          })}
+          }); })()}
         </div>
       )}
 
