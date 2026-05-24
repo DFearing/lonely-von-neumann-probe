@@ -419,32 +419,51 @@ function generateUnlocks(branchId: string, tier: number): string[] {
 }
 
 function generatePrerequisites(branchId: string, tier: number): string[] {
-  const crossGates: Record<string, { from: string; gates: [number, number][] }> = {
-    mining_types: {
-      from: "mining_efficiency",
-      gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]],
-    },
-    energy_types: {
-      from: "energy_production",
-      gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]],
-    },
-    manufacturing_types: {
-      from: "manufacturing_efficiency",
-      gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]],
-    },
-    station_types: {
-      from: "station_efficiency",
-      gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]],
-    },
+  const crossGates: Record<string, { from: string; gates: [number, number][] }[]> = {
+    mining_types: [
+      { from: "mining_efficiency", gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]] },
+      { from: "manufacturing_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "computing_architecture", gates: [[12, 4], [16, 8], [20, 12]] },
+    ],
+    energy_types: [
+      { from: "energy_production", gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]] },
+      { from: "manufacturing_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "station_types", gates: [[12, 4], [16, 8], [20, 12]] },
+      { from: "computing_architecture", gates: [[20, 4]] },
+    ],
+    manufacturing_types: [
+      { from: "manufacturing_efficiency", gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]] },
+      { from: "energy_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "computing_architecture", gates: [[16, 4], [20, 8]] },
+    ],
+    station_types: [
+      { from: "station_efficiency", gates: [[4, 2], [8, 5], [12, 8], [16, 12], [20, 16]] },
+      { from: "energy_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "manufacturing_types", gates: [[12, 4], [16, 8], [20, 12]] },
+    ],
+    computing_architecture: [
+      { from: "station_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "energy_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+    ],
+    probe_propulsion: [
+      { from: "manufacturing_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "energy_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+    ],
+    probe_reactors: [
+      { from: "energy_types", gates: [[8, 4], [12, 8], [16, 12], [20, 16]] },
+      { from: "manufacturing_types", gates: [[12, 4], [16, 8], [20, 12]] },
+    ],
   };
 
-  const config = crossGates[branchId];
-  if (!config) return [];
+  const configs = crossGates[branchId];
+  if (!configs) return [];
 
   const prereqs: string[] = [];
-  for (const [gateTier, reqTier] of config.gates) {
-    if (tier >= gateTier) {
-      prereqs.push(`${config.from}_t${reqTier}`);
+  for (const config of configs) {
+    for (const [gateTier, reqTier] of config.gates) {
+      if (tier >= gateTier) {
+        prereqs.push(`${config.from}_t${reqTier}`);
+      }
     }
   }
   return prereqs;
