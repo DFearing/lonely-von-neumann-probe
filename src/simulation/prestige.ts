@@ -1,6 +1,5 @@
 import type { GameState } from "./state";
 import { createInitialState } from "./state";
-import { STRUCTURES, structureKey } from "./data/structures";
 
 export type PrestigeUpgradeId =
   | "mining_mastery"
@@ -116,22 +115,16 @@ export function getPrestigeMultipliers(prestige: PrestigeState): PrestigeMultipl
 }
 
 export function calculatePrestigePoints(state: GameState): number {
-  let points = 0;
+  let colonizedSystems = 0;
+  let advancedTechs = 0;
   for (const system of Object.values(state.systems)) {
-    points += Math.floor(system.resources.materials);
-    for (const arrayKey of ["miners", "reactors", "printers", "stations"] as const) {
-      for (const structure of system.structures[arrayKey]) {
-        if (structure.constructionProgress >= 1) {
-          const key = structureKey(structure.type, structure.tier);
-          const def = STRUCTURES[key];
-          if (def) {
-            points += def.cost.materials;
-          }
-        }
-      }
+    if (system.mainProbe !== null && system.id !== "sol") colonizedSystems++;
+    for (const techId of Object.keys(system.completedResearch)) {
+      const tierMatch = techId.match(/_t(\d+)$/);
+      if (tierMatch && Number(tierMatch[1]) >= 10) advancedTechs++;
     }
   }
-  return points;
+  return colonizedSystems * 150 + advancedTechs * 10;
 }
 
 export function purchaseUpgrade(
