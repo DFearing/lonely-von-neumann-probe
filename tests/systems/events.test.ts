@@ -6,22 +6,6 @@ import { createRngFromState } from "../../src/simulation/rng";
 
 const DT = 1;
 
-function findEventSeed(targetEvent: string, maxAttempts = 100_000): number {
-  for (let seed = 0; seed < maxAttempts; seed++) {
-    const state = createInitialState(seed);
-    const rng = createRngFromState(state.rngState);
-    const next = tickEvents(state, DT, rng);
-
-    if (next !== state) {
-      const newEntries = next.log.slice(state.log.length);
-      if (newEntries.some((e) => e.message.toLowerCase().includes(targetEvent))) {
-        return seed;
-      }
-    }
-  }
-  throw new Error(`Could not find seed that triggers "${targetEvent}" event`);
-}
-
 describe("tickEvents", () => {
   describe("determinism", () => {
     test("same RNG state produces the same events", () => {
@@ -39,30 +23,6 @@ describe("tickEvents", () => {
           expect(sys.resources).toEqual(result2.systems[id]!.resources);
         }
       }
-    });
-  });
-
-  describe("asteroid_impact event", () => {
-    test("reduces materials (clamped to 0)", () => {
-      const seed = findEventSeed("asteroid impact");
-      const state = createInitialState(seed);
-
-      const sol = state.systems["sol"]!;
-      const stateWithZeroMaterials: GameState = {
-        ...state,
-        systems: {
-          ...state.systems,
-          sol: {
-            ...sol,
-            resources: { ...sol.resources, materials: 3 },
-          },
-        },
-      };
-
-      const rng = createRngFromState(stateWithZeroMaterials.rngState);
-      const next = tickEvents(stateWithZeroMaterials, DT, rng);
-
-      expect(next.systems["sol"]!.resources.materials).toBeGreaterThanOrEqual(0);
     });
   });
 

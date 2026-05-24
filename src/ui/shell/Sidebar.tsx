@@ -1,6 +1,6 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGaugeHigh, faPrint, faRocket, faGlobe, faFlask, faTerminal, faArrowRightFromBracket, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faGaugeHigh, faPrint, faRocket, faGlobe, faFlask, faTerminal, faStar } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
@@ -36,7 +36,6 @@ export function Sidebar({
   activeView: ViewId;
   onNavigate: (view: ViewId) => void;
 }) {
-  const gate = useContext(LVNPGateContext);
   const [hoveredId, setHoveredId] = useState<ViewId | null>(null);
   const state = useGameState();
   const showPrestige = DEV_MODE || state.prestige.blackHoleDiscovered;
@@ -107,20 +106,11 @@ export function Sidebar({
           fontFamily: FONT_MONO,
           fontSize: 10,
           color: "#3d5572",
-          letterSpacing: "0.08em",
+          letterSpacing: "0.16em",
           lineHeight: 1.7,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
         }}
       >
-        <div style={{ color: "#3d5572", letterSpacing: "0.16em" }}>
-          BUILD v0.1.0
-        </div>
-        {gate.onBack && (
-          <SwitchOperatorButton onClick={gate.onBack} />
-        )}
+        BUILD v0.1.0
       </div>
     </div>
   );
@@ -176,38 +166,5 @@ function PrestigeNavItem({
       />
       Prestige
     </div>
-  );
-}
-
-function SwitchOperatorButton({ onClick }: { onClick: () => void }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      title="Switch operator"
-      style={{
-        width: 28,
-        height: 28,
-        background: "transparent",
-        border: hovered
-          ? "1px solid rgba(77,219,255,0.5)"
-          : "1px solid rgba(110,200,255,0.20)",
-        color: hovered ? "#4ddbff" : "#9ab4cf",
-        fontFamily: FONT_MONO,
-        fontSize: 14,
-        lineHeight: 1,
-        cursor: "pointer",
-        borderRadius: 2,
-        padding: 0,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "color .15s, border-color .15s",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <FontAwesomeIcon icon={faArrowRightFromBracket} style={{ width: 12, height: 12 }} />
-    </button>
   );
 }

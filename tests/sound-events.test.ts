@@ -1,9 +1,7 @@
 import { describe, test, expect } from "bun:test";
 import { tickConstruction } from "../src/simulation/systems/construction";
 import { tickResearch } from "../src/simulation/systems/research";
-import { tickEvents } from "../src/simulation/systems/events";
 import { tickResources } from "../src/simulation/systems/resources";
-import { createRngFromState } from "../src/simulation/rng";
 import type {
   GameState,
   SystemState,
@@ -277,60 +275,6 @@ describe("research sound events", () => {
 
     const soundEntries = entries.filter((e) => e.soundEvent !== undefined);
     expect(soundEntries.length).toBe(0);
-  });
-});
-
-// ── Asteroid Impact Sound Event ──────────────────────────────────────
-
-describe("asteroid impact sound event", () => {
-  function findAsteroidSeed(maxAttempts = 100_000): number {
-    for (let seed = 0; seed < maxAttempts; seed++) {
-      const state = wrapSystem(makeSystem({ mainProbe: makeProbe() }));
-      const rng = createRngFromState(
-        // Use a deterministic but varying rng state per seed
-        [seed, seed * 17, seed * 31, seed * 53],
-      );
-      const next = tickEvents(state, 1, rng);
-
-      if (next !== state) {
-        const entries = newLogEntries(state, next);
-        if (entries.some((e) => e.message.toLowerCase().includes("asteroid impact"))) {
-          return seed;
-        }
-      }
-    }
-    throw new Error("Could not find seed that triggers asteroid_impact");
-  }
-
-  test("asteroid impact log entry includes soundEvent: 'asteroid_impact'", () => {
-    const seed = findAsteroidSeed();
-    const state = wrapSystem(makeSystem({ mainProbe: makeProbe() }));
-    const rng = createRngFromState([seed, seed * 17, seed * 31, seed * 53]);
-    const next = tickEvents(state, 1, rng);
-    const entries = newLogEntries(state, next);
-
-    const impactEntry = entries.find((e) =>
-      e.message.toLowerCase().includes("asteroid impact"),
-    );
-    expect(impactEntry).toBeDefined();
-    expect(impactEntry!.soundEvent).toBe("asteroid_impact");
-  });
-
-  test("non-asteroid events do not have asteroid soundEvent", () => {
-    for (let seed = 0; seed < 10_000; seed++) {
-      const state = wrapSystem(makeSystem({ mainProbe: makeProbe() }));
-      const rng = createRngFromState([seed, seed * 17, seed * 31, seed * 53]);
-      const next = tickEvents(state, 1, rng);
-
-      if (next !== state) {
-        const entries = newLogEntries(state, next);
-        for (const entry of entries) {
-          if (!entry.message.toLowerCase().includes("asteroid")) {
-            expect(entry.soundEvent).toBeUndefined();
-          }
-        }
-      }
-    }
   });
 });
 

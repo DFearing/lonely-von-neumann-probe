@@ -3,10 +3,7 @@ import type { Rng } from "../rng";
 
 type EventType = "signal_detected" | "asteroid_impact";
 
-const EVENT_TYPES: readonly EventType[] = [
-  "signal_detected",
-  "asteroid_impact",
-];
+const EVENT_TYPES: readonly EventType[] = [];
 
 const EVENT_CHANCE = 0.001;
 
@@ -52,6 +49,7 @@ export function tickEvents(
   _dt: number,
   rng: Rng,
 ): GameState {
+  if (EVENT_TYPES.length === 0) return state;
   const updatedSystems: Record<string, SystemState> = {};
   let newLog = state.log;
   let changed = false;
