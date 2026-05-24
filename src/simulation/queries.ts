@@ -1,5 +1,6 @@
 import type { SystemState } from "./state";
 import { TECH_TREE, techsInBranch } from "./data/tech-tree";
+import type { TechDefinition } from "./data/tech-tree";
 import { STRUCTURES } from "./data/structures";
 import type { StructureDefinition } from "./data/structures";
 import { CPUS, PROPULSIONS, REACTORS } from "./data/components";
@@ -74,4 +75,43 @@ export function getAvailableComponents(
       gateCheck(d.techGate),
     ),
   };
+}
+
+export function getMissingPrerequisites(
+  system: SystemState,
+  techId: string,
+): { id: string; branchId: string; tier: number; name: string }[] {
+  const tech = TECH_TREE[techId];
+  if (!tech) return [];
+
+  const missingByBranch = new Map<string, TechDefinition>();
+
+  const branchTechs = techsInBranch(tech.branchId);
+  for (const t of branchTechs) {
+    if (t.tier < tech.tier && !system.completedResearch[t.id]) {
+      const existing = missingByBranch.get(t.branchId);
+      if (!existing || t.tier > existing.tier) {
+        missingByBranch.set(t.branchId, t);
+      }
+    }
+  }
+
+  for (const prereqId of tech.prerequisites) {
+    if (!system.completedResearch[prereqId]) {
+      const prereqTech = TECH_TREE[prereqId];
+      if (prereqTech) {
+        const existing = missingByBranch.get(prereqTech.branchId);
+        if (!existing || prereqTech.tier > existing.tier) {
+          missingByBranch.set(prereqTech.branchId, prereqTech);
+        }
+      }
+    }
+  }
+
+  return Array.from(missingByBranch.values()).map((t) => ({
+    id: t.id,
+    branchId: t.branchId,
+    tier: t.tier,
+    name: t.name,
+  }));
 }

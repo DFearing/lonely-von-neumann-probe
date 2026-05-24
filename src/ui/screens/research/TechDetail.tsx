@@ -8,7 +8,7 @@ import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { STRUCTURES } from "../../../simulation/data/structures";
-import { getTechStatus, type TechStatus } from "../../../simulation/queries";
+import { getTechStatus, getMissingPrerequisites, type TechStatus } from "../../../simulation/queries";
 import { FONT_MONO } from "../../tokens";
 import { fmt, fmtYears } from "../../format";
 import { btnFlush } from "../../components/buttons";
@@ -325,11 +325,50 @@ export function TechDetail({
             </button>
           </>
         )}
-        {status === "locked" && (
-          <button style={{ ...btnFlush(), flex: 1, opacity: 0.5 }} disabled>
-            PREREQ LOCKED
-          </button>
-        )}
+        {status === "locked" && (() => {
+          const missing = getMissingPrerequisites(system, techId);
+          return (
+            <div style={{ flex: 1 }}>
+              <button style={{ ...btnFlush(), width: "100%", opacity: 0.5 }} disabled>
+                <FontAwesomeIcon icon={faLock} style={{ marginRight: 4 }} /> LOCKED
+              </button>
+              {missing.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <div
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: 10,
+                      color: "#6b87a3",
+                      letterSpacing: "0.16em",
+                      marginBottom: 4,
+                    }}
+                  >
+                    REQUIRES:
+                  </div>
+                  {missing.map((prereq) => {
+                    const prereqMeta = BRANCH_META[prereq.branchId];
+                    const label = prereqMeta?.label ?? prereq.branchId.replaceAll("_", " ").toUpperCase();
+                    const color = prereqMeta?.color ?? "#6b87a3";
+                    return (
+                      <div
+                        key={prereq.id}
+                        style={{
+                          fontFamily: FONT_MONO,
+                          fontSize: 13,
+                          color,
+                          paddingLeft: 8,
+                          marginTop: 2,
+                        }}
+                      >
+                        {label} T{prereq.tier}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
