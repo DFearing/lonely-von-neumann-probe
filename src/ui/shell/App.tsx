@@ -12,6 +12,7 @@ import { useSoundEvents } from "../../audio/use-sound-events";
 import { Log } from "../screens/Log";
 import { Prestige } from "../screens/Prestige";
 import { usePrestige } from "../context";
+import { Printers } from "../screens/Printers";
 
 const FONT_DISPLAY = "'Space Grotesk', system-ui, sans-serif";
 
@@ -37,6 +38,8 @@ function Screen({
   switch (view) {
     case "overview":
       return <Overview onNavigate={onNavigate} />;
+    case "printers":
+      return <Printers />;
     case "fleet":
       return <Probes />;
     case "systems":
