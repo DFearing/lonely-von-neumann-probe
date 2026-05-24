@@ -666,13 +666,26 @@ export function StructureColumn({
           >
             <FontAwesomeIcon icon={faCircleHalfStroke} style={{ marginRight: 4 }} /> BUILDING NOW
           </div>
-          {(() => { let probeUsed = false; let cumulativeYears = 0; return building.map((q, qi) => {
+          {(() => { const probePrint = system.mainProbe?.mode === "printing"
+              ? system.mainProbe.internalPrinterSpeed
+              : 0;
+            let cumulativeYears = 0;
+            const fullQueue = system.constructionQueue;
+            return building.map((q, qi) => {
             const pct = Math.min(100, q.progress * 100);
             const tierDef = allDefs.find((d) => d.tier === q.targetTier);
             const label = tierDef ? tierDef.name : config.structureType;
-            const probePrint = system.mainProbe?.mode === "printing"
-              ? system.mainProbe.internalPrinterSpeed
-              : 0;
+            const globalIndex = fullQueue.indexOf(q);
+            const probeUsedByEarlier = globalIndex > 0 && probePrint > 0 && fullQueue.slice(0, globalIndex).some((prev) => {
+              let prevSpeed = 0;
+              for (const pid of prev.assignedPrinterIds) {
+                const p = system.structures.printers.find(
+                  (s) => s.id === pid && s.active && s.constructionProgress >= 1,
+                );
+                if (p) prevSpeed += p.productionRate;
+              }
+              return (probePrint + prevSpeed) > 0;
+            });
             let assignedSpeed = 0;
             for (const pid of q.assignedPrinterIds) {
               const p = system.structures.printers.find(
@@ -680,15 +693,28 @@ export function StructureColumn({
               );
               if (p) assignedSpeed += p.productionRate;
             }
-            const effectiveProbePrint = probeUsed ? 0 : probePrint;
+            const effectiveProbePrint = probeUsedByEarlier ? 0 : probePrint;
             const totalSpeed = effectiveProbePrint + assignedSpeed;
-            if (totalSpeed > 0 && !probeUsed && probePrint > 0) probeUsed = true;
             const buildTime = q.totalCost.materials;
             const waitSpeed = totalSpeed > 0 ? totalSpeed : (probePrint + assignedSpeed);
             const remaining = waitSpeed > 0
               ? Math.max(0, buildTime * (1 - q.progress) / waitSpeed)
               : Infinity;
-            cumulativeYears += remaining === Infinity ? 0 : remaining;
+            const priorRemaining = fullQueue.slice(0, globalIndex).reduce((sum, prev) => {
+              let prevAssigned = 0;
+              for (const pid of prev.assignedPrinterIds) {
+                const p = system.structures.printers.find(
+                  (s) => s.id === pid && s.active && s.constructionProgress >= 1,
+                );
+                if (p) prevAssigned += p.productionRate;
+              }
+              const prevSpeed = (sum === 0 ? probePrint : 0) + prevAssigned;
+              const prevWait = prevSpeed > 0 ? prevSpeed : probePrint;
+              const prevBuild = prev.totalCost.materials;
+              const prevTime = prevWait > 0 ? Math.max(0, prevBuild * (1 - prev.progress) / prevWait) : 0;
+              return sum + prevTime;
+            }, 0);
+            cumulativeYears = priorRemaining + (remaining === Infinity ? 0 : remaining);
             return (
               <div key={q.id} style={{ marginBottom: 4 }}>
                 <div
