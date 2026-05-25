@@ -392,7 +392,7 @@ export function BuildProbeModal({
     <div
       onClick={onClose}
       style={{
-        position: "absolute",
+        position: "fixed",
         inset: 0,
         zIndex: 50,
         background: "rgba(2,6,14,0.72)",

@@ -5,12 +5,15 @@ import { soundManager } from "../../../audio/sound-manager";
 
 export function HeaderAddButton({
   onClick,
+  dataTour,
 }: {
   accent?: string;
   onClick: () => void;
+  dataTour?: string;
 }) {
   return (
     <button
+      data-tour={dataTour}
       onClick={() => { soundManager.playUI("ui_click"); onClick(); }}
       onMouseEnter={() => soundManager.playUI("ui_hover")}
       style={{

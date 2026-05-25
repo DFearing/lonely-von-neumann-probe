@@ -223,6 +223,7 @@ export function ProbesColumn({
       right={
         <HeaderAddButton
           accent={ACCENT}
+          dataTour="probe-build"
           onClick={() => setShowBuild(true)}
         />
       }

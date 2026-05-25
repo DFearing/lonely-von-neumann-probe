@@ -6,7 +6,7 @@ import { AmbientMusic, MUSIC_MOODS } from "./ambient-music";
 
 type Recipe = (ctx: AudioContext, dest: AudioNode) => void;
 
-export type UISoundType = "tour_step" | "ui_click" | "ui_hover";
+export type UISoundType = "tour_step" | "ui_click" | "ui_hover" | "construction_queued";
 
 const RECIPE_MAP: Record<SoundEventType, Recipe> = {
   research_complete: recipes.researchComplete,
@@ -17,12 +17,14 @@ const RECIPE_MAP: Record<SoundEventType, Recipe> = {
   station_constructed: recipes.stationConstructed,
   asteroid_impact: recipes.asteroidImpact,
   health_threshold: recipes.healthThreshold,
+  game_over: recipes.gameOver,
 };
 
 const UI_RECIPE_MAP: Record<UISoundType, Recipe> = {
   tour_step: recipes.tourStep,
   ui_click: recipes.uiClick,
   ui_hover: recipes.uiHover,
+  construction_queued: recipes.constructionQueued,
 };
 
 class SoundManager {

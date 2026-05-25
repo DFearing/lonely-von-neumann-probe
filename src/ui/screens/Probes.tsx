@@ -74,6 +74,7 @@ export function Probes() {
               )}
             </div>
             <button
+              data-tour="probe-build"
               onClick={() => setShowBuild(true)}
               title="Build new probe"
               style={{

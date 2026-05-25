@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { useGameState } from "../context";
 import { FONT_MONO, FONT_DISPLAY } from "../tokens";
 import { fmt } from "../format";
+import { soundManager } from "../../audio/sound-manager";
 
 const RED = "#ff5555";
 const DIM = "#6b87a3";
@@ -17,6 +19,10 @@ function StatCell({ label, value }: { label: string; value: string | number }) {
 
 export function GameOver({ onRestart }: { onRestart: () => void }) {
   const state = useGameState();
+
+  useEffect(() => {
+    soundManager.play("game_over");
+  }, []);
 
   const totalStructures = Object.values(state.systems).reduce((sum, sys) => {
     const s = sys.structures;

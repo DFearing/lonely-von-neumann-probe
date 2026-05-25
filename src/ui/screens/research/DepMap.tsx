@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import type { SystemState } from "../../../simulation/state";
 import { MAX_TIER } from "../../../simulation/state";
 import {
@@ -109,16 +108,16 @@ function buildEdges(rowMap: Map<string, number>): Edge[] {
   return edges;
 }
 
-function nodeCenter(row: number, tier: number): { x: number; y: number } {
+function nodeCenter(row: number, tier: number, tw: number = TIER_W): { x: number; y: number } {
   return {
-    x: LEFT_PAD + TIER_W * (tier - 0.5),
+    x: LEFT_PAD + tw * (tier - 0.5),
     y: HEADER_H + row * ROW_H + 14 + NODE_SIZE / 2,
   };
 }
 
-function edgePath(e: Edge): string {
-  const from = nodeCenter(e.fromRow, e.fromTier);
-  const to = nodeCenter(e.toRow, e.toTier);
+function edgePath(e: Edge, tw: number = TIER_W): string {
+  const from = nodeCenter(e.fromRow, e.fromTier, tw);
+  const to = nodeCenter(e.toRow, e.toTier, tw);
   const r = NODE_SIZE / 2 + 2;
   if (e.fromRow === e.toRow) {
     return `M${from.x + r},${from.y} L${to.x - r},${to.y}`;
@@ -178,20 +177,57 @@ function rowLabel(branchId: string): string {
   return parts[1] ?? parts[0] ?? branchId;
 }
 
+function collectQueuedPrereqs(
+  techId: string,
+  queuedTechIds: Set<string>,
+): string[] {
+  const result: string[] = [];
+  const visited = new Set<string>();
+
+  function visit(id: string) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    if (!queuedTechIds.has(id)) return;
+
+    result.push(id);
+    const tech = TECH_TREE[id];
+    if (!tech) return;
+
+    if (tech.tier > 1) visit(`${tech.branchId}_t${tech.tier - 1}`);
+    for (const prereqId of tech.prerequisites) visit(prereqId);
+  }
+
+  visit(techId);
+  return result;
+}
+
 export function DepMap({
   system,
   selectedTech,
   onSelect,
   onQueue,
+  onDequeue,
 }: {
   system: SystemState;
   selectedTech: string | null;
   onSelect: (techId: string | null) => void;
   onQueue: (techId: string) => void;
+  onDequeue: (projectIds: string[]) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const rowMap = useMemo(() => buildRowMap(), []);
+
+  const [containerWidth, setContainerWidth] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([entry]) => {
+      if (entry) setContainerWidth(entry.contentRect.width);
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   let highestCompleted = 0;
   for (const [key, val] of Object.entries(system.completedResearch)) {
@@ -204,12 +240,16 @@ export function DepMap({
   }
   const visibleTiers = Math.min(MAX_TIER, 4 * (1 + Math.floor(highestCompleted / 4)));
 
+  const tierW = containerWidth > 0
+    ? Math.max(TIER_W, (containerWidth - LEFT_PAD) / visibleTiers)
+    : TIER_W;
+
   const allEdges = useMemo(
     () => buildEdges(rowMap).filter((e) => e.fromTier <= visibleTiers && e.toTier <= visibleTiers),
     [rowMap, visibleTiers],
   );
   const totalRows = BRANCH_GROUPS.reduce((n, g) => n + g.branches.length, 0);
-  const gridW = LEFT_PAD + TIER_W * visibleTiers;
+  const gridW = LEFT_PAD + tierW * visibleTiers;
   const gridH = HEADER_H + totalRows * ROW_H;
 
   const queueMap = useMemo(() => {
@@ -232,21 +272,44 @@ export function DepMap({
     return s;
   }, [selectedTech, ancestors]);
 
-  const handleDoubleClick = useCallback(
-    (techId: string) => {
-      const toQueue = collectUnresearchedPrereqs(techId, system);
-      for (const id of toQueue) {
-        onQueue(id);
+  const projectByTechId = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of system.researchQueue) {
+      m.set(p.techId, p.id);
+    }
+    return m;
+  }, [system.researchQueue]);
+
+  const handleNodeClick = useCallback(
+    (e: React.MouseEvent, techId: string, isSelected: boolean) => {
+      e.stopPropagation();
+      soundManager.playUI("ui_click");
+      if (e.detail >= 2) {
+        if (queueMap.has(techId)) {
+          const queuedIds = new Set(projectByTechId.keys());
+          const toRemove = collectQueuedPrereqs(techId, queuedIds);
+          const projectIds = toRemove
+            .map((id) => projectByTechId.get(id))
+            .filter((id): id is string => id !== undefined);
+          if (projectIds.length > 0) onDequeue(projectIds);
+        } else {
+          const toQueue = collectUnresearchedPrereqs(techId, system);
+          for (const id of toQueue) {
+            onQueue(id);
+          }
+        }
+      } else {
+        onSelect(isSelected ? null : techId);
       }
     },
-    [system, onQueue],
+    [system, onQueue, onDequeue, onSelect, queueMap, projectByTechId],
   );
 
   useEffect(() => {
     if (!selectedTech || !scrollRef.current) return;
     const tech = TECH_TREE[selectedTech];
     if (!tech) return;
-    const center = nodeCenter(rowMap.get(tech.branchId) ?? 0, tech.tier);
+    const center = nodeCenter(rowMap.get(tech.branchId) ?? 0, tech.tier, tierW);
     const container = scrollRef.current;
     const scrollLeft = Math.max(0, center.x - container.clientWidth / 2);
     container.scrollTo({ left: scrollLeft, behavior: "smooth" });
@@ -307,9 +370,10 @@ export function DepMap({
           flex: 1,
           minHeight: 0,
           overflow: "auto",
+          userSelect: "none",
         }}
       >
-        <div style={{ position: "relative", width: gridW, height: gridH }}>
+        <div style={{ position: "relative", width: gridW, height: gridH, minWidth: "100%" }}>
           {groupBands.map((band, i) => (
             <div
               key={band.groupId}
@@ -331,8 +395,8 @@ export function DepMap({
               style={{
                 position: "absolute",
                 top: 0,
-                left: LEFT_PAD + TIER_W * (tier - 1),
-                width: TIER_W,
+                left: LEFT_PAD + tierW * (tier - 1),
+                width: tierW,
                 height: HEADER_H,
                 display: "flex",
                 alignItems: "center",
@@ -442,7 +506,7 @@ export function DepMap({
               return (
                 <path
                   key={`${e.fromId}-${e.toId}`}
-                  d={edgePath(e)}
+                  d={edgePath(e, tierW)}
                   fill="none"
                   stroke={color}
                   strokeWidth={glow ? 2.5 : 1}
@@ -454,8 +518,8 @@ export function DepMap({
           </svg>
 
           {visibleEdges.filter((e) => e.linear).map((e) => {
-            const from = nodeCenter(e.fromRow, e.fromTier);
-            const to = nodeCenter(e.toRow, e.toTier);
+            const from = nodeCenter(e.fromRow, e.fromTier, tierW);
+            const to = nodeCenter(e.toRow, e.toTier, tierW);
             const r = NODE_SIZE / 2 + 4;
             const left = from.x + r;
             const width = to.x - r - left;
@@ -483,7 +547,7 @@ export function DepMap({
           {Object.values(TECH_TREE).filter((t) => t.tier <= visibleTiers).map((tech) => {
             const r = rowMap.get(tech.branchId);
             if (r === undefined) return null;
-            const center = nodeCenter(r, tech.tier);
+            const center = nodeCenter(r, tech.tier, tierW);
             const status = getTechStatus(system, tech.id);
             const isSelected = selectedTech === tech.id;
             const meta = BRANCH_META[tech.branchId];
@@ -492,6 +556,8 @@ export function DepMap({
             const dimmed = relatedNodes !== null && !relatedNodes.has(tech.id);
             const isCompleted = status === "completed";
             const queuePos = queueMap.get(tech.id) ?? null;
+            const project = system.researchQueue.find((p) => p.techId === tech.id);
+            const progress = project ? project.progress : 0;
 
             const isAncestor = ancestors.has(tech.id);
 
@@ -512,13 +578,13 @@ export function DepMap({
             return (
               <div
                 key={tech.id}
-                onClick={(e) => { e.stopPropagation(); soundManager.playUI("ui_click"); onSelect(isSelected ? null : tech.id); }}
-                onDoubleClick={() => handleDoubleClick(tech.id)}
+                data-tour={tech.tier === 1 && tech.branchId === "mining_efficiency" ? "tech-tier1" : undefined}
+                onClick={(e) => handleNodeClick(e, tech.id, isSelected)}
                 style={{
                   position: "absolute",
-                  left: center.x - TIER_W / 2,
+                  left: center.x - tierW / 2,
                   top: center.y - NODE_SIZE / 2 - 14,
-                  width: TIER_W,
+                  width: tierW,
                   height: ROW_H,
                   display: "flex",
                   flexDirection: "column",
@@ -535,37 +601,51 @@ export function DepMap({
                     width: NODE_SIZE,
                     height: NODE_SIZE,
                     borderRadius: "50%",
-                    background: isCompleted ? STATUS_BG.completed : STATUS_BG[status],
+                    background: STATUS_BG[status],
                     border: `1.5px solid ${borderColor}`,
                     boxShadow: shadow,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     position: "relative",
+                    overflow: "hidden",
                     transition: "box-shadow .15s, border-color .15s, transform .15s",
                     transform: isSelected ? "scale(1.15)" : "scale(1)",
                   }}
                 >
+                  {progress > 0 && !isCompleted && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: `${progress * 100}%`,
+                        background: "rgba(176,139,255,0.25)",
+                        transition: "height 0.3s ease-out",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
                   <span
                     style={{
                       fontSize: 16,
-                      color: isCompleted ? "#4cd8a8" : meta.color,
+                      color: isCompleted ? "#e8f0f8" : meta.color,
                       opacity: status === "locked" ? 0.5 : 1,
+                      position: "relative",
                     }}
                   >
-                    {isCompleted ? (
-                      <FontAwesomeIcon icon={faCheck} />
-                    ) : (
-                      <FontAwesomeIcon icon={meta.icon} />
-                    )}
+                    <FontAwesomeIcon icon={meta.icon} />
                   </span>
+                </div>
 
                 {queuePos !== null && (
                   <span
                     style={{
                       position: "absolute",
-                      top: -4,
-                      right: -6,
+                      top: 14 - 4,
+                      left: "50%",
+                      marginLeft: NODE_SIZE / 2 - 6,
                       fontFamily: FONT_MONO,
                       fontSize: 10,
                       fontWeight: 700,
@@ -578,6 +658,7 @@ export function DepMap({
                       alignItems: "center",
                       justifyContent: "center",
                       lineHeight: 1,
+                      zIndex: 2,
                     }}
                   >
                     {queuePos}
@@ -588,14 +669,18 @@ export function DepMap({
                   <div
                     style={{
                       position: "absolute",
-                      inset: -4,
+                      top: 14 - 4,
+                      left: "50%",
+                      marginLeft: -(NODE_SIZE / 2 + 4),
+                      width: NODE_SIZE + 8,
+                      height: NODE_SIZE + 8,
                       borderRadius: "50%",
                       border: "1.5px solid rgba(176,139,255,0.35)",
                       animation: "depmap-pulse 2s ease-in-out infinite",
+                      pointerEvents: "none",
                     }}
                   />
                 )}
-                </div>
                 <span
                   style={{
                     marginTop: 6,
@@ -604,7 +689,7 @@ export function DepMap({
                     color: isSelected ? "#d6e8f5" : status === "locked" ? "#5d7a99" : "#9ab4cf",
                     textAlign: "center",
                     lineHeight: 1.15,
-                    maxWidth: TIER_W - 16,
+                    maxWidth: tierW - 16,
                     overflow: "hidden",
                     display: "-webkit-box",
                     WebkitLineClamp: 2,

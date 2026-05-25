@@ -259,7 +259,7 @@ export function TourOverlay() {
             onMouseEnter={(e) => { e.currentTarget.style.textDecoration = "underline"; }}
             onMouseLeave={(e) => { e.currentTarget.style.textDecoration = "none"; }}
           >
-            Skip tour
+            Skip Tutorial
           </button>
 
           {isInteractive ? (

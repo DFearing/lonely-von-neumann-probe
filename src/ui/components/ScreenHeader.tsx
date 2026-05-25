@@ -22,6 +22,7 @@ export function ScreenHeader({
         marginBottom: 16,
         borderBottom: "1px solid rgba(110,200,255,0.10)",
         flexShrink: 0,
+        userSelect: "none",
         ...style,
       }}
     >

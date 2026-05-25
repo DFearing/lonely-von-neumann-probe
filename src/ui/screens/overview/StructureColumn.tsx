@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAtom, faBolt, faIndustry, faSatellite, faCircleHalfStroke, faCircle, faCaretDown, faMicrochip, faPause, faPlay, faTrash } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
@@ -132,6 +132,32 @@ export function StructureColumn({
 
   const [showBuild, setShowBuild] = useState(false);
   const [destroyConfirmId, setDestroyConfirmId] = useState<string | null>(null);
+  const [recentlyBuilt, setRecentlyBuilt] = useState<Set<string>>(new Set());
+  const prevIdsRef = useRef<Set<string>>(new Set(completed.map((s) => s.id)));
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const completedIds = completed.map((s) => s.id).join(",");
+  useEffect(() => {
+    const currentIds = new Set(completedIds.split(",").filter(Boolean));
+    const newIds: string[] = [];
+    for (const id of currentIds) {
+      if (!prevIdsRef.current.has(id)) newIds.push(id);
+    }
+    prevIdsRef.current = currentIds;
+    if (newIds.length === 0) return;
+    setRecentlyBuilt((prev) => new Set([...prev, ...newIds]));
+    for (const id of newIds) {
+      const timer = setTimeout(() => {
+        setRecentlyBuilt((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        timersRef.current.delete(id);
+      }, 4000);
+      timersRef.current.set(id, timer);
+    }
+  }, [completedIds]);
 
   if (disabled) {
     return (
@@ -340,8 +366,8 @@ export function StructureColumn({
                       color: config.accent,
                     }}
                   >
-                    {fmtCycles(remaining)}
-                    {globalIndex > 0 && (
+                    {remaining === Infinity ? "Paused: No printers" : fmtCycles(remaining)}
+                    {globalIndex > 0 && remaining !== Infinity && (
                       <span style={{ color: "#6b87a3" }}> ({fmtCycles(cumulativeYears)})</span>
                     )}
                   </span>
@@ -398,14 +424,17 @@ export function StructureColumn({
           const structureDef = STRUCTURES[key];
           const refundAmount = structureDef ? Math.floor(structureDef.cost.materials * 0.5) : 0;
           const isConfirming = destroyConfirmId === inst.id;
+          const isNew = recentlyBuilt.has(inst.id);
           return (
             <div
               key={inst.id}
               style={{
                 padding: "12px 14px",
-                background: `${config.accent}06`,
-                border: `1px solid ${inst.active ? `${config.accent}30` : "rgba(110,200,255,0.10)"}`,
+                background: isNew ? `${config.accent}18` : `${config.accent}06`,
+                border: isNew ? `1px dashed ${config.accent}` : `1px solid ${inst.active ? `${config.accent}30` : "rgba(110,200,255,0.10)"}`,
+                boxShadow: isNew ? `0 0 16px ${config.accent}40, inset 0 0 12px ${config.accent}15` : "none",
                 position: "relative",
+                transition: "background 1s ease-out, border-color 1s ease-out, box-shadow 1s ease-out",
               }}
             >
               {isConfirming && (

@@ -362,6 +362,7 @@ export function Footer({
         gridArea: "footer",
         borderTop: "1px solid rgba(110,200,255,0.12)",
         background: "rgba(6,12,24,0.8)",
+        userSelect: "none",
         display: "grid",
         gridTemplateColumns: "1fr 1fr 1fr",
         alignItems: "center",

@@ -9,7 +9,7 @@ export type PlayerAction =
   | { type: "launch_probe"; systemId: string; probeId: string; targetSystemId: string }
   | { type: "start_research"; systemId: string; techId: string; priority?: boolean }
   | { type: "pause_research"; systemId: string; projectId: string }
-  | { type: "cancel_research"; systemId: string; projectId: string }
+  | { type: "cancel_research"; systemId: string; projectId: string | string[] }
   | { type: "reorder_research"; systemId: string; projectId: string; newIndex: number }
   | { type: "toggle_structure"; systemId: string; structureId: string }
   | { type: "destroy_structure"; systemId: string; structureId: string }

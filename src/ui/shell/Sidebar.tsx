@@ -1,6 +1,6 @@
 import { createContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGaugeHigh, faRocket, faGlobe, faFlask, faTerminal, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faGaugeHigh, faRocket, faGlobe, faFlask, faTerminal, faStar, faGear, faArrowLeftLong } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
@@ -33,9 +33,13 @@ const NAV_ITEMS: NavItem[] = [
 export function Sidebar({
   activeView,
   onNavigate,
+  onOpenSettings,
+  onBack,
 }: {
   activeView: ViewId;
   onNavigate: (view: ViewId) => void;
+  onOpenSettings?: () => void;
+  onBack?: (() => void) | null;
 }) {
   const [hoveredId, setHoveredId] = useState<ViewId | null>(null);
   const state = useGameState();
@@ -118,17 +122,64 @@ export function Sidebar({
           position: "absolute",
           bottom: 0,
           left: 0,
-          width: 200,
-          padding: "14px 18px",
+          right: 0,
           borderTop: "1px solid rgba(110,200,255,0.08)",
-          fontFamily: FONT_MONO,
-          fontSize: 10,
-          color: "#3d5572",
-          letterSpacing: "0.16em",
-          lineHeight: 1.7,
+          padding: "8px 0",
         }}
       >
-        BUILD v0.1.0
+        {onOpenSettings && (
+          <div
+            onClick={() => { soundManager.playUI("ui_click"); onOpenSettings(); }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 20px",
+              color: "#6b87a3",
+              cursor: "pointer",
+              fontSize: 13,
+              letterSpacing: "0.02em",
+              transition: "color .15s",
+            }}
+            onMouseEnter={(e) => { soundManager.playUI("ui_hover"); e.currentTarget.style.color = "#d6e8f5"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#6b87a3"; }}
+          >
+            <FontAwesomeIcon icon={faGear} style={{ width: 18, height: 18 }} />
+            Settings
+          </div>
+        )}
+        {onBack && (
+          <div
+            onClick={() => { soundManager.playUI("ui_click"); onBack(); }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 20px",
+              color: "#6b87a3",
+              cursor: "pointer",
+              fontSize: 13,
+              letterSpacing: "0.02em",
+              transition: "color .15s",
+            }}
+            onMouseEnter={(e) => { soundManager.playUI("ui_hover"); e.currentTarget.style.color = "#d6e8f5"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#6b87a3"; }}
+          >
+            <FontAwesomeIcon icon={faArrowLeftLong} style={{ width: 18, height: 18 }} />
+            Mission Archives
+          </div>
+        )}
+        <div
+          style={{
+            padding: "6px 20px 4px",
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            color: "#6b87a3",
+            letterSpacing: "0.16em",
+          }}
+        >
+          BUILD v0.1.0
+        </div>
       </div>
     </div>
   );
