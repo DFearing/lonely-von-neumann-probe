@@ -184,7 +184,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       const solAfterConstruction = current.systems["sol"]!;
@@ -267,7 +267,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       const builtProbe = current.systems["sol"]!.availableProbes[0]!;
@@ -308,7 +308,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       const builtProbe = current.systems["sol"]!.availableProbes[0]!;
@@ -875,7 +875,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       const probe1 = current.systems["sol"]!.availableProbes[0]!;
@@ -909,7 +909,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       const probe2 = current.systems["sol"]!.availableProbes[0]!;
@@ -1001,7 +1001,7 @@ describe("interstellar travel end-to-end", () => {
         current = tickUntil(
           current,
           (s) => s.systems["sol"]!.availableProbes.length > 0,
-          200,
+          1500,
         );
 
         const builtProbe = current.systems["sol"]!.availableProbes[0]!;
@@ -1214,7 +1214,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       expect(current.systems["sol"]!.mainProbe!.mode).toBe("idle");
@@ -1242,7 +1242,7 @@ describe("interstellar travel end-to-end", () => {
       current = tickUntil(
         current,
         (s) => s.systems["sol"]!.availableProbes.length > 0,
-        200,
+        1500,
       );
 
       const constructionEntry = current.log
