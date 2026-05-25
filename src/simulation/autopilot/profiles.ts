@@ -21,6 +21,22 @@ export interface AutopilotProfile {
   decide(state: GameState): PlayerAction[];
 }
 
+type Priority =
+  | { kind: "build_printer"; margin: number }
+  | { kind: "fix_compute"; margin: number }
+  | { kind: "fix_energy"; margin: number }
+  | { kind: "build_miner"; margin: number; requirePositiveRate: boolean }
+  | { kind: "research"; branches: string[] }
+  | { kind: "launch_probe" }
+  | { kind: "build_probe"; materialThreshold: number; breaksLoop: boolean };
+
+interface ProfileConfig {
+  readonly name: string;
+  readonly id: string;
+  readonly evaluateEvery: number;
+  readonly priorities: readonly Priority[];
+}
+
 function bootstrapActions(systemId: string, system: SystemState): PlayerAction[] {
   const actions: PlayerAction[] = [];
 
@@ -60,296 +76,214 @@ function tryResearch(systemId: string, system: SystemState, branches: string[]):
   return null;
 }
 
-const balanced: AutopilotProfile = {
+function tryPriority(
+  priority: Priority,
+  state: GameState,
+  systemId: string,
+  system: SystemState,
+): { action: PlayerAction; breaksLoop: boolean } | null {
+  switch (priority.kind) {
+    case "build_printer": {
+      if (structureCount(system, "printer") === 0) {
+        const def = STRUCTURES[structureKey("printer", 1)];
+        if (def && canSafelyAfford(system, def.cost, priority.margin)) {
+          return {
+            action: { type: "build_structure", systemId, structureType: "printer", tier: 1 },
+            breaksLoop: true,
+          };
+        }
+      }
+      return null;
+    }
+    case "fix_compute": {
+      if (isComputeBottleneck(system)) {
+        const tier = bestAvailableTier(system, "station");
+        if (tier > 0) {
+          const def = STRUCTURES[structureKey("station", tier)];
+          if (def && canSafelyAfford(system, def.cost, priority.margin)) {
+            return {
+              action: { type: "build_structure", systemId, structureType: "station", tier },
+              breaksLoop: true,
+            };
+          }
+        }
+      }
+      return null;
+    }
+    case "fix_energy": {
+      if (isEnergyBottleneck(system)) {
+        const tier = bestAvailableTier(system, "reactor");
+        const def = STRUCTURES[structureKey("reactor", tier)];
+        if (def && canSafelyAfford(system, def.cost, priority.margin)) {
+          return {
+            action: { type: "build_structure", systemId, structureType: "reactor", tier },
+            breaksLoop: true,
+          };
+        }
+      }
+      return null;
+    }
+    case "build_miner": {
+      if (priority.requirePositiveRate && system.resourceRates.materialsPerSecond <= 0) {
+        return null;
+      }
+      const tier = bestAvailableTier(system, "miner");
+      const def = STRUCTURES[structureKey("miner", tier)];
+      if (def && canSafelyAfford(system, def.cost, priority.margin)) {
+        return {
+          action: { type: "build_structure", systemId, structureType: "miner", tier },
+          breaksLoop: true,
+        };
+      }
+      return null;
+    }
+    case "research": {
+      const research = tryResearch(systemId, system, priority.branches);
+      if (research) return { action: research, breaksLoop: false };
+      return null;
+    }
+    case "launch_probe": {
+      const targets = getUncolonizedSystems(state, systemId);
+      if (system.availableProbes.length > 0 && targets.length > 0) {
+        const probe = system.availableProbes[0]!;
+        return {
+          action: { type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! },
+          breaksLoop: false,
+        };
+      }
+      return null;
+    }
+    case "build_probe": {
+      const targets = getUncolonizedSystems(state, systemId);
+      if (system.resources.materials > priority.materialThreshold && targets.length > 0) {
+        return {
+          action: {
+            type: "build_probe", systemId,
+            cpu: bestAvailableComponent(system, "cpu"),
+            propulsion: bestAvailableComponent(system, "propulsion"),
+            reactor: bestAvailableComponent(system, "reactor"),
+          },
+          breaksLoop: priority.breaksLoop,
+        };
+      }
+      return null;
+    }
+  }
+}
+
+function executeProfile(config: ProfileConfig, state: GameState): PlayerAction[] {
+  const actions: PlayerAction[] = [];
+
+  for (const [systemId, system] of Object.entries(state.systems)) {
+    if (!system.mainProbe) continue;
+
+    const boot = bootstrapActions(systemId, system);
+    actions.push(...boot);
+    if (hasActiveConstruction(system)) continue;
+
+    let broke = false;
+    for (const priority of config.priorities) {
+      const result = tryPriority(priority, state, systemId, system);
+      if (result) {
+        actions.push(result.action);
+        if (result.breaksLoop) {
+          broke = true;
+          break;
+        }
+      }
+    }
+    if (broke) continue;
+  }
+
+  return actions;
+}
+
+const BALANCED_CONFIG: ProfileConfig = {
   name: "Balanced",
   id: "balanced",
   evaluateEvery: 20,
-
-  decide(state: GameState): PlayerAction[] {
-    const actions: PlayerAction[] = [];
-
-    for (const [systemId, system] of Object.entries(state.systems)) {
-      if (!system.mainProbe) continue;
-      const rates = system.resourceRates;
-
-      const boot = bootstrapActions(systemId, system);
-      actions.push(...boot);
-      if (boot.length > 0 && hasActiveConstruction(system)) continue;
-      if (hasActiveConstruction(system)) continue;
-
-      if (structureCount(system, "printer") === 0) {
-        const def = STRUCTURES[structureKey("printer", 1)];
-        if (def && canSafelyAfford(system, def.cost, 20)) {
-          actions.push({ type: "build_structure", systemId, structureType: "printer", tier: 1 });
-          continue;
-        }
-      }
-
-      if (isComputeBottleneck(system)) {
-        const tier = bestAvailableTier(system, "station");
-        if (tier > 0) {
-          const def = STRUCTURES[structureKey("station", tier)];
-          if (def && canSafelyAfford(system, def.cost, 30)) {
-            actions.push({ type: "build_structure", systemId, structureType: "station", tier });
-            continue;
-          }
-        }
-      }
-
-      if (isEnergyBottleneck(system)) {
-        const tier = bestAvailableTier(system, "reactor");
-        const def = STRUCTURES[structureKey("reactor", tier)];
-        if (def && canSafelyAfford(system, def.cost, 20)) {
-          actions.push({ type: "build_structure", systemId, structureType: "reactor", tier });
-          continue;
-        }
-      }
-
-      if (rates.materialsPerSecond > 0) {
-        const tier = bestAvailableTier(system, "miner");
-        const def = STRUCTURES[structureKey("miner", tier)];
-        if (def && canSafelyAfford(system, def.cost, 50)) {
-          actions.push({ type: "build_structure", systemId, structureType: "miner", tier });
-          continue;
-        }
-      }
-
-      const researchBranches = [
-        "station_types", "mining_efficiency", "energy_production",
-        "manufacturing_efficiency", "station_efficiency", "computing_architecture",
-        "mining_types", "energy_types", "manufacturing_types",
-      ];
-      const research = tryResearch(systemId, system, researchBranches);
-      if (research) actions.push(research);
-
-      const targets = getUncolonizedSystems(state, systemId);
-
-      if (system.availableProbes.length > 0 && targets.length > 0) {
-        const probe = system.availableProbes[0]!;
-        actions.push({ type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! });
-      }
-
-      if (system.resources.materials > 500 && targets.length > 0) {
-        actions.push({
-          type: "build_probe", systemId,
-          cpu: bestAvailableComponent(system, "cpu"),
-          propulsion: bestAvailableComponent(system, "propulsion"),
-          reactor: bestAvailableComponent(system, "reactor"),
-        });
-      }
-    }
-
-    return actions;
-  },
+  priorities: [
+    { kind: "build_printer", margin: 20 },
+    { kind: "fix_compute", margin: 30 },
+    { kind: "fix_energy", margin: 20 },
+    { kind: "build_miner", margin: 50, requirePositiveRate: true },
+    { kind: "research", branches: [
+      "station_types", "mining_efficiency", "energy_production",
+      "manufacturing_efficiency", "station_efficiency", "computing_architecture",
+      "mining_types", "energy_types", "manufacturing_types",
+    ]},
+    { kind: "launch_probe" },
+    { kind: "build_probe", materialThreshold: 500, breaksLoop: false },
+  ],
 };
 
-const researchRush: AutopilotProfile = {
+const RESEARCH_RUSH_CONFIG: ProfileConfig = {
   name: "Research Rush",
   id: "research_rush",
   evaluateEvery: 15,
-
-  decide(state: GameState): PlayerAction[] {
-    const actions: PlayerAction[] = [];
-
-    for (const [systemId, system] of Object.entries(state.systems)) {
-      if (!system.mainProbe) continue;
-
-      const boot = bootstrapActions(systemId, system);
-      actions.push(...boot);
-      if (hasActiveConstruction(system)) continue;
-
-      if (isComputeBottleneck(system)) {
-        const tier = bestAvailableTier(system, "station");
-        if (tier > 0) {
-          const def = STRUCTURES[structureKey("station", tier)];
-          if (def && canSafelyAfford(system, def.cost, 20)) {
-            actions.push({ type: "build_structure", systemId, structureType: "station", tier });
-            continue;
-          }
-        }
-      }
-
-      if (isEnergyBottleneck(system)) {
-        const tier = bestAvailableTier(system, "reactor");
-        const def = STRUCTURES[structureKey("reactor", tier)];
-        if (def && canSafelyAfford(system, def.cost, 10)) {
-          actions.push({ type: "build_structure", systemId, structureType: "reactor", tier });
-          continue;
-        }
-      }
-
-      const researchBranches = [
-        "station_types", "computing_architecture", "station_efficiency",
-        "computing_speed", "mining_efficiency", "energy_production",
-        "manufacturing_efficiency",
-      ];
-      const research = tryResearch(systemId, system, researchBranches);
-      if (research) actions.push(research);
-    }
-
-    return actions;
-  },
+  priorities: [
+    { kind: "fix_compute", margin: 20 },
+    { kind: "fix_energy", margin: 10 },
+    { kind: "research", branches: [
+      "station_types", "computing_architecture", "station_efficiency",
+      "computing_speed", "mining_efficiency", "energy_production",
+      "manufacturing_efficiency",
+    ]},
+  ],
 };
 
-const miningHeavy: AutopilotProfile = {
+const MINING_HEAVY_CONFIG: ProfileConfig = {
   name: "Mining Heavy",
   id: "mining_heavy",
   evaluateEvery: 25,
-
-  decide(state: GameState): PlayerAction[] {
-    const actions: PlayerAction[] = [];
-
-    for (const [systemId, system] of Object.entries(state.systems)) {
-      if (!system.mainProbe) continue;
-
-      const boot = bootstrapActions(systemId, system);
-      actions.push(...boot);
-      if (hasActiveConstruction(system)) continue;
-
-      if (isEnergyBottleneck(system)) {
-        const tier = bestAvailableTier(system, "reactor");
-        const def = STRUCTURES[structureKey("reactor", tier)];
-        if (def && canSafelyAfford(system, def.cost, 20)) {
-          actions.push({ type: "build_structure", systemId, structureType: "reactor", tier });
-          continue;
-        }
-      }
-
-      if (isComputeBottleneck(system)) {
-        const tier = bestAvailableTier(system, "station");
-        if (tier > 0) {
-          const def = STRUCTURES[structureKey("station", tier)];
-          if (def && canSafelyAfford(system, def.cost, 30)) {
-            actions.push({ type: "build_structure", systemId, structureType: "station", tier });
-            continue;
-          }
-        }
-      }
-
-      if (structureCount(system, "printer") === 0) {
-        const def = STRUCTURES[structureKey("printer", 1)];
-        if (def && canSafelyAfford(system, def.cost, 20)) {
-          actions.push({ type: "build_structure", systemId, structureType: "printer", tier: 1 });
-          continue;
-        }
-      }
-
-      const minerTier = bestAvailableTier(system, "miner");
-      const minerDef = STRUCTURES[structureKey("miner", minerTier)];
-      if (minerDef && canSafelyAfford(system, minerDef.cost, 30)) {
-        actions.push({ type: "build_structure", systemId, structureType: "miner", tier: minerTier });
-        continue;
-      }
-
-      const researchBranches = [
-        "mining_efficiency", "mining_types", "station_types",
-        "energy_production", "energy_types", "manufacturing_efficiency",
-      ];
-      const research = tryResearch(systemId, system, researchBranches);
-      if (research) actions.push(research);
-
-      const targets = getUncolonizedSystems(state, systemId);
-
-      if (system.availableProbes.length > 0 && targets.length > 0) {
-        const probe = system.availableProbes[0]!;
-        actions.push({ type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! });
-      }
-
-      if (system.resources.materials > 1000 && targets.length > 0) {
-        actions.push({
-          type: "build_probe", systemId,
-          cpu: bestAvailableComponent(system, "cpu"),
-          propulsion: bestAvailableComponent(system, "propulsion"),
-          reactor: bestAvailableComponent(system, "reactor"),
-        });
-      }
-    }
-
-    return actions;
-  },
+  priorities: [
+    { kind: "fix_energy", margin: 20 },
+    { kind: "fix_compute", margin: 30 },
+    { kind: "build_printer", margin: 20 },
+    { kind: "build_miner", margin: 30, requirePositiveRate: false },
+    { kind: "research", branches: [
+      "mining_efficiency", "mining_types", "station_types",
+      "energy_production", "energy_types", "manufacturing_efficiency",
+    ]},
+    { kind: "launch_probe" },
+    { kind: "build_probe", materialThreshold: 1000, breaksLoop: false },
+  ],
 };
 
-const expansion: AutopilotProfile = {
+const EXPANSION_CONFIG: ProfileConfig = {
   name: "Expansion",
   id: "expansion",
   evaluateEvery: 30,
-
-  decide(state: GameState): PlayerAction[] {
-    const actions: PlayerAction[] = [];
-
-    for (const [systemId, system] of Object.entries(state.systems)) {
-      if (!system.mainProbe) continue;
-
-      const boot = bootstrapActions(systemId, system);
-      actions.push(...boot);
-      if (hasActiveConstruction(system)) continue;
-
-      if (structureCount(system, "printer") === 0) {
-        const def = STRUCTURES[structureKey("printer", 1)];
-        if (def && canSafelyAfford(system, def.cost, 20)) {
-          actions.push({ type: "build_structure", systemId, structureType: "printer", tier: 1 });
-          continue;
-        }
-      }
-
-      if (isEnergyBottleneck(system)) {
-        const tier = bestAvailableTier(system, "reactor");
-        const def = STRUCTURES[structureKey("reactor", tier)];
-        if (def && canSafelyAfford(system, def.cost, 10)) {
-          actions.push({ type: "build_structure", systemId, structureType: "reactor", tier });
-          continue;
-        }
-      }
-
-      if (isComputeBottleneck(system)) {
-        const tier = bestAvailableTier(system, "station");
-        if (tier > 0) {
-          const def = STRUCTURES[structureKey("station", tier)];
-          if (def && canSafelyAfford(system, def.cost, 20)) {
-            actions.push({ type: "build_structure", systemId, structureType: "station", tier });
-            continue;
-          }
-        }
-      }
-
-      const targets = getUncolonizedSystems(state, systemId);
-
-      if (system.availableProbes.length > 0 && targets.length > 0) {
-        const probe = system.availableProbes[0]!;
-        actions.push({ type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! });
-      }
-
-      if (targets.length > 0 && system.resources.materials > 200) {
-        actions.push({
-          type: "build_probe", systemId,
-          cpu: bestAvailableComponent(system, "cpu"),
-          propulsion: bestAvailableComponent(system, "propulsion"),
-          reactor: bestAvailableComponent(system, "reactor"),
-        });
-        continue;
-      }
-
-      const minerTier = bestAvailableTier(system, "miner");
-      const minerDef = STRUCTURES[structureKey("miner", minerTier)];
-      if (minerDef && canSafelyAfford(system, minerDef.cost, 30)) {
-        actions.push({ type: "build_structure", systemId, structureType: "miner", tier: minerTier });
-        continue;
-      }
-
-      const researchBranches = [
-        "probe_propulsion", "probe_reactors", "station_types",
-        "manufacturing_efficiency", "mining_efficiency", "energy_production",
-        "communication", "communication_speed",
-      ];
-      const research = tryResearch(systemId, system, researchBranches);
-      if (research) actions.push(research);
-    }
-
-    return actions;
-  },
+  priorities: [
+    { kind: "build_printer", margin: 20 },
+    { kind: "fix_energy", margin: 10 },
+    { kind: "fix_compute", margin: 20 },
+    { kind: "launch_probe" },
+    { kind: "build_probe", materialThreshold: 200, breaksLoop: true },
+    { kind: "build_miner", margin: 30, requirePositiveRate: false },
+    { kind: "research", branches: [
+      "probe_propulsion", "probe_reactors", "station_types",
+      "manufacturing_efficiency", "mining_efficiency", "energy_production",
+      "communication", "communication_speed",
+    ]},
+  ],
 };
 
-export const PROFILES: AutopilotProfile[] = [balanced, researchRush, miningHeavy, expansion];
+function createProfile(config: ProfileConfig): AutopilotProfile {
+  return {
+    name: config.name,
+    id: config.id,
+    evaluateEvery: config.evaluateEvery,
+    decide: (state: GameState) => executeProfile(config, state),
+  };
+}
+
+export const PROFILES: AutopilotProfile[] = [
+  createProfile(BALANCED_CONFIG),
+  createProfile(RESEARCH_RUSH_CONFIG),
+  createProfile(MINING_HEAVY_CONFIG),
+  createProfile(EXPANSION_CONFIG),
+];
 
 export function getProfileById(id: string): AutopilotProfile | undefined {
   return PROFILES.find((p) => p.id === id);
