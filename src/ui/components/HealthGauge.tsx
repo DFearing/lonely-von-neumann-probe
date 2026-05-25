@@ -21,7 +21,7 @@ export function HealthGauge({
   const barHeight = compact ? 4 : 6;
 
   return (
-    <Tooltip content={`${pct}% health`}>
+    <Tooltip content={`${pct}% health`} block>
       <div
         style={{ display: "flex", alignItems: "center", gap: compact ? 6 : 8, marginBottom: 6, width: "100%" }}
       >

@@ -458,7 +458,7 @@ export function StructureColumn({
                     </button>
                   </Tooltip>
                   <Tooltip content={structureDef?.description ?? def.name}>
-                    <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
+                    <span style={{ fontSize: 16, color: inst.active ? "#d6e8f5" : "#6b87a3", fontWeight: 500 }}>
                       {def.name}
                     </span>
                   </Tooltip>

@@ -19,7 +19,7 @@ export interface ResourceRates {
   computeEfficiency: number;
 }
 
-function isActiveAndComplete(s: StructureInstance): boolean {
+export function isActiveAndComplete(s: StructureInstance): boolean {
   return s.active && s.constructionProgress >= 1;
 }
 
