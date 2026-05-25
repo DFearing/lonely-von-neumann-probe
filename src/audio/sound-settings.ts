@@ -1,6 +1,11 @@
+import { DEFAULT_MOOD_ID, MUSIC_MOODS } from "./ambient-music";
+
 export interface SoundSettings {
   volume: number;
   muted: boolean;
+  musicVolume: number;
+  musicMuted: boolean;
+  musicMood: string;
 }
 
 const STORAGE_KEY = "lonely-probe-sound-settings";
@@ -8,6 +13,9 @@ const STORAGE_KEY = "lonely-probe-sound-settings";
 const DEFAULT_SETTINGS: SoundSettings = {
   volume: 0.5,
   muted: false,
+  musicVolume: 0.3,
+  musicMuted: false,
+  musicMood: DEFAULT_MOOD_ID,
 };
 
 export function loadSoundSettings(): SoundSettings {
@@ -25,8 +33,17 @@ export function loadSoundSettings(): SoundSettings {
     const muted = typeof obj["muted"] === "boolean"
       ? obj["muted"]
       : DEFAULT_SETTINGS.muted;
+    const musicVolume = typeof obj["musicVolume"] === "number"
+      ? Math.max(0, Math.min(1, obj["musicVolume"]))
+      : DEFAULT_SETTINGS.musicVolume;
+    const musicMuted = typeof obj["musicMuted"] === "boolean"
+      ? obj["musicMuted"]
+      : DEFAULT_SETTINGS.musicMuted;
+    const musicMood = typeof obj["musicMood"] === "string" && MUSIC_MOODS.some(m => m.id === obj["musicMood"])
+      ? obj["musicMood"]
+      : DEFAULT_SETTINGS.musicMood;
 
-    return { volume, muted };
+    return { volume, muted, musicVolume, musicMuted, musicMood };
   } catch {
     return { ...DEFAULT_SETTINGS };
   }

@@ -9,6 +9,7 @@ import { Systems } from "../screens/Systems";
 import { Research } from "../screens/Research";
 import { SoundSettings } from "../screens/SoundSettings";
 import { useSoundEvents } from "../../audio/use-sound-events";
+import { soundManager } from "../../audio/sound-manager";
 import { Log } from "../screens/Log";
 import { Prestige } from "../screens/Prestige";
 import { usePrestige, useGameState, useLoop } from "../context";
@@ -65,6 +66,11 @@ export function App() {
   const loop = useLoop();
   const gate = useContext(LVNPGateContext);
   useSoundEvents();
+
+  useEffect(() => {
+    soundManager.startMusic();
+    return () => soundManager.stopMusic();
+  }, []);
 
   const showPrestigeOverlay = state.prestigeTriggered || (DEV_MODE && view === "prestige");
 
