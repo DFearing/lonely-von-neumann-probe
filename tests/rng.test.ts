@@ -52,7 +52,7 @@ describe("rng", () => {
       }
     });
 
-    test("restore resets the RNG to the snapshot point", () => {
+    test("createRngFromState replays the same sequence from the snapshot point", () => {
       const rng = createRng(456);
       for (let i = 0; i < 50; i++) rng.nextFloat();
 
@@ -62,9 +62,9 @@ describe("rng", () => {
         valuesAfterSnapshot.push(rng.nextFloat());
       }
 
-      rng.restore(saved);
+      const replayed = createRngFromState(saved);
       for (let i = 0; i < 100; i++) {
-        expect(rng.nextFloat()).toBe(valuesAfterSnapshot[i]!);
+        expect(replayed.nextFloat()).toBe(valuesAfterSnapshot[i]!);
       }
     });
 
@@ -74,10 +74,10 @@ describe("rng", () => {
       for (let i = 0; i < 100; i++) rng.nextFloat();
 
       const rng2 = createRngFromState(saved);
-      rng.restore(saved);
+      const rng3 = createRngFromState(saved);
 
       for (let i = 0; i < 100; i++) {
-        expect(rng.nextFloat()).toBe(rng2.nextFloat());
+        expect(rng2.nextFloat()).toBe(rng3.nextFloat());
       }
     });
   });

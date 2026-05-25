@@ -8,7 +8,6 @@ export interface Rng {
   shuffle<T>(array: readonly T[]): T[];
   weightedPick<T>(options: readonly { value: T; weight: number }[]): T;
   snapshot(): RngState;
-  restore(state: RngState): void;
 }
 
 function splitmix32(seed: number): () => number {
@@ -93,14 +92,7 @@ function createRngFromMutableState(s: [number, number, number, number]): Rng {
     return [s[0], s[1], s[2], s[3]];
   }
 
-  function restore(state: RngState): void {
-    s[0] = state[0];
-    s[1] = state[1];
-    s[2] = state[2];
-    s[3] = state[3];
-  }
-
-  return { nextFloat, nextInt, chance, pick, shuffle, weightedPick, snapshot, restore };
+  return { nextFloat, nextInt, chance, pick, shuffle, weightedPick, snapshot };
 }
 
 export function createRng(seed: number): Rng {

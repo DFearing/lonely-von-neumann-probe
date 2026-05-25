@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CharacterSelector } from "./CharacterSelector";
 import { NewMission } from "./NewMission";
 import { GameProvider } from "../../context";
@@ -22,6 +22,7 @@ export function PreGameGate() {
   const [phase, setPhase] = useState<Phase>("select");
   const [loop, setLoop] = useState<GameLoop | null>(null);
   const [slotInfo, setSlotInfo] = useState<{ key: string; probeName: string } | null>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   function saveNow(gameLoop: GameLoop) {
     if (slotInfo) {
@@ -30,8 +31,11 @@ export function PreGameGate() {
   }
 
   function attachSaveListener(gameLoop: GameLoop, info: { key: string; probeName: string }) {
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+    }
     let saveCounter = 0;
-    gameLoop.onStateChange(() => {
+    unsubscribeRef.current = gameLoop.onStateChange(() => {
       saveCounter++;
       if (saveCounter % 100 === 0 || gameLoop.getState().paused) {
         saveGameSlot(info.key, gameLoop.getState(), info.probeName);
