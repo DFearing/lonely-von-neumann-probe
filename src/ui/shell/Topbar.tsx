@@ -105,7 +105,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
       </div>
       <div style={{ flex: 1 }} />
       <div data-tour="topbar" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <Tooltip content={paused ? "Resume (Ctrl+0)" : "Pause (Ctrl+0)"}>
+        <Tooltip placement="below" content={paused ? "Resume (Ctrl+0)" : "Pause (Ctrl+0)"}>
           <button
             onClick={() => paused ? loop.unpause() : loop.pause()}
             style={{
@@ -123,7 +123,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
           </button>
         </Tooltip>
         {SPEEDS.map((s, i) => (
-          <Tooltip key={s} content={`${SPEED_LABELS[s]} speed (Ctrl+${i + 1})`}>
+          <Tooltip key={s} placement="below" content={`${SPEED_LABELS[s]} speed (Ctrl+${i + 1})`}>
             <button
               onClick={() => { loop.setSpeed(s); if (paused) loop.unpause(); }}
               style={{
@@ -142,7 +142,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
         ))}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <Tooltip content={soundSettings.muted ? "Unmute" : "Mute"}>
+        <Tooltip placement="below" content={soundSettings.muted ? "Unmute" : "Mute"}>
           <button
             onClick={() => setMuted(!soundSettings.muted)}
             style={{
@@ -208,7 +208,7 @@ function TopbarIconButton({
 }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <Tooltip content={title}>
+    <Tooltip placement="below" content={title}>
       <button
         onClick={onClick}
         style={{

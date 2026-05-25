@@ -81,7 +81,7 @@ export function App() {
   }, [state.gameOver, state.paused, loop]);
 
   return (
-    <TourProvider onNavigate={setView}>
+    <TourProvider onNavigate={setView} currentView={view}>
     <div
       style={{
         width: "100%",

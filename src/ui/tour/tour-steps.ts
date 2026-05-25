@@ -4,7 +4,8 @@ export type TourAdvanceCondition =
   | { type: "probe_mode_changed"; mode: "gathering" }
   | { type: "construction_queued"; structureType: "miner" }
   | { type: "research_started" }
-  | { type: "materials_sufficient"; amount: number };
+  | { type: "materials_sufficient"; amount: number }
+  | { type: "view_changed"; view: ViewId };
 
 export interface TourStep {
   id: string;
@@ -13,6 +14,7 @@ export interface TourStep {
   body: string;
   placement: "top" | "bottom" | "left" | "right";
   advanceOn?: TourAdvanceCondition;
+  waitUntil?: TourAdvanceCondition;
   requiredView?: ViewId;
 }
 
@@ -35,11 +37,29 @@ export const TOUR_STEPS: TourStep[] = [
     requiredView: "overview",
   },
   {
+    id: "research-nav",
+    target: "nav-research",
+    title: "RESEARCH",
+    body: "...I should research something while I gather materials...",
+    placement: "right",
+    waitUntil: { type: "materials_sufficient", amount: 15 },
+    advanceOn: { type: "view_changed", view: "research" },
+  },
+  {
+    id: "research-banner",
+    target: "research-banner",
+    title: "RESEARCH",
+    body: "...I can select a technology and begin researching...",
+    placement: "bottom",
+    requiredView: "research",
+  },
+  {
     id: "structures-unlocked",
     target: "structures",
     title: "CONSTRUCTION",
     body: "...I have enough to build...",
     placement: "top",
+    waitUntil: { type: "materials_sufficient", amount: 30 },
     requiredView: "overview",
   },
   {

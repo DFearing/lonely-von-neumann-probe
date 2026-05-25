@@ -57,6 +57,7 @@ export function Sidebar({
         return (
           <div
             key={item.id}
+            data-tour={`nav-${item.id}`}
             onClick={() => onNavigate(item.id)}
             style={{
               display: "flex",

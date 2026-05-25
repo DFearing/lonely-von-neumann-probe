@@ -8,10 +8,12 @@ export function Tooltip({
   content,
   children,
   block,
+  placement = "above",
 }: {
   content: ReactNode;
   children: ReactNode;
   block?: boolean;
+  placement?: "above" | "below";
 }) {
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -21,16 +23,25 @@ export function Tooltip({
     const el = triggerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    setPosition({
-      top: rect.top + window.scrollY - ARROW_SIZE - 2,
-      left: rect.left + rect.width / 2,
-    });
+    if (placement === "below") {
+      setPosition({
+        top: rect.bottom + window.scrollY + ARROW_SIZE + 2,
+        left: rect.left + rect.width / 2,
+      });
+    } else {
+      setPosition({
+        top: rect.top + window.scrollY - ARROW_SIZE - 2,
+        left: rect.left + rect.width / 2,
+      });
+    }
     setVisible(true);
-  }, []);
+  }, [placement]);
 
   const hide = useCallback(() => {
     setVisible(false);
   }, []);
+
+  const isBelow = placement === "below";
 
   return (
     <>
@@ -50,7 +61,7 @@ export function Tooltip({
               position: "absolute",
               top: position.top,
               left: position.left,
-              transform: "translate(-50%, -100%)",
+              transform: isBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
               background: "rgba(8,16,30,0.95)",
               border: "1px solid rgba(110,200,255,0.15)",
               borderRadius: 4,
@@ -69,13 +80,21 @@ export function Tooltip({
               style={{
                 position: "absolute",
                 left: "50%",
-                top: "100%",
-                transform: "translateX(-50%)",
-                width: 0,
-                height: 0,
-                borderLeft: `${ARROW_SIZE}px solid transparent`,
-                borderRight: `${ARROW_SIZE}px solid transparent`,
-                borderTop: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
+                ...(isBelow
+                  ? {
+                      bottom: "100%",
+                      transform: "translateX(-50%)",
+                      borderLeft: `${ARROW_SIZE}px solid transparent`,
+                      borderRight: `${ARROW_SIZE}px solid transparent`,
+                      borderBottom: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
+                    }
+                  : {
+                      top: "100%",
+                      transform: "translateX(-50%)",
+                      borderLeft: `${ARROW_SIZE}px solid transparent`,
+                      borderRight: `${ARROW_SIZE}px solid transparent`,
+                      borderTop: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
+                    }),
               }}
             />
           </div>,
