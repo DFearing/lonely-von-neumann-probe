@@ -1,6 +1,7 @@
 import type { GameState, SystemState, StructureInstance, ProbeState, LogEntry } from "../state";
 import type { PrestigeState } from "../prestige";
-import { calculateRates, PROBE_MAINTENANCE } from "../rates";
+import { calculateRates, isActiveAndComplete, PROBE_MAINTENANCE } from "../rates";
+import { STRUCTURES, structureKey } from "../data/structures";
 
 const HEALTH_DRAIN_RATE = 0.01;
 const HEALTH_RECOVERY_RATE = 0.005;
@@ -182,14 +183,103 @@ function detectHealthThresholdCrossings(
   return [];
 }
 
+function findLargestConsumer(
+  system: SystemState,
+  field: "operatingCost" | "computeDemand",
+): { structure: StructureInstance; arrayName: keyof SystemState["structures"] } | null {
+  let largest: StructureInstance | null = null;
+  let largestArray: keyof SystemState["structures"] | null = null;
+  let largestValue = 0;
+
+  const arrays: (keyof SystemState["structures"])[] = ["miners", "reactors", "printers", "stations"];
+  for (const arrayName of arrays) {
+    for (const s of system.structures[arrayName]) {
+      if (isActiveAndComplete(s) && s[field] > largestValue) {
+        largest = s;
+        largestArray = arrayName;
+        largestValue = s[field];
+      }
+    }
+  }
+
+  if (!largest || !largestArray) return null;
+  return { structure: largest, arrayName: largestArray };
+}
+
+function pauseStructureInSystem(
+  system: SystemState,
+  target: StructureInstance,
+  arrayName: keyof SystemState["structures"],
+): SystemState {
+  return {
+    ...system,
+    structures: {
+      ...system.structures,
+      [arrayName]: system.structures[arrayName].map((s) =>
+        s.id === target.id ? { ...s, active: false } : s,
+      ),
+    },
+  };
+}
+
+function structureDisplayName(inst: StructureInstance): string {
+  const def = STRUCTURES[structureKey(inst.type, inst.tier)];
+  return def?.name ?? `${inst.type} T${inst.tier}`;
+}
+
+export function autoPauseForShortfall(
+  system: SystemState,
+  prestige: PrestigeState,
+  tickCount: number,
+): { system: SystemState; log: LogEntry[] } {
+  const rates = calculateRates(system, prestige);
+  const log: LogEntry[] = [];
+
+  let current = system;
+  let energyPausedId: string | undefined;
+
+  if (rates.energyNet < 0) {
+    const found = findLargestConsumer(current, "operatingCost");
+    if (found) {
+      current = pauseStructureInSystem(current, found.structure, found.arrayName);
+      energyPausedId = found.structure.id;
+      log.push({
+        tick: tickCount,
+        message: `Energy deficit in ${current.name}: ${structureDisplayName(found.structure)} auto-paused`,
+        category: "warning",
+      });
+    }
+  }
+
+  if (rates.computeEfficiency < 1) {
+    const found = findLargestConsumer(current, "computeDemand");
+    if (found && found.structure.id !== energyPausedId) {
+      current = pauseStructureInSystem(current, found.structure, found.arrayName);
+      log.push({
+        tick: tickCount,
+        message: `Compute deficit in ${current.name}: ${structureDisplayName(found.structure)} auto-paused`,
+        category: "warning",
+      });
+    }
+  }
+
+  return { system: current, log };
+}
+
 export function tickResources(state: GameState, dt: number): GameState {
   const updatedSystems: Record<string, SystemState> = {};
   let newLog = state.log;
   let logChanged = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    const updated = tickSystem(system, dt, state.prestige);
+    const { system: pauseAdjusted, log: pauseLog } = autoPauseForShortfall(system, state.prestige, state.tickCount);
+    const updated = tickSystem(pauseAdjusted, dt, state.prestige);
     updatedSystems[id] = updated;
+
+    if (pauseLog.length > 0) {
+      newLog = [...newLog, ...pauseLog];
+      logChanged = true;
+    }
 
     const crossings = detectHealthThresholdCrossings(system, updated, state.tickCount);
     if (crossings.length > 0) {

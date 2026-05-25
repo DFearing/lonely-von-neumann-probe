@@ -1,15 +1,115 @@
 import type { ResearchProject } from "../../../simulation/state";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { FONT_MONO } from "../../tokens";
-import { fmtYears } from "../../format";
+import { fmtCycles } from "../../format";
+
+const BANNER_STYLE: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 18,
+  padding: "14px 18px",
+  marginBottom: 16,
+  flexShrink: 0,
+};
 
 export function ActiveBanner({
   project,
   computeRate,
 }: {
-  project: ResearchProject;
+  project: ResearchProject | null;
   computeRate: number;
 }) {
+  if (!project) {
+    return (
+      <div
+        style={{
+          ...BANNER_STYLE,
+          background:
+            "linear-gradient(90deg, rgba(110,200,255,0.08), transparent 70%)",
+          border: "1px solid rgba(110,200,255,0.20)",
+          borderLeft: "3px solid rgba(110,200,255,0.45)",
+        }}
+      >
+        <svg width="56" height="56" viewBox="0 0 56 56" style={{ flexShrink: 0 }}>
+          <circle
+            cx="28"
+            cy="28"
+            r="22"
+            fill="none"
+            stroke="rgba(110,200,255,0.18)"
+            strokeWidth="4"
+          />
+          <text
+            x="28"
+            y="32"
+            textAnchor="middle"
+            fontFamily="JetBrains Mono"
+            fontSize="12"
+            fontWeight="600"
+            fill="#6b87a3"
+          >
+            —
+          </text>
+        </svg>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 12,
+              marginBottom: 4,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 9,
+                color: "#6b87a3",
+                letterSpacing: "0.18em",
+              }}
+            >
+              RESEARCH
+            </span>
+          </div>
+          <div
+            style={{
+              fontSize: 18,
+              color: "#6b87a3",
+              fontWeight: 500,
+              marginBottom: 6,
+            }}
+          >
+            No active research
+          </div>
+          <div
+            style={{
+              position: "relative",
+              height: 4,
+              background: "rgba(110,200,255,0.05)",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            flexShrink: 0,
+            gap: 4,
+            visibility: "hidden",
+          }}
+        >
+          <span style={{ fontFamily: FONT_MONO, fontSize: 20, lineHeight: 1 }}>
+            0
+          </span>
+          <span style={{ fontFamily: FONT_MONO, fontSize: 10 }}>
+            placeholder
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   const pct = project.progress * 100;
   const techDef = TECH_TREE[project.techId];
   const researchTime = techDef?.researchTime ?? 0;
@@ -24,19 +124,13 @@ export function ActiveBanner({
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 18,
-        padding: "14px 18px",
-        marginBottom: 16,
+        ...BANNER_STYLE,
         background:
           "linear-gradient(90deg, rgba(176,139,255,0.10), rgba(176,139,255,0.02) 70%)",
         border: "1px solid rgba(176,139,255,0.3)",
         borderLeft: "3px solid #b08bff",
-        flexShrink: 0,
       }}
     >
-      {/* Mini dial */}
       <svg width="56" height="56" viewBox="0 0 56 56" style={{ flexShrink: 0 }}>
         <circle
           cx="28"
@@ -142,7 +236,7 @@ export function ActiveBanner({
             lineHeight: 1,
           }}
         >
-          {fmtYears(remaining)}
+          {fmtCycles(remaining)}
         </span>
         <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
           @ {computeRate.toFixed(1)} Teraflops

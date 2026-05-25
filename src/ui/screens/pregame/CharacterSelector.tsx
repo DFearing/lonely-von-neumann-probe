@@ -337,7 +337,7 @@ function OperatorRow({
               letterSpacing: "0.14em",
             }}
           >
-            YEAR {slot.year} {"·"} {systemLabel} {"·"}{" "}
+            CYCLE {slot.cycle} {"·"} {systemLabel} {"·"}{" "}
             {slot.structureCount} STRUCTURES
           </div>
         </div>

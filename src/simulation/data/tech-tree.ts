@@ -262,7 +262,7 @@ function generateEffects(branchId: string, tier: number): string[] {
         const name = MINER_NAMES[structureTier - 1] ?? `Tier ${structureTier} Miner`;
         const def = STRUCTURES[`miner_${structureTier}`];
         const effects = [`Unlock ${name}`];
-        if (def) effects.push(`+${def.productionRate} tons/year mining, ${def.operatingCost} MW demand`);
+        if (def) effects.push(`+${def.productionRate} tons/cycle mining, ${def.operatingCost} MW demand`);
         return effects;
       }
       const nextUnlockTier = Math.ceil(tier / 4) * 4;
@@ -312,7 +312,7 @@ function generateEffects(branchId: string, tier: number): string[] {
         const name = PROPULSION_NAMES[componentTier - 1] ?? `Tier ${componentTier} propulsion`;
         const def = PROPULSIONS[`prop_t${componentTier}`];
         const effects = [`Unlock ${name}`];
-        if (def) effects.push(`${def.travelSpeed} ly/year travel${def.autoReplicate ? ", auto-replicate" : ""}`);
+        if (def) effects.push(`${def.travelSpeed} ly/cycle travel${def.autoReplicate ? ", auto-replicate" : ""}`);
         return effects;
       }
       const nextTier = Math.ceil(tier / 4) * 4;
@@ -336,7 +336,7 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "computing_speed": {
       const bonus = 5 + 0.3 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% station efficiency`];
+      return [`+${+bonus.toFixed(1)}% computing TFLOPS (probes & stations)`];
     }
     case "station_efficiency": {
       const bonus = 4 + 0.3 * (tier - 1);
@@ -366,7 +366,7 @@ function generateEffects(branchId: string, tier: number): string[] {
         const name = CPU_NAMES[componentTier - 1] ?? `Tier ${componentTier} CPU`;
         effects.push(`Unlock ${name}`);
         const def = CPUS[`cpu_t${componentTier}`];
-        if (def) effects.push(`${def.computingOutput} TFLOPS, ${def.miningOutput} tons/year gather, ${def.printSpeed}× print`);
+        if (def) effects.push(`${def.computingOutput} TFLOPS, ${def.miningOutput} tons/cycle gather, ${def.printSpeed}× print`);
       } else if (effects.length === 0) {
         const nextUnlockTier = Math.ceil(tier / 4) * 4;
         const nextComponentTier = nextUnlockTier / 4 + 1;

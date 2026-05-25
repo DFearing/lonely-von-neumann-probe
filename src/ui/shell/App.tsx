@@ -12,7 +12,7 @@ import { useSoundEvents } from "../../audio/use-sound-events";
 import { Log } from "../screens/Log";
 import { Prestige } from "../screens/Prestige";
 import { usePrestige, useGameState, useLoop } from "../context";
-import { Printers } from "../screens/Printers";
+import { GameOver } from "../screens/GameOver";
 import { DevAutopilot } from "../screens/DevAutopilot";
 import { DEV_MODE } from "../../simulation/dev";
 import { TourProvider } from "../tour/TourProvider";
@@ -42,8 +42,6 @@ function Screen({
   switch (view) {
     case "overview":
       return <Overview onNavigate={onNavigate} />;
-    case "printers":
-      return <Printers />;
     case "fleet":
       return <Probes />;
     case "systems":
@@ -75,6 +73,12 @@ export function App() {
       loop.pause();
     }
   }, [state.prestigeTriggered, state.paused, loop]);
+
+  useEffect(() => {
+    if (state.gameOver && !state.paused) {
+      loop.pause();
+    }
+  }, [state.gameOver, state.paused, loop]);
 
   return (
     <TourProvider onNavigate={setView}>
@@ -143,6 +147,21 @@ export function App() {
             onBeginNewMission={() => { setView("overview"); onPrestige?.(); }}
             {...(DEV_MODE && !state.prestigeTriggered ? { onClose: () => setView("overview") } : {})}
           />
+        </div>
+      )}
+
+      {state.gameOver && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 100,
+          background: "radial-gradient(ellipse at top, #1a0a0a 0%, #050913 70%)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "20px 24px",
+          overflow: "hidden",
+        }}>
+          <GameOver onRestart={() => gate.onBack?.()} />
         </div>
       )}
 

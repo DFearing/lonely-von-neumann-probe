@@ -22,9 +22,9 @@ export function fmtPercent(ratio: number): string {
   return Math.round(ratio * 100) + "%";
 }
 
-export function fmtYears(seconds: number): string {
+export function fmtCycles(seconds: number): string {
   if (seconds <= 0) return "now";
-  const years = seconds;
-  if (years < 1000) return Math.round(years) + (Math.round(years) === 1 ? " year" : " years");
-  return fmt(Math.round(years / 1000)) + " thousand years";
+  const cycles = seconds;
+  if (cycles < 1000) return Math.round(cycles) + (Math.round(cycles) === 1 ? " cycle" : " cycles");
+  return fmt(Math.round(cycles / 1000)) + " thousand cycles";
 }

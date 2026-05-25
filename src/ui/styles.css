@@ -998,6 +998,11 @@ button {
 
 /* ── Starfield background ── */
 
+@keyframes tooltip-fade-in {
+  from { opacity: 0; transform: translate(-50%, calc(-100% + 4px)); }
+  to   { opacity: 1; transform: translate(-50%, -100%); }
+}
+
 @keyframes twinkle {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }

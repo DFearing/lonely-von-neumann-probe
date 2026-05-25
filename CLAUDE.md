@@ -56,7 +56,7 @@ The game is intentionally slow in early game (~30 min to self-sustaining). Key p
 
 ## UI
 
-The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "year(s)" not "yr" for units throughout the UI. The Topbar hosts a volume slider and mute toggle; a full `SoundSettings` modal (`src/ui/screens/SoundSettings.tsx`) is opened from there and rendered in `App.tsx`.
+The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "cycle(s)" not "cy" for units throughout the UI. The Topbar hosts a volume slider and mute toggle; a full `SoundSettings` modal (`src/ui/screens/SoundSettings.tsx`) is opened from there and rendered in `App.tsx`.
 
 ## Persistence
 

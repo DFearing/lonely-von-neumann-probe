@@ -5,24 +5,24 @@ import { FONT_MONO, COLORS } from "../tokens";
 import type { LogEntry } from "../../simulation/state";
 
 const CATEGORY_COLORS: Record<LogEntry["category"], string> = {
-  info: COLORS.textSecondary,
+  info: COLORS.success,
   discovery: COLORS.accent,
   warning: COLORS.warning,
   milestone: COLORS.success,
+  error: COLORS.error,
 };
 
 const CATEGORY_PREFIXES: Record<LogEntry["category"], string> = {
   info: "INFO",
   discovery: "DISC",
   warning: "WARN",
-  milestone: "MILE",
+  milestone: "INFO",
+  error: "ERR!",
 };
 
 function formatTick(tick: number): string {
-  const hours = Math.floor(tick / 3600);
-  const minutes = Math.floor((tick % 3600) / 60);
-  const seconds = tick % 60;
-  return `${String(hours).padStart(4, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  const cycle = 1000 + tick;
+  return String(cycle);
 }
 
 export function Log() {

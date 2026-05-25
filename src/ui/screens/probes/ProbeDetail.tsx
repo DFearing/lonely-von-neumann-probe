@@ -29,7 +29,7 @@ export function ProbeDetail({
   ];
 
   const telemetry = [
-    { k: "MINING", v: `${(probe.miningOutput * probe.health).toFixed(1)} T/year`, acc: "#5fd9c4" },
+    { k: "MINING", v: `${(probe.miningOutput * probe.health).toFixed(1)} T/cycle`, acc: "#5fd9c4" },
     { k: "COMPUTE", v: `${(probe.computingOutput * probe.health).toFixed(1)} TFLOPS`, acc: "#b08bff" },
     { k: "SPEED", v: `×${prop.travelSpeed.toFixed(1)}`, acc: "#4ddbff" },
   ];

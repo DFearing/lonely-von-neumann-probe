@@ -15,7 +15,7 @@ import { tickEvents } from "./systems/events";
 import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
-import { hasPrerequisites } from "./queries";
+
 import { purchaseUpgrade, calculatePrestigePoints } from "./prestige";
 import type { PrestigeUpgradeId } from "./prestige";
 
@@ -166,8 +166,6 @@ function applyStartResearch(
   const tech = TECH_TREE[action.techId];
   if (!tech) return state;
 
-  if (!hasPrerequisites(system, action.techId)) return state;
-
   const alreadyResearching = system.researchQueue.some(
     (p) => p.techId === action.techId,
   );
@@ -317,10 +315,37 @@ function applySetProbeMode(
   const system = getSystem(state, action.systemId);
   if (!system?.mainProbe) return state;
 
-  return updateSystem(state, action.systemId, {
-    ...system,
-    mainProbe: { ...system.mainProbe, mode: action.mode },
-  });
+  const probe = system.mainProbe;
+  if (probe.mode === action.mode) return state;
+
+  let message: string;
+  let updatedProbe = { ...probe, mode: action.mode };
+
+  if (probe.mode === "gathering") {
+    const gathered = system.resources.materials - (probe.gatheringStartMaterials ?? 0);
+    const { gatheringStartMaterials: _, ...probeWithoutGathering } = updatedProbe;
+    updatedProbe = probeWithoutGathering as typeof updatedProbe;
+    message = gathered > 0
+      ? `${probe.name} stopped gathering (${(Math.round(gathered * 10) / 10).toFixed(1)} tons collected)`
+      : `${probe.name} stopped gathering`;
+  } else if (action.mode === "gathering") {
+    updatedProbe = { ...updatedProbe, gatheringStartMaterials: system.resources.materials };
+    message = `${probe.name} began gathering`;
+  } else if (action.mode === "printing") {
+    message = `${probe.name} began printing`;
+  } else if (action.mode === "idle") {
+    message = `${probe.name} is now idle`;
+  } else {
+    message = `${probe.name} mode: ${action.mode}`;
+  }
+
+  return {
+    ...updateSystem(state, action.systemId, {
+      ...system,
+      mainProbe: updatedProbe,
+    }),
+    log: [...state.log, { tick: state.tickCount, message, category: "info" as const }],
+  };
 }
 
 function applyAction(state: GameState, action: PlayerAction): GameState {
@@ -393,6 +418,14 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
   }
 }
 
+function isAllProbesDead(state: GameState): boolean {
+  for (const sys of Object.values(state.systems)) {
+    if (sys.mainProbe && sys.mainProbe.health > 0) return false;
+    if (sys.sentProbes.length > 0) return false;
+  }
+  return true;
+}
+
 export function tick(
   state: GameState,
   dt: number,
@@ -411,6 +444,24 @@ export function tick(
   }
 
   current = tickResources(current, dt);
+
+  if (!current.gameOver && isAllProbesDead(current)) {
+    return {
+      ...current,
+      gameOver: true,
+      paused: true,
+      log: [
+        ...current.log,
+        {
+          tick: current.tickCount,
+          message: "All probe systems have gone offline. Mission failed.",
+          category: "error" as const,
+        },
+      ],
+      rngState: rng.snapshot(),
+    };
+  }
+
   current = tickConstruction(current, dt);
   current = tickResearch(current, dt);
   current = tickNavigation(current, dt, rng);

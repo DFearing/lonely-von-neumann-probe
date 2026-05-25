@@ -129,6 +129,8 @@ function completeProbe(
   project: ConstructionProject,
   tickCount: number,
   allSystems: Record<string, SystemState>,
+  probeName: string,
+  probeNumber: number,
 ): SystemState {
   const config = project.targetConfig;
   if (!config) return system;
@@ -140,7 +142,7 @@ function completeProbe(
 
   const probe: ProbeInTransit = {
     id: `${system.id}_probe_${tickCount}`,
-    name: `Probe-${tickCount}`,
+    name: `${probeName}-${String(probeNumber).padStart(2, "0")}`,
     components: {
       cpu: config.cpu,
       propulsion: config.propulsion,
@@ -208,15 +210,18 @@ function tickSystemConstruction(
   tickCount: number,
   allSystems: Record<string, SystemState>,
   prestigePrintSpeedMultiplier: number,
-): { system: SystemState; log: GameState["log"] } {
+  probeName: string,
+  nextProbeNumber: number,
+): { system: SystemState; log: GameState["log"]; probesBuilt: number } {
   if (system.constructionQueue.length === 0) {
-    return { system, log: [] };
+    return { system, log: [], probesBuilt: 0 };
   }
 
   const multipliers = getTechMultipliers(system.completedResearch);
   const log: GameState["log"] = [];
   let updatedSystem = system;
   const updatedQueue: ConstructionProject[] = [];
+  let probesBuilt = 0;
 
   const computeEfficiency = updatedSystem.resourceRates.computeEfficiency;
 
@@ -268,7 +273,10 @@ function tickSystemConstruction(
           project,
           tickCount,
           allSystems,
+          probeName,
+          nextProbeNumber + probesBuilt,
         );
+        probesBuilt++;
         log.push({
           tick: tickCount,
           message: `Probe constructed and launched toward ${project.targetConfig.targetSystemId}`,
@@ -294,13 +302,22 @@ function tickSystemConstruction(
     multipliers.printerNetworking,
   );
 
-  const finishedSystem = { ...updatedSystem, constructionQueue: finalQueue };
+  let finishedSystem: SystemState = { ...updatedSystem, constructionQueue: finalQueue };
 
   if (finalQueue.length === 0 && finishedSystem.mainProbe?.mode === "printing") {
-    finishedSystem.mainProbe = { ...finishedSystem.mainProbe, mode: "idle" };
+    const probe = finishedSystem.mainProbe;
+    finishedSystem = {
+      ...finishedSystem,
+      mainProbe: { ...probe, mode: "idle" },
+    };
+    log.push({
+      tick: tickCount,
+      message: `${probe.name} finished printing — queue empty`,
+      category: "info",
+    });
   }
 
-  return { system: finishedSystem, log };
+  return { system: finishedSystem, log, probesBuilt };
 }
 
 export function tickConstruction(state: GameState, dt: number): GameState {
@@ -308,6 +325,7 @@ export function tickConstruction(state: GameState, dt: number): GameState {
   let newLog = state.log;
   const newSystems: Record<string, SystemState> = {};
   let changed = false;
+  let totalProbesBuilt = 0;
 
   for (const [id, system] of Object.entries(state.systems)) {
     const result = tickSystemConstruction(
@@ -316,6 +334,8 @@ export function tickConstruction(state: GameState, dt: number): GameState {
       state.tickCount,
       state.systems,
       prestigePrintSpeedMultiplier,
+      state.probeName,
+      state.nextProbeNumber + totalProbesBuilt,
     );
     newSystems[id] = result.system;
     if (result.log.length > 0) {
@@ -325,6 +345,7 @@ export function tickConstruction(state: GameState, dt: number): GameState {
     if (result.system !== system) {
       changed = true;
     }
+    totalProbesBuilt += result.probesBuilt;
   }
 
   if (!changed) return state;
@@ -333,5 +354,6 @@ export function tickConstruction(state: GameState, dt: number): GameState {
     ...state,
     systems: newSystems,
     log: newLog,
+    nextProbeNumber: state.nextProbeNumber + totalProbesBuilt,
   };
 }

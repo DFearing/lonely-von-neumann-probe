@@ -275,22 +275,8 @@ describe("calculateRates", () => {
 
   // ── Station cost reduction ──────────────────────────────────────
 
-  describe("station cost reduction", () => {
-    test("computing_speed_t1 reduces station operating costs", () => {
-      const system = makeSystem({
-        completedResearch: { computing_speed_t1: true },
-        structures: {
-          miners: [],
-          reactors: [],
-          printers: [],
-          stations: [makeStructure({ type: "station", operatingCost: 2, maintenanceCost: 0 })],
-        },
-      });
-      const rates = calculateRates(system);
-      expect(rates.energyDemand).toBeCloseTo(2 / 1.05);
-    });
-
-    test("computing_speed_t1 reduces station maintenance costs", () => {
+  describe("computing multiplier", () => {
+    test("computing_speed_t1 boosts station compute output", () => {
       const system = makeSystem({
         mainProbe: null,
         completedResearch: { computing_speed_t1: true },
@@ -298,11 +284,20 @@ describe("calculateRates", () => {
           miners: [],
           reactors: [],
           printers: [],
-          stations: [makeStructure({ type: "station", maintenanceCost: 1, operatingCost: 0 })],
+          stations: [makeStructure({ type: "station", productionRate: 2 })],
         },
       });
       const rates = calculateRates(system);
-      expect(rates.materialsDemand).toBeCloseTo(1 / 1.05);
+      expect(rates.computeSupply).toBeCloseTo(2 * 1.05);
+    });
+
+    test("computing_speed_t1 boosts probe compute output", () => {
+      const system = makeSystem({
+        completedResearch: { computing_speed_t1: true },
+        structures: { miners: [], reactors: [], printers: [], stations: [] },
+      });
+      const rates = calculateRates(system);
+      expect(rates.computeSupply).toBeCloseTo(1 * 1.05);
     });
   });
 

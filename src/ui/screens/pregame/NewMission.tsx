@@ -10,7 +10,7 @@ export function NewMission({
   onStart: (name: string) => void;
   onBack: () => void;
 }) {
-  const [name, setName] = useState("Lonely-Probe-01");
+  const [name, setName] = useState("Lonely-Probe");
   const valid = name.trim().length >= 2;
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function NewMission({
               onKeyDown={(e) => {
                 if (e.key === "Enter" && valid) onStart(name.trim());
               }}
-              placeholder="Lonely-Probe-01"
+              placeholder="Lonely-Probe"
               autoFocus
               style={{
                 width: "100%",
