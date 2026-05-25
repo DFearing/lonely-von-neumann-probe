@@ -19,25 +19,26 @@ function tickSystemResearch(
     return { system, log: [] };
   }
 
-  const incompleteProjects = system.researchQueue.filter((p) => !p.completed && !p.paused);
-  const candidates = incompleteProjects.slice(0, multipliers.maxConcurrentResearch);
-
-  const removedIds = new Set<string>();
-  const activeProjects = [];
-  for (const p of candidates) {
-    if (p.progress === 0 && !hasPrerequisites(system, p.techId)) {
-      removedIds.add(p.id);
+  const ready: typeof system.researchQueue = [];
+  const blocked: typeof system.researchQueue = [];
+  for (const p of system.researchQueue) {
+    if (p.completed || p.paused) {
+      ready.push(p);
+    } else if (p.progress > 0 || hasPrerequisites(system, p.techId)) {
+      ready.push(p);
     } else {
-      activeProjects.push(p);
+      blocked.push(p);
     }
   }
 
-  if (removedIds.size > 0) {
-    system = {
-      ...system,
-      researchQueue: system.researchQueue.filter((p) => !removedIds.has(p.id)),
-    };
+  if (blocked.length > 0 && ready.some((p) => !p.completed && !p.paused)) {
+    system = { ...system, researchQueue: [...ready, ...blocked] };
   }
+
+  const incompleteProjects = system.researchQueue.filter((p) => !p.completed && !p.paused);
+  const activeProjects = incompleteProjects
+    .filter((p) => p.progress > 0 || hasPrerequisites(system, p.techId))
+    .slice(0, multipliers.maxConcurrentResearch);
 
   if (activeProjects.length === 0) {
     return { system, log: [] };
@@ -86,7 +87,7 @@ function tickSystemResearch(
     return { system, log: [] };
   }
 
-  const updatedQueue = system.researchQueue
+  let updatedQueue = system.researchQueue
     .filter((p) => !completedIds.has(p.id))
     .map((p) => {
       const newProgress = updatedProgressMap.get(p.id);
@@ -95,6 +96,17 @@ function tickSystemResearch(
       }
       return p;
     });
+
+  if (completedIds.size > 0) {
+    let unpaused = 0;
+    updatedQueue = updatedQueue.map((p) => {
+      if (p.paused && !p.completed && unpaused < completedIds.size) {
+        unpaused++;
+        return { ...p, paused: false };
+      }
+      return p;
+    });
+  }
 
   const shouldDiscoverBlackHole =
     newlyCompleted["computing_architecture_t4"] === true &&

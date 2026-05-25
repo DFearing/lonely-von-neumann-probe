@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import type { SystemState } from "../../../simulation/state";
 import { MAX_TIER } from "../../../simulation/state";
 import {
@@ -542,6 +541,8 @@ export function DepMap({
             const dimmed = relatedNodes !== null && !relatedNodes.has(tech.id);
             const isCompleted = status === "completed";
             const queuePos = queueMap.get(tech.id) ?? null;
+            const project = system.researchQueue.find((p) => p.techId === tech.id);
+            const progress = project ? project.progress : 0;
 
             const isAncestor = ancestors.has(tech.id);
 
@@ -584,37 +585,51 @@ export function DepMap({
                     width: NODE_SIZE,
                     height: NODE_SIZE,
                     borderRadius: "50%",
-                    background: isCompleted ? STATUS_BG.completed : STATUS_BG[status],
+                    background: STATUS_BG[status],
                     border: `1.5px solid ${borderColor}`,
                     boxShadow: shadow,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     position: "relative",
+                    overflow: "hidden",
                     transition: "box-shadow .15s, border-color .15s, transform .15s",
                     transform: isSelected ? "scale(1.15)" : "scale(1)",
                   }}
                 >
+                  {progress > 0 && !isCompleted && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: `${progress * 100}%`,
+                        background: "rgba(176,139,255,0.25)",
+                        transition: "height 0.3s ease-out",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
                   <span
                     style={{
                       fontSize: 16,
-                      color: isCompleted ? "#4cd8a8" : meta.color,
+                      color: isCompleted ? "#e8f0f8" : meta.color,
                       opacity: status === "locked" ? 0.5 : 1,
+                      position: "relative",
                     }}
                   >
-                    {isCompleted ? (
-                      <FontAwesomeIcon icon={faCheck} />
-                    ) : (
-                      <FontAwesomeIcon icon={meta.icon} />
-                    )}
+                    <FontAwesomeIcon icon={meta.icon} />
                   </span>
+                </div>
 
                 {queuePos !== null && (
                   <span
                     style={{
                       position: "absolute",
-                      top: -4,
-                      right: -6,
+                      top: 14 - 4,
+                      left: "50%",
+                      marginLeft: NODE_SIZE / 2 - 6,
                       fontFamily: FONT_MONO,
                       fontSize: 10,
                       fontWeight: 700,
@@ -627,6 +642,7 @@ export function DepMap({
                       alignItems: "center",
                       justifyContent: "center",
                       lineHeight: 1,
+                      zIndex: 2,
                     }}
                   >
                     {queuePos}
@@ -637,14 +653,18 @@ export function DepMap({
                   <div
                     style={{
                       position: "absolute",
-                      inset: -4,
+                      top: 14 - 4,
+                      left: "50%",
+                      marginLeft: -(NODE_SIZE / 2 + 4),
+                      width: NODE_SIZE + 8,
+                      height: NODE_SIZE + 8,
                       borderRadius: "50%",
                       border: "1.5px solid rgba(176,139,255,0.35)",
                       animation: "depmap-pulse 2s ease-in-out infinite",
+                      pointerEvents: "none",
                     }}
                   />
                 )}
-                </div>
                 <span
                   style={{
                     marginTop: 6,

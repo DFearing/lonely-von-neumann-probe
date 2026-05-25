@@ -184,7 +184,7 @@ describe("tick", () => {
       expect(sol.researchQueue[0]!.progress).toBeGreaterThanOrEqual(0);
     });
 
-    test("missing prerequisite prevents research from starting", () => {
+    test("missing prerequisite prevents research from progressing", () => {
       const tier2TechId = "mining_efficiency_t2";
       const state = stateWithResources(1000, 1000);
 
@@ -197,7 +197,8 @@ describe("tick", () => {
       const next = tick(state, DT, [action]);
       const sol = next.systems["sol"]!;
 
-      expect(sol.researchQueue.length).toBe(0);
+      expect(sol.researchQueue.length).toBe(1);
+      expect(sol.researchQueue[0]!.progress).toBe(0);
     });
   });
 

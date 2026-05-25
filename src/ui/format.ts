@@ -24,7 +24,7 @@ export function fmtPercent(ratio: number): string {
 
 export function fmtCycles(seconds: number): string {
   if (seconds <= 0) return "now";
-  const cycles = seconds;
-  if (cycles < 1000) return Math.round(cycles) + (Math.round(cycles) === 1 ? " cycle" : " cycles");
-  return fmt(Math.round(cycles / 1000)) + " thousand cycles";
+  const rounded = Math.round(seconds);
+  const label = rounded === 1 ? " cycle" : " cycles";
+  return fmt(rounded) + label;
 }
