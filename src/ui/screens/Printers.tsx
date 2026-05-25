@@ -11,7 +11,7 @@ import { ScreenHeader } from "../components/ScreenHeader";
 import { Panel } from "../components/Panel";
 import { btnFlush } from "../components/buttons";
 import { FONT_MONO } from "../tokens";
-import { fmt, fmtYears } from "../format";
+import { fmt, fmtCycles } from "../format";
 
 // ---------------------------------------------------------------------------
 // View-model types
@@ -951,7 +951,7 @@ function PrnRow({
                   {pct.toFixed(0)}%
                 </span>
                 <span style={{ color: "#9ab4cf" }}>
-                  {eta < Infinity ? fmtYears(eta) : "—"}
+                  {eta < Infinity ? fmtCycles(eta) : "—"}
                 </span>
               </div>
             </Fragment>
@@ -1205,7 +1205,7 @@ function PrnDetail({
               {pct.toFixed(1)}%
             </span>
             <span style={{ color: "#9ab4cf" }}>
-              {eta < Infinity ? fmtYears(eta) : "—"}
+              {eta < Infinity ? fmtCycles(eta) : "—"}
               {" "}
               <span style={{ color: "#3d5572" }}>remaining</span>
             </span>

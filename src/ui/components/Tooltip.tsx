@@ -7,9 +7,11 @@ const ARROW_SIZE = 5;
 export function Tooltip({
   content,
   children,
+  block,
 }: {
   content: ReactNode;
   children: ReactNode;
+  block?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -36,7 +38,7 @@ export function Tooltip({
         ref={triggerRef}
         onMouseEnter={show}
         onMouseLeave={hide}
-        style={{ display: "inline-flex" }}
+        style={{ display: block ? "flex" : "inline-flex" }}
       >
         {children}
       </span>
