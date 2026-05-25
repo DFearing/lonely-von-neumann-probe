@@ -420,6 +420,14 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
   }
 }
 
+function isAllProbesDead(state: GameState): boolean {
+  for (const sys of Object.values(state.systems)) {
+    if (sys.mainProbe && sys.mainProbe.health > 0) return false;
+    if (sys.sentProbes.length > 0) return false;
+  }
+  return true;
+}
+
 export function tick(
   state: GameState,
   dt: number,
@@ -438,6 +446,24 @@ export function tick(
   }
 
   current = tickResources(current, dt);
+
+  if (!current.gameOver && isAllProbesDead(current)) {
+    return {
+      ...current,
+      gameOver: true,
+      paused: true,
+      log: [
+        ...current.log,
+        {
+          tick: current.tickCount,
+          message: "All probe systems have gone offline. Mission failed.",
+          category: "error" as const,
+        },
+      ],
+      rngState: rng.snapshot(),
+    };
+  }
+
   current = tickConstruction(current, dt);
   current = tickResearch(current, dt);
   current = tickNavigation(current, dt, rng);

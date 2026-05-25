@@ -10,6 +10,7 @@ import { useSoundSettings } from "../../audio/use-sound-events";
 import { DEV_MODE } from "../../simulation/dev";
 import { soundManager } from "../../audio/sound-manager";
 import { Tooltip } from "../components/Tooltip";
+import { fmt } from "../format";
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";
@@ -189,7 +190,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {cycle}
+          {fmt(cycle)}
         </span>
       </div>
     </div>
