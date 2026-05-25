@@ -171,6 +171,7 @@ export function StructureColumn({
           </span>
         }
         style={{
+          flex: 1,
           display: "flex",
           flexDirection: "column",
           minHeight: 0,
@@ -216,6 +217,7 @@ export function StructureColumn({
         </span>
       }
       style={{
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         minHeight: 0,

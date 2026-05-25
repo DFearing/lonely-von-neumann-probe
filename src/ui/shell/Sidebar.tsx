@@ -1,6 +1,6 @@
 import { createContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGaugeHigh, faRocket, faGlobe, faFlask, faTerminal, faStar, faGear, faArrowLeftLong } from "@fortawesome/free-solid-svg-icons";
+import { faGaugeHigh, faRocket, faGlobe, faFlask, faTerminal, faStar, faGear, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
@@ -165,7 +165,7 @@ export function Sidebar({
             onMouseEnter={(e) => { soundManager.playUI("ui_hover"); e.currentTarget.style.color = "#d6e8f5"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "#6b87a3"; }}
           >
-            <FontAwesomeIcon icon={faArrowLeftLong} style={{ width: 18, height: 18 }} />
+            <FontAwesomeIcon icon={faArrowRightFromBracket} style={{ width: 18, height: 18, transform: "scaleX(-1)" }} />
             Mission Archives
           </div>
         )}
