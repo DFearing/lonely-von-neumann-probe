@@ -11,6 +11,7 @@ import { getTechStatus, type TechStatus } from "../../../simulation/queries";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
 import { BRANCH_META } from "../../data/branch-meta";
+import { soundManager } from "../../../audio/sound-manager";
 
 const TIER_W = 168;
 const ROW_H = 102;
@@ -290,7 +291,7 @@ export function DepMap({
 
   return (
     <Panel
-      label="DEPENDENCY MAP"
+      label="TECHNOLOGY MAP"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -407,7 +408,7 @@ export function DepMap({
                       fontSize: 9,
                       fontWeight: 600,
                       letterSpacing: "0.12em",
-                      color: BRANCH_META[branchId]?.color ?? "#4d6f8a",
+                      color: "#6b87a3",
                       textTransform: "uppercase",
                       textAlign: "right",
                       opacity: 0.7,
@@ -511,7 +512,7 @@ export function DepMap({
             return (
               <div
                 key={tech.id}
-                onClick={(e) => { e.stopPropagation(); onSelect(isSelected ? null : tech.id); }}
+                onClick={(e) => { e.stopPropagation(); soundManager.playUI("ui_click"); onSelect(isSelected ? null : tech.id); }}
                 onDoubleClick={() => handleDoubleClick(tech.id)}
                 style={{
                   position: "absolute",
@@ -524,7 +525,7 @@ export function DepMap({
                   alignItems: "center",
                   paddingTop: 14,
                   cursor: "pointer",
-                  opacity: dimmed ? 0.28 : 1,
+                  opacity: dimmed ? 0.55 : 1,
                   transition: "opacity .15s",
                   zIndex: isSelected ? 20 : dimmed ? 6 : 7,
                 }}
@@ -605,8 +606,10 @@ export function DepMap({
                     lineHeight: 1.15,
                     maxWidth: TIER_W - 16,
                     overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    wordBreak: "break-word",
                   }}
                 >
                   {tech.name}

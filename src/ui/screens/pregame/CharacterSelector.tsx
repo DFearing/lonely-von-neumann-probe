@@ -278,6 +278,7 @@ function OperatorRow({
     slot.systemCount === 1
       ? `${slot.systemCount} SYSTEM`
       : `${slot.systemCount} SYSTEMS`;
+  const dead = slot.gameOver === true;
 
   return (
     <>
@@ -297,8 +298,12 @@ function OperatorRow({
         onMouseLeave={() => setHover(false)}
         style={{
           padding: "14px 16px",
-          background: hover ? "rgba(77,219,255,0.10)" : "rgba(8,16,30,0.5)",
-          border: `1px solid ${hover ? "#4ddbff" : "rgba(110,200,255,0.16)"}`,
+          background: dead
+            ? hover ? "rgba(255,85,85,0.10)" : "rgba(255,85,85,0.04)"
+            : hover ? "rgba(77,219,255,0.10)" : "rgba(8,16,30,0.5)",
+          border: `1px solid ${dead
+            ? hover ? "rgba(255,85,85,0.50)" : "rgba(255,85,85,0.20)"
+            : hover ? "#4ddbff" : "rgba(110,200,255,0.16)"}`,
           cursor: "pointer",
           display: "grid",
           gridTemplateColumns: "auto 1fr auto auto",
@@ -312,8 +317,9 @@ function OperatorRow({
             width: 10,
             height: 10,
             borderRadius: "50%",
-            background: "#4cd8a8",
-            boxShadow: "0 0 6px #4cd8a8",
+            background: dead ? "#ff5555" : "#4cd8a8",
+            boxShadow: dead ? "0 0 6px #ff5555" : "0 0 6px #4cd8a8",
+            opacity: dead ? 0.6 : 1,
           }}
         />
         <div style={{ minWidth: 0 }}>
@@ -332,11 +338,12 @@ function OperatorRow({
             style={{
               fontFamily: FONT_MONO,
               fontSize: 10,
-              color: "#6b87a3",
+              color: dead ? "#ff5555" : "#6b87a3",
               marginTop: 4,
               letterSpacing: "0.14em",
             }}
           >
+            {dead && <>SIGNAL LOST {"·"} </>}
             CYCLE {slot.cycle} {"·"} {systemLabel} {"·"}{" "}
             {slot.structureCount} STRUCTURES
           </div>

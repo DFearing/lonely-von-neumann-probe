@@ -4,6 +4,7 @@ import { useTour } from "./TourProvider";
 import { useTourTrigger } from "./useTourTrigger";
 import { useLoop } from "../context";
 import { FONT_MONO, FONT_DISPLAY, COLORS } from "../tokens";
+import { soundManager } from "../../audio/sound-manager";
 
 const PADDING = 8;
 const TOOLTIP_GAP = 12;
@@ -100,6 +101,14 @@ export function TourOverlay() {
 
   const showing = active && !!currentStep && !waiting && !!rect;
   const shouldPause = showing && !currentStep?.advanceOn;
+  const prevStepRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!showing || !currentStep) return;
+    if (prevStepRef.current === currentStep.id) return;
+    prevStepRef.current = currentStep.id;
+    soundManager.playUI("tour_step");
+  }, [showing, currentStep]);
 
   useEffect(() => {
     if (!shouldPause) return;

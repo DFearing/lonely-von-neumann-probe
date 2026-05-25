@@ -118,3 +118,19 @@ export const healthThreshold: Recipe = (ctx, dest) => {
   osc(ctx, dest, "square", 440, now + 0.08, 0.06, 0.25);
   osc(ctx, dest, "square", 440, now + 0.16, 0.06, 0.25);
 };
+
+export const tourStep: Recipe = (ctx, dest) => {
+  const now = ctx.currentTime;
+  osc(ctx, dest, "sine", 880, now, 0.08, 0.15);
+  osc(ctx, dest, "sine", 1100, now + 0.06, 0.1, 0.18);
+};
+
+export const uiClick: Recipe = (ctx, dest) => {
+  const now = ctx.currentTime;
+  osc(ctx, dest, "sine", 660, now, 0.04, 0.12);
+};
+
+export const uiHover: Recipe = (ctx, dest) => {
+  const now = ctx.currentTime;
+  osc(ctx, dest, "sine", 440, now, 0.025, 0.06);
+};

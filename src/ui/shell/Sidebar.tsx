@@ -5,6 +5,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
 import { DEV_MODE } from "../../simulation/dev";
+import { soundManager } from "../../audio/sound-manager";
 import { Tooltip } from "../components/Tooltip";
 
 export type ViewId = "overview" | "fleet" | "systems" | "research" | "log" | "prestige";
@@ -65,7 +66,7 @@ export function Sidebar({
           <div
             key={item.id}
             data-tour={`nav-${item.id}`}
-            onClick={() => onNavigate(item.id)}
+            onClick={() => { soundManager.playUI("ui_click"); onNavigate(item.id); }}
             style={{
               display: "flex",
               alignItems: "center",
@@ -84,7 +85,7 @@ export function Sidebar({
               transition: "color .15s, background .15s",
             }}
             onMouseEnter={() => {
-              if (!active && !dimmed) setHoveredId(item.id);
+              if (!active && !dimmed) { soundManager.playUI("ui_hover"); setHoveredId(item.id); }
             }}
             onMouseLeave={() => setHoveredId(null)}
           >
@@ -150,7 +151,7 @@ function PrestigeNavItem({
 }) {
   const node = (
     <div
-      onClick={() => onNavigate("prestige")}
+      onClick={() => { soundManager.playUI("ui_click"); onNavigate("prestige"); }}
       style={{
         display: "flex",
         alignItems: "center",
@@ -171,7 +172,7 @@ function PrestigeNavItem({
         transition: "color .15s, background .15s",
       }}
       onMouseEnter={() => {
-        if (!active && !dimmed) onHover("prestige");
+        if (!active && !dimmed) { soundManager.playUI("ui_hover"); onHover("prestige"); }
       }}
       onMouseLeave={() => onHover(null)}
     >

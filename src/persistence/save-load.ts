@@ -18,6 +18,7 @@ export interface SaveSlotInfo {
   cycle: number;
   systemCount: number;
   structureCount: number;
+  gameOver?: boolean;
 }
 
 function isValidSaveData(data: unknown): data is SaveData {
@@ -105,6 +106,7 @@ export function saveGameSlot(
     existing.cycle = stats.cycle;
     existing.systemCount = stats.systemCount;
     existing.structureCount = stats.structureCount;
+    existing.gameOver = state.gameOver;
   } else {
     index.push({
       key: slotKey,
@@ -115,6 +117,7 @@ export function saveGameSlot(
       cycle: stats.cycle,
       systemCount: stats.systemCount,
       structureCount: stats.structureCount,
+      gameOver: state.gameOver,
     });
   }
   writeSaveIndex(index);
