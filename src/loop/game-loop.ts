@@ -1,6 +1,7 @@
 import type { GameState } from "../simulation/state";
 import type { PlayerAction, GameSpeed } from "../simulation/actions";
 import { tick } from "../simulation/tick";
+import { getPrestigeMultipliers } from "../simulation/prestige";
 
 export const TICK_MS = 100;
 const MAX_TICKS_PER_FRAME = 200;
@@ -41,7 +42,8 @@ export function createGameLoop(initialState: GameState): GameLoop {
   }
 
   function runTick(): void {
-    const actions = actionQueue.splice(0);
+    const actions: PlayerAction[] =
+      actionQueue.length > 0 ? [actionQueue.shift()!] : [];
     state = tick(state, TICK_MS / 1000, actions);
   }
 
@@ -59,7 +61,8 @@ export function createGameLoop(initialState: GameState): GameLoop {
       }
     } else {
       const delta = now - lastTime;
-      accumulator += delta * state.speed;
+      const prestigeSpeed = getPrestigeMultipliers(state.prestige).gameSpeedMultiplier;
+      accumulator += delta * state.speed * prestigeSpeed;
 
       let ticked = false;
       let ticksThisFrame = 0;
