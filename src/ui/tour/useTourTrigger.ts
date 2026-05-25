@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useGameState } from "../context";
 import { isTourCompleted } from "./tour-persistence";
 import { useTour } from "./TourProvider";
+import { DEV_MODE } from "../../simulation/dev";
 
 export function useTourTrigger() {
   const state = useGameState();
@@ -10,7 +11,7 @@ export function useTourTrigger() {
 
   useEffect(() => {
     if (!freshGame) return;
-    if (isTourCompleted()) return;
+    if (!DEV_MODE && isTourCompleted()) return;
     startTour();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }

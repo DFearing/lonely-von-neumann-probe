@@ -247,8 +247,8 @@ export function DepMap({
     if (!tech) return;
     const center = nodeCenter(rowMap.get(tech.branchId) ?? 0, tech.tier);
     const container = scrollRef.current;
-    const scrollLeft = center.x - container.clientWidth / 2;
-    container.scrollLeft = Math.max(0, scrollLeft);
+    const scrollLeft = Math.max(0, center.x - container.clientWidth / 2);
+    container.scrollTo({ left: scrollLeft, behavior: "smooth" });
   }, [selectedTech, rowMap]);
 
   const groupBands = useMemo(() => {

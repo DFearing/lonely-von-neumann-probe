@@ -211,6 +211,7 @@ export function TourOverlay() {
           lineHeight: 1.5,
           color: COLORS.textPrimary,
           marginBottom: 16,
+          whiteSpace: "pre-wrap",
         }}>
           {currentStep.body}
         </div>

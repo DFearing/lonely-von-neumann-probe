@@ -372,9 +372,10 @@ export function ProbesColumn({
           overflow: "auto",
         }}
       >
-        {fleet.map((p) => (
+        {fleet.map((p, i) => (
           <div
             key={p.id}
+            {...(i === 0 ? { "data-tour": "probe" } : {})}
             style={{
               padding: "12px 14px",
               background: `${ACCENT}06`,

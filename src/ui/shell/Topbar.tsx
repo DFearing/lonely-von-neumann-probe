@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear, faArrowRightFromBracket, faForwardFast } from "@fortawesome/free-solid-svg-icons";
+import { faGear, faRotateLeft, faForwardFast } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useGameState, useCurrentSystem, useLoop } from "../context";
 import { FONT_MONO } from "../tokens";
@@ -177,7 +177,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         {onOpenAutopilot && <TopbarIconButton icon={faForwardFast} title="Autopilot" onClick={onOpenAutopilot} />}
         {onOpenSettings && <TopbarIconButton icon={faGear} title="Settings" onClick={onOpenSettings} />}
-        {onBack && <TopbarIconButton icon={faArrowRightFromBracket} title="Switch operator" onClick={onBack} />}
+        {onBack && <TopbarIconButton icon={faRotateLeft} title="Switch operator" onClick={onBack} />}
       </div>
       <div style={{ flex: 1 }} />
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
