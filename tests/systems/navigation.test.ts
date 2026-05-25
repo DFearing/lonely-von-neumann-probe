@@ -174,7 +174,7 @@ describe("tickNavigation", () => {
   });
 
   describe("probe arrival at occupied system", () => {
-    test("arriving probe is discarded when destination already has a mainProbe", () => {
+    test("arriving probe is added to availableProbes when destination already has a mainProbe", () => {
       const state = stateWithProbeInTransit({
         id: "arriving_probe",
         destinationSystemId: "sol",
@@ -217,6 +217,8 @@ describe("tickNavigation", () => {
       const next = tickNavigation(stateWithTransit, DT, rng);
 
       expect(next.systems["sol"]!.mainProbe!.id).toBe(originalProbeId);
+      expect(next.systems["sol"]!.availableProbes).toHaveLength(1);
+      expect(next.systems["sol"]!.availableProbes[0]!.id).toBe("arriving_probe");
       expect(next.systems["alpha_centauri"]!.sentProbes).toHaveLength(0);
     });
   });

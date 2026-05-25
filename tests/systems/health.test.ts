@@ -290,7 +290,7 @@ describe("structure health system", () => {
   // ── Structures that should be exempt from drain ──────────────────
 
   describe("drain exemptions", () => {
-    test("inactive structures don't drain", () => {
+    test("inactive structures drain at reduced rate", () => {
       const system = makeSystem({
         mainProbe: null,
         resources: { materials: 0, energy: 0, computingPower: 0 },
@@ -323,12 +323,16 @@ describe("structure health system", () => {
       const inactiveStructure = nextSys.structures.miners.find(
         (m) => m.id === "m_inactive",
       )!;
-      expect(inactiveStructure.health).toBe(1);
+      expect(inactiveStructure.health).toBeLessThan(1);
 
       const activeStructure = nextSys.structures.miners.find(
         (m) => m.id === "m_active",
       )!;
       expect(activeStructure.health).toBeLessThan(1);
+
+      const activeLoss = 1 - activeStructure.health;
+      const inactiveLoss = 1 - inactiveStructure.health;
+      expect(activeLoss).toBeGreaterThan(inactiveLoss);
     });
 
     test("under-construction structures don't drain", () => {

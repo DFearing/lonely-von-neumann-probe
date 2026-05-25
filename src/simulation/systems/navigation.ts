@@ -113,6 +113,9 @@ function tickSystemNavigation(
           discovered: true,
           scanned: true,
           mainProbe: existingDest.mainProbe ?? arrivingProbe,
+          availableProbes: existingDest.mainProbe
+            ? [...existingDest.availableProbes, arrivingProbe]
+            : existingDest.availableProbes,
           completedResearch: mergedResearch,
           discoveredSystems: destDiscovered,
         };
@@ -157,11 +160,20 @@ function tickSystemNavigation(
         newSystems[destId] = system;
       }
 
-      log.push({
-        tick: tickCount,
-        message: `Probe arrived at ${existingDest?.name ?? newSystems[destId]?.name ?? destId}`,
-        category: "discovery",
-      });
+      const destName = existingDest?.name ?? newSystems[destId]?.name ?? destId;
+      if (existingDest?.mainProbe) {
+        log.push({
+          tick: tickCount,
+          message: `${probe.name} arrived at ${destName} and is standing by`,
+          category: "discovery",
+        });
+      } else {
+        log.push({
+          tick: tickCount,
+          message: `Probe arrived at ${destName}`,
+          category: "discovery",
+        });
+      }
     } else {
       remaining.push({ ...probe, elapsedSeconds: elapsed });
     }
