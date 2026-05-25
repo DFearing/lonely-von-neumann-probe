@@ -2,12 +2,14 @@
 
 A Bobiverse-inspired idle/progression browser game where players manage autonomous probes across star systems — mining materials, generating energy, researching tech, building structures, and launching new probes to expand.
 
+**Play now:** https://dfearing.github.io/lonely-von-neumann-probe/
+
 ## Quick Start
 
 ```bash
 bun install
 bun run dev        # start dev server
-bun test           # run 186 tests
+bun test           # run 452 tests
 bun run typecheck  # strict TypeScript check
 bun run build      # production build
 ```
@@ -59,6 +61,6 @@ src/
 
 ## Design Documents
 
-- `01_design_brief.md` — game overview, core loop, resource types, UI complexity levels
-- `02_detailed_context.md` — detailed state structure, all structures/components/tech, game phases
-- `03_ui_layout.md` — wireframes and layout specification (UI built separately)
+- `docs/01_design_brief.md` — game overview, core loop, resource types, UI complexity levels
+- `docs/02_detailed_context.md` — detailed state structure, all structures/components/tech, game phases
+- `docs/03_ui_layout.md` — wireframes and layout specification (UI built separately)
