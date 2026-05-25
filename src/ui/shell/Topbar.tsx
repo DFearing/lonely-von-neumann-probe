@@ -107,7 +107,8 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
       <div data-tour="topbar" style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <Tooltip placement="below" content={paused ? "Resume (Ctrl+0)" : "Pause (Ctrl+0)"}>
           <button
-            onClick={() => paused ? loop.unpause() : loop.pause()}
+            onClick={() => { soundManager.playUI("ui_click"); paused ? loop.unpause() : loop.pause(); }}
+            onMouseEnter={() => soundManager.playUI("ui_hover")}
             style={{
               fontFamily: FONT_MONO,
               fontSize: 12,
@@ -125,7 +126,8 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
         {SPEEDS.map((s, i) => (
           <Tooltip key={s} placement="below" content={`${SPEED_LABELS[s]} speed (Ctrl+${i + 1})`}>
             <button
-              onClick={() => { loop.setSpeed(s); if (paused) loop.unpause(); }}
+              onClick={() => { soundManager.playUI("ui_click"); loop.setSpeed(s); if (paused) loop.unpause(); }}
+              onMouseEnter={() => soundManager.playUI("ui_hover")}
               style={{
                 fontFamily: FONT_MONO,
                 fontSize: 11,

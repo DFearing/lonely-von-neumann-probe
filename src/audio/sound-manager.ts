@@ -5,6 +5,8 @@ import * as recipes from "./sound-recipes";
 
 type Recipe = (ctx: AudioContext, dest: AudioNode) => void;
 
+export type UISoundType = "tour_step" | "ui_click" | "ui_hover";
+
 const RECIPE_MAP: Record<SoundEventType, Recipe> = {
   research_complete: recipes.researchComplete,
   probe_constructed: recipes.probeConstructed,
@@ -14,6 +16,12 @@ const RECIPE_MAP: Record<SoundEventType, Recipe> = {
   station_constructed: recipes.stationConstructed,
   asteroid_impact: recipes.asteroidImpact,
   health_threshold: recipes.healthThreshold,
+};
+
+const UI_RECIPE_MAP: Record<UISoundType, Recipe> = {
+  tour_step: recipes.tourStep,
+  ui_click: recipes.uiClick,
+  ui_hover: recipes.uiHover,
 };
 
 class SoundManager {
@@ -45,6 +53,14 @@ class SoundManager {
     if (this.settings.muted) return;
 
     const recipe = RECIPE_MAP[event];
+    const { ctx, gain } = this.ensureContext();
+    recipe(ctx, gain);
+  }
+
+  playUI(event: UISoundType): void {
+    if (this.settings.muted) return;
+
+    const recipe = UI_RECIPE_MAP[event];
     const { ctx, gain } = this.ensureContext();
     recipe(ctx, gain);
   }

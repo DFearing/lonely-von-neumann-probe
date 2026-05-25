@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FONT_MONO } from "../../tokens";
+import { soundManager } from "../../../audio/sound-manager";
 
 export function HeaderAddButton({
   onClick,
@@ -10,7 +11,8 @@ export function HeaderAddButton({
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => { soundManager.playUI("ui_click"); onClick(); }}
+      onMouseEnter={() => soundManager.playUI("ui_hover")}
       style={{
         width: 22,
         height: 22,
