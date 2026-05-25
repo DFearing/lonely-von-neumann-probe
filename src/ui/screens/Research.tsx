@@ -3,7 +3,7 @@ import { useCurrentSystem, useDispatch } from "../context";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { Panel } from "../components/Panel";
 import { ActiveBanner } from "./research/ActiveBanner";
-import { TechWeb } from "./research/TechWeb";
+import { DepMap } from "./research/DepMap";
 import { TechDetail } from "./research/TechDetail";
 import { ResearchQueue } from "./research/ResearchQueue";
 
@@ -15,6 +15,13 @@ export function Research() {
   const activeProject = system.researchQueue.find(
     (r) => !r.completed && !r.paused,
   );
+
+  const handleQueue = (techId: string) =>
+    dispatch({
+      type: "start_research",
+      systemId: system.id,
+      techId,
+    });
 
   return (
     <>
@@ -35,17 +42,11 @@ export function Research() {
           minHeight: 0,
         }}
       >
-        <TechWeb
+        <DepMap
           system={system}
           selectedTech={selectedTech}
           onSelect={setSelectedTech}
-          onQueue={(techId) =>
-            dispatch({
-              type: "start_research",
-              systemId: system.id,
-              techId,
-            })
-          }
+          onQueue={handleQueue}
         />
 
         <Panel

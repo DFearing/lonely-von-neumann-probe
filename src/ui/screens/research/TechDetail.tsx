@@ -330,7 +330,6 @@ export function TechDetail({
                   </div>
                   {missing.map((prereq) => {
                     const prereqMeta = BRANCH_META[prereq.branchId];
-                    const label = prereqMeta?.label ?? prereq.branchId.replaceAll("_", " ").toUpperCase();
                     const color = prereqMeta?.color ?? "#6b87a3";
                     return (
                       <div
@@ -343,7 +342,7 @@ export function TechDetail({
                           marginTop: 2,
                         }}
                       >
-                        {label} T{prereq.tier}
+                        {prereq.name}
                       </div>
                     );
                   })}
