@@ -1,12 +1,12 @@
 import { createContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGaugeHigh, faPrint, faRocket, faGlobe, faFlask, faTerminal, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faGaugeHigh, faRocket, faGlobe, faFlask, faTerminal, faStar } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
 import { DEV_MODE } from "../../simulation/dev";
 
-export type ViewId = "overview" | "printers" | "fleet" | "systems" | "research" | "log" | "prestige";
+export type ViewId = "overview" | "fleet" | "systems" | "research" | "log" | "prestige";
 
 export interface LVNPGateValue {
   onBack: (() => void) | null;
@@ -22,7 +22,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", icon: faGaugeHigh },
-  { id: "printers", label: "Printers", icon: faPrint },
   { id: "fleet", label: "Fleet", icon: faRocket },
   { id: "systems", label: "Systems", icon: faGlobe },
   { id: "research", label: "Research", icon: faFlask },

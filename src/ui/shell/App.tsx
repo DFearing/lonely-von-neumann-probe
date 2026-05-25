@@ -12,7 +12,6 @@ import { useSoundEvents } from "../../audio/use-sound-events";
 import { Log } from "../screens/Log";
 import { Prestige } from "../screens/Prestige";
 import { usePrestige, useGameState, useLoop } from "../context";
-import { Printers } from "../screens/Printers";
 import { GameOver } from "../screens/GameOver";
 import { DevAutopilot } from "../screens/DevAutopilot";
 import { DEV_MODE } from "../../simulation/dev";
@@ -41,8 +40,6 @@ function Screen({
   switch (view) {
     case "overview":
       return <Overview onNavigate={onNavigate} />;
-    case "printers":
-      return <Printers />;
     case "fleet":
       return <Probes />;
     case "systems":

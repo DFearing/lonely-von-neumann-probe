@@ -99,6 +99,8 @@ function wrapSystem(system: SystemState): GameState {
     },
     prestigeSnapshot: null,
     prestigeTriggered: false,
+    nextProbeNumber: 2,
+    probeName: "Probe",
     gameOver: false,
   };
 }
