@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faIndustry, faBolt, faAtom, faSatellite } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
@@ -509,6 +509,11 @@ export function BuildModal({
 
   const go = (d: number) => setIdx((i) => Math.max(0, Math.min(allDefs.length - 1, i + d)));
 
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    go(e.deltaY > 0 ? 1 : -1);
+  }, [allDefs.length]);
+
   return (
     <div
       onClick={onClose}
@@ -579,6 +584,7 @@ export function BuildModal({
 
             {/* Coverflow strip */}
             <div
+              onWheel={onWheel}
               style={{
                 position: "relative",
                 height: 340,
