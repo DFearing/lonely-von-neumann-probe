@@ -25,21 +25,7 @@ export function NewMission({
     <PreGameFrame label="new-mission">
       <PreGameLogo />
       <div style={{ width: 560 }}>
-        <Panel
-          label="NEW MISSION"
-          right={
-            <span
-              style={{
-                fontFamily: FONT_MONO,
-                fontSize: 10,
-                color: valid ? "#4cd8a8" : "#ff9966",
-                letterSpacing: "0.16em",
-              }}
-            >
-              {valid ? "● READY" : "◌ DESIGNATION REQUIRED"}
-            </span>
-          }
-        >
+        <Panel label="NEW MISSION">
           <div style={{ marginBottom: 18 }}>
             <div
               style={{

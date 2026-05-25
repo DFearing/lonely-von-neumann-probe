@@ -46,8 +46,8 @@ export const TOUR_STEPS: TourStep[] = [
     advanceOn: { type: "view_changed", view: "research" },
   },
   {
-    id: "research-banner",
-    target: "research-banner",
+    id: "research-select",
+    target: "tech-tier1",
     title: "RESEARCH",
     body: "...I can select a technology and begin researching...",
     placement: "bottom",
@@ -84,6 +84,14 @@ export const TOUR_STEPS: TourStep[] = [
     title: "PRINTERS",
     body: "...I could build more printers to build more structures and probes...",
     placement: "left",
+    requiredView: "overview",
+  },
+  {
+    id: "probe-build",
+    target: "probe-build",
+    title: "PROBES",
+    body: "...and eventually...\n\n              ...exploration...",
+    placement: "bottom",
     requiredView: "overview",
   },
 ];

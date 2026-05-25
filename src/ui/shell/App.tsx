@@ -111,11 +111,14 @@ export function App() {
 
       <Brand onNavigate={setView} />
       <Topbar
-        onOpenSettings={() => setShowSoundSettings(true)}
-        onBack={gate.onBack}
         {...(DEV_MODE ? { onOpenAutopilot: () => setShowDevAutopilot(true) } : {})}
       />
-      <Sidebar activeView={view} onNavigate={setView} />
+      <Sidebar
+        activeView={view}
+        onNavigate={setView}
+        onOpenSettings={() => setShowSoundSettings(true)}
+        onBack={gate.onBack}
+      />
 
       <div
         style={{

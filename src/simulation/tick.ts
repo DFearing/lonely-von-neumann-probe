@@ -506,6 +506,7 @@ export function tick(
           tick: current.tickCount,
           message: "All probe systems have gone offline. Mission failed.",
           category: "error" as const,
+          soundEvent: "game_over" as const,
         },
       ],
       rngState: rng.snapshot(),

@@ -10,6 +10,7 @@ import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { getAvailableStructures } from "../../../simulation/queries";
 import { FONT_MONO, FONT_DISPLAY } from "../../tokens";
 import { fmt } from "../../format";
+import { soundManager } from "../../../audio/sound-manager";
 
 // ---------------------------------------------------------------------------
 // Color palette (mirrors the standalone design tokens)
@@ -189,7 +190,7 @@ function NavArrow({ dir, onClick, accent, disabled }: { dir: "left" | "right"; o
   const ch = dir === "left" ? "‹" : "›";
   return (
     <button
-      onClick={onClick}
+      onClick={() => { if (!disabled) soundManager.playUI("ui_click"); onClick(); }}
       disabled={disabled}
       style={{
         width: 36,
@@ -285,7 +286,7 @@ function HeaderBar({
           return (
             <button
               key={k}
-              onClick={() => setCat(k)}
+              onClick={() => { soundManager.playUI("ui_click"); setCat(k); }}
               style={{
                 ...mono,
                 fontSize: 12,
@@ -306,7 +307,7 @@ function HeaderBar({
         })}
       </div>
       <button
-        onClick={onClose}
+        onClick={() => { soundManager.playUI("ui_click"); onClose(); }}
         style={{
           ...mono,
           fontSize: 10,
@@ -483,9 +484,9 @@ export function BuildModal({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") setIdx((i) => Math.max(0, i - 1));
-      if (e.key === "ArrowRight") setIdx((i) => Math.min(allDefs.length - 1, i + 1));
+      if (e.key === "Escape") { soundManager.playUI("ui_click"); onClose(); }
+      if (e.key === "ArrowLeft") { soundManager.playUI("ui_click"); setIdx((i) => Math.max(0, i - 1)); }
+      if (e.key === "ArrowRight") { soundManager.playUI("ui_click"); setIdx((i) => Math.min(allDefs.length - 1, i + 1)); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -498,6 +499,7 @@ export function BuildModal({
   const affordable = isAffordable(system, selectedDef);
 
   const handleBuild = () => {
+    soundManager.playUI("construction_queued");
     dispatch({
       type: "build_structure",
       systemId: system.id,
@@ -511,6 +513,7 @@ export function BuildModal({
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
+    soundManager.playUI("ui_click");
     go(e.deltaY > 0 ? 1 : -1);
   }, [allDefs.length]);
 
@@ -625,7 +628,7 @@ export function BuildModal({
                   return (
                     <div
                       key={`${def.type}_${def.tier}`}
-                      onClick={() => setIdx(i)}
+                      onClick={() => { soundManager.playUI("ui_click"); setIdx(i); }}
                       style={{
                         position: "absolute",
                         left: "50%",
@@ -696,7 +699,7 @@ export function BuildModal({
               {allDefs.map((def, i) => (
                 <button
                   key={`${def.type}_${def.tier}`}
-                  onClick={() => setIdx(i)}
+                  onClick={() => { soundManager.playUI("ui_click"); setIdx(i); }}
                   style={{
                     width: i === idx ? 18 : 6,
                     height: 6,

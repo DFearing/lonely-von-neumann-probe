@@ -154,7 +154,8 @@ export type SoundEventType =
   | "printer_constructed"
   | "station_constructed"
   | "asteroid_impact"
-  | "health_threshold";
+  | "health_threshold"
+  | "game_over";
 
 export interface LogEntry {
   tick: number;

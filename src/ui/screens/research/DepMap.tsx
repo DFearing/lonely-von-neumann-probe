@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { SystemState } from "../../../simulation/state";
 import { MAX_TIER } from "../../../simulation/state";
@@ -108,16 +108,16 @@ function buildEdges(rowMap: Map<string, number>): Edge[] {
   return edges;
 }
 
-function nodeCenter(row: number, tier: number): { x: number; y: number } {
+function nodeCenter(row: number, tier: number, tw: number = TIER_W): { x: number; y: number } {
   return {
-    x: LEFT_PAD + TIER_W * (tier - 0.5),
+    x: LEFT_PAD + tw * (tier - 0.5),
     y: HEADER_H + row * ROW_H + 14 + NODE_SIZE / 2,
   };
 }
 
-function edgePath(e: Edge): string {
-  const from = nodeCenter(e.fromRow, e.fromTier);
-  const to = nodeCenter(e.toRow, e.toTier);
+function edgePath(e: Edge, tw: number = TIER_W): string {
+  const from = nodeCenter(e.fromRow, e.fromTier, tw);
+  const to = nodeCenter(e.toRow, e.toTier, tw);
   const r = NODE_SIZE / 2 + 2;
   if (e.fromRow === e.toRow) {
     return `M${from.x + r},${from.y} L${to.x - r},${to.y}`;
@@ -218,6 +218,17 @@ export function DepMap({
 
   const rowMap = useMemo(() => buildRowMap(), []);
 
+  const [containerWidth, setContainerWidth] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([entry]) => {
+      if (entry) setContainerWidth(entry.contentRect.width);
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   let highestCompleted = 0;
   for (const [key, val] of Object.entries(system.completedResearch)) {
     if (!val) continue;
@@ -229,12 +240,16 @@ export function DepMap({
   }
   const visibleTiers = Math.min(MAX_TIER, 4 * (1 + Math.floor(highestCompleted / 4)));
 
+  const tierW = containerWidth > 0
+    ? Math.max(TIER_W, (containerWidth - LEFT_PAD) / visibleTiers)
+    : TIER_W;
+
   const allEdges = useMemo(
     () => buildEdges(rowMap).filter((e) => e.fromTier <= visibleTiers && e.toTier <= visibleTiers),
     [rowMap, visibleTiers],
   );
   const totalRows = BRANCH_GROUPS.reduce((n, g) => n + g.branches.length, 0);
-  const gridW = LEFT_PAD + TIER_W * visibleTiers;
+  const gridW = LEFT_PAD + tierW * visibleTiers;
   const gridH = HEADER_H + totalRows * ROW_H;
 
   const queueMap = useMemo(() => {
@@ -294,7 +309,7 @@ export function DepMap({
     if (!selectedTech || !scrollRef.current) return;
     const tech = TECH_TREE[selectedTech];
     if (!tech) return;
-    const center = nodeCenter(rowMap.get(tech.branchId) ?? 0, tech.tier);
+    const center = nodeCenter(rowMap.get(tech.branchId) ?? 0, tech.tier, tierW);
     const container = scrollRef.current;
     const scrollLeft = Math.max(0, center.x - container.clientWidth / 2);
     container.scrollTo({ left: scrollLeft, behavior: "smooth" });
@@ -358,7 +373,7 @@ export function DepMap({
           userSelect: "none",
         }}
       >
-        <div style={{ position: "relative", width: gridW, height: gridH }}>
+        <div style={{ position: "relative", width: gridW, height: gridH, minWidth: "100%" }}>
           {groupBands.map((band, i) => (
             <div
               key={band.groupId}
@@ -380,8 +395,8 @@ export function DepMap({
               style={{
                 position: "absolute",
                 top: 0,
-                left: LEFT_PAD + TIER_W * (tier - 1),
-                width: TIER_W,
+                left: LEFT_PAD + tierW * (tier - 1),
+                width: tierW,
                 height: HEADER_H,
                 display: "flex",
                 alignItems: "center",
@@ -491,7 +506,7 @@ export function DepMap({
               return (
                 <path
                   key={`${e.fromId}-${e.toId}`}
-                  d={edgePath(e)}
+                  d={edgePath(e, tierW)}
                   fill="none"
                   stroke={color}
                   strokeWidth={glow ? 2.5 : 1}
@@ -503,8 +518,8 @@ export function DepMap({
           </svg>
 
           {visibleEdges.filter((e) => e.linear).map((e) => {
-            const from = nodeCenter(e.fromRow, e.fromTier);
-            const to = nodeCenter(e.toRow, e.toTier);
+            const from = nodeCenter(e.fromRow, e.fromTier, tierW);
+            const to = nodeCenter(e.toRow, e.toTier, tierW);
             const r = NODE_SIZE / 2 + 4;
             const left = from.x + r;
             const width = to.x - r - left;
@@ -532,7 +547,7 @@ export function DepMap({
           {Object.values(TECH_TREE).filter((t) => t.tier <= visibleTiers).map((tech) => {
             const r = rowMap.get(tech.branchId);
             if (r === undefined) return null;
-            const center = nodeCenter(r, tech.tier);
+            const center = nodeCenter(r, tech.tier, tierW);
             const status = getTechStatus(system, tech.id);
             const isSelected = selectedTech === tech.id;
             const meta = BRANCH_META[tech.branchId];
@@ -563,12 +578,13 @@ export function DepMap({
             return (
               <div
                 key={tech.id}
+                data-tour={tech.tier === 1 && tech.branchId === "mining_efficiency" ? "tech-tier1" : undefined}
                 onClick={(e) => handleNodeClick(e, tech.id, isSelected)}
                 style={{
                   position: "absolute",
-                  left: center.x - TIER_W / 2,
+                  left: center.x - tierW / 2,
                   top: center.y - NODE_SIZE / 2 - 14,
-                  width: TIER_W,
+                  width: tierW,
                   height: ROW_H,
                   display: "flex",
                   flexDirection: "column",
@@ -673,7 +689,7 @@ export function DepMap({
                     color: isSelected ? "#d6e8f5" : status === "locked" ? "#5d7a99" : "#9ab4cf",
                     textAlign: "center",
                     lineHeight: 1.15,
-                    maxWidth: TIER_W - 16,
+                    maxWidth: tierW - 16,
                     overflow: "hidden",
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
