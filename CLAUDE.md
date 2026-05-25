@@ -17,7 +17,7 @@ bun run build      # production build
 
 - **Simulation is pure.** `src/simulation/` has zero DOM dependencies. All functions are `(state, ...) -> state` with no side effects. Never import browser APIs here.
 - **Sound system is browser-only.** `src/audio/` contains a Web Audio API synthesis engine (no external deps) that reads `soundEvent` fields off `LogEntry` values. It never touches simulation state.
-- **All randomness through seeded RNG.** Use `Rng` from `rng.ts`, never `Math.random()`. The RNG state is part of `GameState` and advances deterministically.
+- **All randomness through seeded RNG.** Use `Rng` from `rng.ts`, never `Math.random()`. The RNG state is part of `GameState` and advances deterministically. Exception: `src/audio/` may use `Math.random()` for cosmetic music generation — feeding seeded RNG into audio would couple browser-only output to simulation state.
 - **State is immutable.** Update via spread operators. No mutation of input state. No `Map`, `Set`, `Date`, or class instances in state — everything must survive `JSON.stringify` round-trip.
 - **Sub-systems run in fixed order** in `tick.ts`: resources → construction → research → navigation → events. This order is load-bearing for determinism (RNG consumption sequence).
 - **One action per tick maximum** for replay fidelity. Actions queue in the game loop and drain into `tick()`.
@@ -30,7 +30,7 @@ bun run build      # production build
 - `src/simulation/rates.ts` — `calculateRates(system)` computes resource rates (materials supply/demand/net, energy supply/demand/net, computing)
 - `src/simulation/tech-effects.ts` — `getTechMultipliers(completedResearch)` derives multipliers/flags from completed tech
 - `src/loop/game-loop.ts` — `createGameLoop(state)` bridges simulation to browser
-- `src/audio/sound-manager.ts` — singleton `SoundManager`; lazy `AudioContext`, 8 procedural recipes, localStorage-persisted settings
+- `src/audio/sound-manager.ts` — singleton `SoundManager`; lazy `AudioContext`, 8 procedural sound recipes, procedural ambient music (`AmbientMusic` in `src/audio/ambient-music.ts`), separate music/sound volume controls, localStorage-persisted settings
 
 ## TypeScript Strictness
 
@@ -58,7 +58,7 @@ The game is intentionally slow in early game (~30 min to self-sustaining). Key p
 
 ## UI
 
-The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "cycle(s)" not "cy" for units throughout the UI. The Topbar hosts a volume slider and mute toggle; a full `SoundSettings` modal (`src/ui/screens/SoundSettings.tsx`) is opened from there and rendered in `App.tsx`.
+The `src/ui/` directory is a React-based Mission Control interface. Build dialogs only show unlocked structures/components (tech-locked items are hidden, not grayed out). The footer shows materials and energy as supply/demand/net with color-coded status (white/blue normal → yellow near limit → red at limit). Use "tons" not "t" and "cycle(s)" not "cy" for units throughout the UI. The Topbar hosts a volume slider, mute toggle, and music toggle button; a full `SoundSettings` modal (`src/ui/screens/SoundSettings.tsx`) with separate music and sound controls is opened from there and rendered in `App.tsx`. Music starts automatically on App mount.
 
 ## Persistence
 

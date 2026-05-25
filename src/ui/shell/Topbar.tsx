@@ -9,6 +9,7 @@ import type { GameSpeed } from "../../simulation/actions";
 import { useSoundSettings } from "../../audio/use-sound-events";
 import { DEV_MODE } from "../../simulation/dev";
 import { soundManager } from "../../audio/sound-manager";
+import { MUSIC_MOODS } from "../../audio/ambient-music";
 import { Tooltip } from "../components/Tooltip";
 import { fmt } from "../format";
 
@@ -30,7 +31,15 @@ export function Topbar({ onOpenAutopilot }: { onOpenAutopilot?: () => void }) {
   const state = useGameState();
   const system = useCurrentSystem();
   const loop = useLoop();
-  const { settings: soundSettings, setVolume, setMuted } = useSoundSettings();
+  const { settings: soundSettings, setVolume, setMuted, setMusicMuted, setMusicMood } = useSoundSettings();
+
+  const currentMoodIndex = MUSIC_MOODS.findIndex(m => m.id === soundSettings.musicMood);
+  const currentMoodLabel = MUSIC_MOODS[currentMoodIndex >= 0 ? currentMoodIndex : 0]?.label ?? "Deep Space";
+  const cycleMood = () => {
+    const nextIndex = (currentMoodIndex + 1) % MUSIC_MOODS.length;
+    const nextMood = MUSIC_MOODS[nextIndex];
+    if (nextMood) setMusicMood(nextMood.id);
+  };
   const paused = loop.isPaused();
   const currentSpeed = loop.getSpeed();
   const cycle = 1000 + Math.floor(state.elapsedSeconds);
@@ -176,6 +185,43 @@ export function Topbar({ onOpenAutopilot }: { onOpenAutopilot?: () => void }) {
             cursor: "pointer",
           }}
         />
+        <Tooltip placement="below" content={soundSettings.musicMuted ? "Music on" : "Music off"}>
+          <button
+            onClick={() => setMusicMuted(!soundSettings.musicMuted)}
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 14,
+              color: soundSettings.musicMuted ? "#6b87a3" : "#d6e8f5",
+              background: "transparent",
+              border: "1px solid rgba(110,200,255,0.15)",
+              padding: "4px 8px",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+          >
+            {"\u{266B}"}
+          </button>
+        </Tooltip>
+        <Tooltip placement="below" content={`Track: ${currentMoodLabel} (click to cycle)`}>
+          <button
+            onClick={cycleMood}
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              color: "#d6e8f5",
+              background: "rgba(110,200,255,0.08)",
+              border: "1px solid rgba(110,200,255,0.15)",
+              padding: "3px 6px",
+              cursor: "pointer",
+              lineHeight: 1,
+              letterSpacing: "0.05em",
+              width: 72,
+              textAlign: "center" as const,
+            }}
+          >
+            {currentMoodLabel}
+          </button>
+        </Tooltip>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         {onOpenAutopilot && <TopbarIconButton icon={faForwardFast} title="Autopilot" onClick={onOpenAutopilot} />}
