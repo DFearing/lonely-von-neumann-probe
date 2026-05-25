@@ -1,6 +1,7 @@
 import type { GameState, SystemState, StructureInstance, ProbeState, LogEntry } from "../state";
 import type { PrestigeState } from "../prestige";
 import { calculateRates, isActiveAndComplete, PROBE_MAINTENANCE, IDLE_MAINTENANCE_FRACTION } from "../rates";
+import { getTechMultipliers, type TechMultipliers } from "../tech-effects";
 import { STRUCTURES, structureKey } from "../data/structures";
 
 const HEALTH_DRAIN_RATE = 0.01;
@@ -70,8 +71,8 @@ function updateProbeHealth(
   return { ...probe, health: newHealth };
 }
 
-function tickSystem(system: SystemState, dt: number, prestige: PrestigeState): SystemState {
-  const rates = calculateRates(system, prestige);
+function tickSystem(system: SystemState, dt: number, prestige: PrestigeState, techMultipliers?: TechMultipliers): SystemState {
+  const rates = calculateRates(system, prestige, techMultipliers);
   const clampedMaterials = Math.max(0, system.resources.materials + rates.materialsPerSecond * dt);
   const shouldDrain = clampedMaterials <= 0 && rates.materialsPerSecond < 0;
   const shouldRecover = !shouldDrain && clampedMaterials >= 0;
@@ -233,8 +234,9 @@ export function autoPauseForShortfall(
   system: SystemState,
   prestige: PrestigeState,
   tickCount: number,
+  techMultipliers?: TechMultipliers,
 ): { system: SystemState; log: LogEntry[] } {
-  const rates = calculateRates(system, prestige);
+  const rates = calculateRates(system, prestige, techMultipliers);
   const log: LogEntry[] = [];
 
   let current = system;
@@ -274,8 +276,9 @@ export function tickResources(state: GameState, dt: number): GameState {
   let logChanged = false;
 
   for (const [id, system] of Object.entries(state.systems)) {
-    const { system: pauseAdjusted, log: pauseLog } = autoPauseForShortfall(system, state.prestige, state.tickCount);
-    const updated = tickSystem(pauseAdjusted, dt, state.prestige);
+    const multipliers = getTechMultipliers(system.completedResearch);
+    const { system: pauseAdjusted, log: pauseLog } = autoPauseForShortfall(system, state.prestige, state.tickCount, multipliers);
+    const updated = tickSystem(pauseAdjusted, dt, state.prestige, multipliers);
     updatedSystems[id] = updated;
 
     if (pauseLog.length > 0) {

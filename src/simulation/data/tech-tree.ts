@@ -504,17 +504,29 @@ function generateTechTree(): Record<string, TechDefinition> {
 
 export const TECH_TREE: Record<string, TechDefinition> = generateTechTree();
 
+const BRANCH_CACHE: Map<string, TechDefinition[]> = (() => {
+  const cache = new Map<string, TechDefinition[]>();
+  for (const tech of Object.values(TECH_TREE)) {
+    let list = cache.get(tech.branchId);
+    if (!list) {
+      list = [];
+      cache.set(tech.branchId, list);
+    }
+    list.push(tech);
+  }
+  for (const list of cache.values()) {
+    list.sort((a, b) => a.tier - b.tier);
+  }
+  return cache;
+})();
+
 export function techsInBranch(branchId: string): TechDefinition[] {
-  return Object.values(TECH_TREE)
-    .filter((t) => t.branchId === branchId)
-    .sort((a, b) => a.tier - b.tier);
+  return BRANCH_CACHE.get(branchId) ?? [];
 }
 
 export function techAtTier(
   branchId: string,
   tier: number,
 ): TechDefinition | undefined {
-  return Object.values(TECH_TREE).find(
-    (t) => t.branchId === branchId && t.tier === tier,
-  );
+  return TECH_TREE[`${branchId}_t${tier}`];
 }

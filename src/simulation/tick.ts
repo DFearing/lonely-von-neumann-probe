@@ -18,7 +18,7 @@ import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
 import { KNOWN_SYSTEMS } from "./data/star-systems";
 import { resolveDistance } from "./queries";
-import { TRAVEL_TIME_SCALE } from "./constants";
+import { TRAVEL_TIME_SCALE, MAX_LOG_ENTRIES } from "./constants";
 import { purchaseUpgrade, calculatePrestigePoints } from "./prestige";
 import type { PrestigeUpgradeId } from "./prestige";
 
@@ -516,5 +516,9 @@ export function tick(
   current = tickNavigation(current, dt, rng);
   current = tickEvents(current, dt, rng);
 
-  return { ...current, rngState: rng.snapshot() };
+  const trimmedLog = current.log.length > MAX_LOG_ENTRIES
+    ? current.log.slice(-MAX_LOG_ENTRIES)
+    : current.log;
+
+  return { ...current, log: trimmedLog, rngState: rng.snapshot() };
 }

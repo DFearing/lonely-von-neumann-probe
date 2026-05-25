@@ -9,7 +9,7 @@ import type {
 } from "../state";
 import { STRUCTURES, structureKey } from "../data/structures";
 import { CPUS, PROPULSIONS } from "../data/components";
-import { getTechMultipliers } from "../tech-effects";
+import { getTechMultipliers, type TechMultipliers } from "../tech-effects";
 import { getPrestigeMultipliers } from "../prestige";
 
 const STRUCTURE_SOUND_MAP: Record<StructureType, SoundEventType> = {
@@ -190,12 +190,11 @@ function tickSystemConstruction(
   prestigePrintSpeedMultiplier: number,
   probeName: string,
   nextProbeNumber: number,
+  multipliers: TechMultipliers,
 ): { system: SystemState; log: GameState["log"]; probesBuilt: number } {
   if (system.constructionQueue.length === 0) {
     return { system, log: [], probesBuilt: 0 };
   }
-
-  const multipliers = getTechMultipliers(system.completedResearch);
   const log: GameState["log"] = [];
   let updatedSystem = system;
   const updatedQueue: ConstructionProject[] = [];
@@ -306,6 +305,7 @@ export function tickConstruction(state: GameState, dt: number): GameState {
   let totalProbesBuilt = 0;
 
   for (const [id, system] of Object.entries(state.systems)) {
+    const multipliers = getTechMultipliers(system.completedResearch);
     const result = tickSystemConstruction(
       system,
       dt,
@@ -313,6 +313,7 @@ export function tickConstruction(state: GameState, dt: number): GameState {
       prestigePrintSpeedMultiplier,
       state.probeName,
       state.nextProbeNumber + totalProbesBuilt,
+      multipliers,
     );
     newSystems[id] = result.system;
     if (result.log.length > 0) {
