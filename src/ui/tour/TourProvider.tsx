@@ -101,6 +101,9 @@ export function TourProvider({
         case "research_started":
           met = sys.researchQueue.length > prevSys.researchQueue.length;
           break;
+        case "materials_sufficient":
+          met = sys.resources.materials >= cond.amount;
+          break;
       }
     }
 

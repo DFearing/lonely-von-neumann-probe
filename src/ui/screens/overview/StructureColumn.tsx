@@ -146,7 +146,7 @@ export function StructureColumn({
         </span>
       }
       right={
-        <span {...(category === "miners" ? { "data-tour": "build-miner" } : {})}>
+        <span data-tour={`col-${category}`}>
           <HeaderAddButton accent={config.accent} onClick={() => setShowBuild(!showBuild)} />
         </span>
       }

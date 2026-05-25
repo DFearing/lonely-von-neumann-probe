@@ -7,6 +7,7 @@ import type { SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { STRUCTURES } from "../../../simulation/data/structures";
+import { CPUS, PROPULSIONS, REACTORS } from "../../../simulation/data/components";
 import { getTechStatus, getMissingPrerequisites, type TechStatus } from "../../../simulation/queries";
 import { FONT_MONO } from "../../tokens";
 import { fmt, fmtCycles } from "../../format";
@@ -145,7 +146,7 @@ export function TechDetail({
         </div>
       </div>
 
-      {tech.unlocks.length === 0 && (
+      {tech.effects.length > 0 && (
         <div
           style={{
             padding: "10px 14px",
@@ -166,11 +167,14 @@ export function TechDetail({
       )}
 
       {tech.unlocks.length > 0 && (() => {
-        const defs = tech.unlocks.flatMap((id) => { const d = STRUCTURES[id]; return d ? [d] : []; });
-        if (defs.length === 0) return null;
+        const structureDefs = tech.unlocks.flatMap((id) => { const d = STRUCTURES[id]; return d ? [d] : []; });
+        const cpuDefs = tech.unlocks.flatMap((id) => { const d = CPUS[id]; return d ? [d] : []; });
+        const propDefs = tech.unlocks.flatMap((id) => { const d = PROPULSIONS[id]; return d ? [d] : []; });
+        const reactorDefs = tech.unlocks.flatMap((id) => { const d = REACTORS[id]; return d ? [d] : []; });
+
         return (
-          <div style={{ marginBottom: 14 }}>
-            {defs.map((def) => (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            {structureDefs.map((def) => (
               <div
                 key={`${def.type}_${def.tier}`}
                 style={{
@@ -212,6 +216,88 @@ export function TechDetail({
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            ))}
+
+            {cpuDefs.map((def) => (
+              <div
+                key={def.type}
+                style={{
+                  padding: "14px 16px",
+                  background: "rgba(110,200,255,0.04)",
+                  border: "1px solid rgba(110,200,255,0.10)",
+                  fontFamily: FONT_MONO,
+                }}
+              >
+                <div style={{ color: "#d6e8f5", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>
+                  {def.name}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 14, marginBottom: 10 }}>
+                  <span style={{ color: "#b08bff" }}>{def.computingOutput} TFLOPS</span>
+                  <span style={{ color: "#5fd9c4" }}>{def.miningOutput} tons/cycle gather</span>
+                  <span style={{ color: "#6aa9ff" }}>{def.printSpeed}× print speed</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "#6b87a3", letterSpacing: "0.14em", marginBottom: 4 }}>BUILD</div>
+                  <div style={{ display: "flex", gap: 12, fontSize: 13 }}>
+                    <span style={{ color: "#5fd9c4" }}>{fmt(def.cost.materials)} T</span>
+                    <span style={{ color: "#6aa9ff" }}>{fmt(def.cost.energy)} MW</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {propDefs.map((def) => (
+              <div
+                key={def.type}
+                style={{
+                  padding: "14px 16px",
+                  background: "rgba(110,200,255,0.04)",
+                  border: "1px solid rgba(110,200,255,0.10)",
+                  fontFamily: FONT_MONO,
+                }}
+              >
+                <div style={{ color: "#d6e8f5", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>
+                  {def.name}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 14, marginBottom: 10 }}>
+                  <span style={{ color: "#4ddbff" }}>{def.travelSpeed} ly/cycle travel</span>
+                  {def.autoReplicate && <span style={{ color: "#f0c674" }}>Auto-replicate</span>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "#6b87a3", letterSpacing: "0.14em", marginBottom: 4 }}>BUILD</div>
+                  <div style={{ display: "flex", gap: 12, fontSize: 13 }}>
+                    <span style={{ color: "#5fd9c4" }}>{fmt(def.cost.materials)} T</span>
+                    <span style={{ color: "#6aa9ff" }}>{fmt(def.cost.energy)} MW</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {reactorDefs.map((def) => (
+              <div
+                key={def.type}
+                style={{
+                  padding: "14px 16px",
+                  background: "rgba(110,200,255,0.04)",
+                  border: "1px solid rgba(110,200,255,0.10)",
+                  fontFamily: FONT_MONO,
+                }}
+              >
+                <div style={{ color: "#d6e8f5", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>
+                  {def.name}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 14, marginBottom: 10 }}>
+                  <span style={{ color: "#6aa9ff" }}>{def.energyMultiplier}× MW output</span>
+                  {def.solarScaling && <span style={{ color: "#f0c674" }}>Solar scaling</span>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "#6b87a3", letterSpacing: "0.14em", marginBottom: 4 }}>BUILD</div>
+                  <div style={{ display: "flex", gap: 12, fontSize: 13 }}>
+                    <span style={{ color: "#5fd9c4" }}>{fmt(def.cost.materials)} T</span>
+                    <span style={{ color: "#6aa9ff" }}>{fmt(def.cost.energy)} MW</span>
+                  </div>
                 </div>
               </div>
             ))}

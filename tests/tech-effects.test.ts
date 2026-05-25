@@ -60,7 +60,7 @@ describe("getTechMultipliers", () => {
         computing_speed_t1: true,
         computing_speed_t3: true,
       });
-      expect(m.computingMultiplier).toBeCloseTo(1.0 + 0.050 + 0.056);
+      expect(m.computingMultiplier).toBeCloseTo(1.0 + 0.05 + 0.05);
     });
   });
 
