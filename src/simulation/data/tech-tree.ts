@@ -254,7 +254,8 @@ function generateEffects(branchId: string, tier: number): string[] {
   switch (branchId) {
     case "mining_efficiency": {
       const bonus = 10 + 0.5 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% mining output`];
+      const cumulative = 10 * tier + 0.5 * tier * (tier - 1) / 2;
+      return [`+${+bonus.toFixed(1)}% mining output — ${+cumulative.toFixed(1)}% total`];
     }
     case "mining_types": {
       if (tier % 4 === 0) {
@@ -272,7 +273,8 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "energy_production": {
       const bonus = 8 + 0.4 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% energy output`];
+      const cumulative = 8 * tier + 0.4 * tier * (tier - 1) / 2;
+      return [`+${+bonus.toFixed(1)}% energy output — ${+cumulative.toFixed(1)}% total`];
     }
     case "energy_types": {
       if (tier % 4 === 0) {
@@ -290,7 +292,8 @@ function generateEffects(branchId: string, tier: number): string[] {
     }
     case "manufacturing_efficiency": {
       const bonus = 5 + 0.3 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% printing output`];
+      const cumulative = 5 * tier + 0.3 * tier * (tier - 1) / 2;
+      return [`+${+bonus.toFixed(1)}% printing output — ${+cumulative.toFixed(1)}% total`];
     }
     case "manufacturing_types": {
       if (tier % 4 === 0) {
@@ -335,11 +338,12 @@ function generateEffects(branchId: string, tier: number): string[] {
       return [`Research phase toward ${nextName}`];
     }
     case "computing_speed": {
-      return ["+5% computing TFLOPS (probes & stations)"];
+      return [`+5% computing TFLOPS — ${tier * 5}% total`];
     }
     case "station_efficiency": {
       const bonus = 4 + 0.3 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% station computing output`];
+      const cumulative = 4 * tier + 0.3 * tier * (tier - 1) / 2;
+      return [`+${+bonus.toFixed(1)}% station computing output — ${+cumulative.toFixed(1)}% total`];
     }
     case "station_types": {
       if (tier % 4 === 0) {
@@ -377,12 +381,14 @@ function generateEffects(branchId: string, tier: number): string[] {
     case "communication": {
       if (tier === 20) return ["Universal range — detect all systems"];
       const bonus = 10 + 5 * (tier - 1);
-      return [`+${bonus}% communication range`];
+      const cumulative = 10 * tier + 5 * tier * (tier - 1) / 2;
+      return [`+${bonus}% communication range — ${cumulative}% total`];
     }
     case "communication_speed": {
       if (tier === 20) return ["Zero latency communication"];
       const bonus = +(tier * 100 / 190).toFixed(1);
-      return [`+${bonus}% signal speed`];
+      const cumulative = +(100 / 190 * tier * (tier + 1) / 2).toFixed(1);
+      return [`+${bonus}% signal speed — ${cumulative}% total`];
     }
     default:
       return [];
