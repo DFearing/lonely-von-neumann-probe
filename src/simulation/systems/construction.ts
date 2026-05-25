@@ -9,9 +9,8 @@ import type {
 } from "../state";
 import { STRUCTURES, structureKey } from "../data/structures";
 import { CPUS, PROPULSIONS } from "../data/components";
-import type { TechMultipliers } from "../tech-effects";
+import { getTechMultipliers, type TechMultipliers } from "../tech-effects";
 import { getPrestigeMultipliers } from "../prestige";
-import { getTechMultipliers } from "../tech-effects";
 
 const STRUCTURE_SOUND_MAP: Record<StructureType, SoundEventType> = {
   miner: "miner_constructed",

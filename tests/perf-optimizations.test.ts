@@ -114,8 +114,8 @@ describe("log trimming", () => {
     };
 
     const next = tick(state, 1, []);
-    const lastEntry = next.log[next.log.length - 1]!;
-    expect(lastEntry.message).toContain("entry-");
+    const firstEntry = next.log[0]!;
+    expect(firstEntry.tick).toBeGreaterThanOrEqual(totalEntries - MAX_LOG_ENTRIES);
   });
 
   test("log is not trimmed when under the limit", () => {
