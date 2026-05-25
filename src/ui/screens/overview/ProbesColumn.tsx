@@ -7,6 +7,7 @@ import type { ViewId } from "../../shell/Sidebar";
 import { CPUS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
+import { Tooltip } from "../../components/Tooltip";
 import { HeaderAddButton } from "./HeaderAddButton";
 import { fmtCycles } from "../../format";
 import { FONT_MONO } from "../../tokens";
@@ -469,18 +470,24 @@ export function ProbesColumn({
               paddingTop: 6,
               borderTop: "1px dashed rgba(110,200,255,0.08)",
             }}>
-              <span style={{ color: "#5fd9c4" }} title="Mining output (T/cycle)">
-                <FontAwesomeIcon icon={faAtom} style={{ marginRight: 4, fontSize: 9 }} />
-                {(p.miningOutput * p.health).toFixed(1)}
-              </span>
-              <span style={{ color: "#b08bff" }} title="Computing power (TFLOPS)">
-                <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4, fontSize: 9 }} />
-                {(p.computingOutput * p.health).toFixed(1)}
-              </span>
-              <span style={{ color: "#4cd8a8" }} title="Printer speed (BP)">
-                <FontAwesomeIcon icon={faIndustry} style={{ marginRight: 4, fontSize: 9 }} />
-                {(p.printerSpeed * p.health).toFixed(1)}
-              </span>
+              <Tooltip content="Mining output (tons/cycle)">
+                <span style={{ color: "#5fd9c4" }}>
+                  <FontAwesomeIcon icon={faAtom} style={{ marginRight: 4, fontSize: 9 }} />
+                  {(p.miningOutput * p.health).toFixed(1)}
+                </span>
+              </Tooltip>
+              <Tooltip content="Computing power (TFLOPS)">
+                <span style={{ color: "#b08bff" }}>
+                  <FontAwesomeIcon icon={faMicrochip} style={{ marginRight: 4, fontSize: 9 }} />
+                  {(p.computingOutput * p.health).toFixed(1)}
+                </span>
+              </Tooltip>
+              <Tooltip content="Printer speed (build points)">
+                <span style={{ color: "#4cd8a8" }}>
+                  <FontAwesomeIcon icon={faIndustry} style={{ marginRight: 4, fontSize: 9 }} />
+                  {(p.printerSpeed * p.health).toFixed(1)}
+                </span>
+              </Tooltip>
             </div>
             {p.status === "station-keeping" && p.systemId && (
               <ProbeActions

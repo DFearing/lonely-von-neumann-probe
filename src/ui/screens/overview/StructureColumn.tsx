@@ -435,27 +435,28 @@ export function StructureColumn({
                 }}
               >
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      dispatch({
-                        type: "toggle_structure",
-                        systemId: system.id,
-                        structureId: inst.id,
-                      });
-                    }}
-                    title={inst.active ? "Pause structure" : "Resume structure"}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: inst.active ? "#6b87a3" : "#4cd8a8",
-                      cursor: "pointer",
-                      padding: 0,
-                      fontSize: 12,
-                    }}
-                  >
-                    <FontAwesomeIcon icon={inst.active ? faPause : faPlay} />
-                  </button>
+                  <Tooltip content={inst.active ? "Pause structure" : "Resume structure"}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch({
+                          type: "toggle_structure",
+                          systemId: system.id,
+                          structureId: inst.id,
+                        });
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: inst.active ? "#6b87a3" : "#4cd8a8",
+                        cursor: "pointer",
+                        padding: 0,
+                        fontSize: 12,
+                      }}
+                    >
+                      <FontAwesomeIcon icon={inst.active ? faPause : faPlay} />
+                    </button>
+                  </Tooltip>
                   <Tooltip content={structureDef?.description ?? def.name}>
                     <span style={{ fontSize: 16, color: "#d6e8f5", fontWeight: 500 }}>
                       {def.name}
@@ -486,9 +487,11 @@ export function StructureColumn({
                   fontSize: 14,
                 }}
               >
-                <span style={{ color: config.accent }} title="Production output">
-                  {formatVariantSpec(def, category)}
-                </span>
+                <Tooltip content="Production output">
+                  <span style={{ color: config.accent }}>
+                    {formatVariantSpec(def, category)}
+                  </span>
+                </Tooltip>
                 <span style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
                   {inst.maintenanceCost > 0 && (
                     <span style={{ color: "#5fd9c4" }}>{inst.maintenanceCost.toFixed(2)} T/cy</span>
@@ -508,29 +511,29 @@ export function StructureColumn({
                 </span>
               </div>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDestroyConfirmId(inst.id);
-                }}
-                title="Destroy structure"
-                style={{
-                  position: "absolute",
-                  bottom: 8,
-                  right: 8,
-                  background: "transparent",
-                  border: "none",
-                  color: "#3d5572",
-                  cursor: "pointer",
-                  padding: 2,
-                  fontSize: 10,
-                  transition: "color 0.15s",
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ff6b6b"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3d5572"; }}
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
+              <span style={{ position: "absolute", bottom: 8, right: 8 }}>
+                <Tooltip content="Destroy structure">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDestroyConfirmId(inst.id);
+                    }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#3d5572",
+                      cursor: "pointer",
+                      padding: 2,
+                      fontSize: 10,
+                      transition: "color 0.15s",
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#ff6b6b"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3d5572"; }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </Tooltip>
+              </span>
             </div>
           );
         })}

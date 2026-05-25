@@ -9,6 +9,7 @@ import type { GameSpeed } from "../../simulation/actions";
 import { useSoundSettings } from "../../audio/use-sound-events";
 import { DEV_MODE } from "../../simulation/dev";
 import { soundManager } from "../../audio/sound-manager";
+import { Tooltip } from "../components/Tooltip";
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";
@@ -103,56 +104,60 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
       </div>
       <div style={{ flex: 1 }} />
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <button
-          onClick={() => paused ? loop.unpause() : loop.pause()}
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 12,
-            letterSpacing: "0.1em",
-            color: paused ? "#4cd8a8" : "#6b87a3",
-            background: paused ? "rgba(76,216,168,0.1)" : "transparent",
-            border: `1px solid ${paused ? "rgba(76,216,168,0.4)" : "rgba(110,200,255,0.15)"}`,
-            padding: "4px 10px",
-            cursor: "pointer",
-          }}
-        >
-          {paused ? "▶" : "⏸"}
-        </button>
-        {SPEEDS.map((s) => (
+        <Tooltip content={paused ? "Resume (Ctrl+0)" : "Pause (Ctrl+0)"}>
           <button
-            key={s}
-            onClick={() => { loop.setSpeed(s); if (paused) loop.unpause(); }}
+            onClick={() => paused ? loop.unpause() : loop.pause()}
             style={{
               fontFamily: FONT_MONO,
-              fontSize: 11,
-              color: !paused && currentSpeed === s ? "#d6e8f5" : "#6b87a3",
-              background: !paused && currentSpeed === s ? "rgba(110,200,255,0.12)" : "transparent",
-              border: `1px solid ${!paused && currentSpeed === s ? "rgba(110,200,255,0.3)" : "rgba(110,200,255,0.1)"}`,
-              padding: "4px 8px",
+              fontSize: 12,
+              letterSpacing: "0.1em",
+              color: paused ? "#4cd8a8" : "#6b87a3",
+              background: paused ? "rgba(76,216,168,0.1)" : "transparent",
+              border: `1px solid ${paused ? "rgba(76,216,168,0.4)" : "rgba(110,200,255,0.15)"}`,
+              padding: "4px 10px",
               cursor: "pointer",
             }}
           >
-            {SPEED_LABELS[s]}
+            {paused ? "▶" : "⏸"}
           </button>
+        </Tooltip>
+        {SPEEDS.map((s, i) => (
+          <Tooltip key={s} content={`${SPEED_LABELS[s]} speed (Ctrl+${i + 1})`}>
+            <button
+              onClick={() => { loop.setSpeed(s); if (paused) loop.unpause(); }}
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                color: !paused && currentSpeed === s ? "#d6e8f5" : "#6b87a3",
+                background: !paused && currentSpeed === s ? "rgba(110,200,255,0.12)" : "transparent",
+                border: `1px solid ${!paused && currentSpeed === s ? "rgba(110,200,255,0.3)" : "rgba(110,200,255,0.1)"}`,
+                padding: "4px 8px",
+                cursor: "pointer",
+              }}
+            >
+              {SPEED_LABELS[s]}
+            </button>
+          </Tooltip>
         ))}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <button
-          onClick={() => setMuted(!soundSettings.muted)}
-          title={soundSettings.muted ? "Unmute" : "Mute"}
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 14,
-            color: soundSettings.muted ? "#6b87a3" : "#d6e8f5",
-            background: "transparent",
-            border: "1px solid rgba(110,200,255,0.15)",
-            padding: "4px 8px",
-            cursor: "pointer",
-            lineHeight: 1,
-          }}
-        >
-          {soundSettings.muted ? "\u{1F507}" : "\u{1F50A}"}
-        </button>
+        <Tooltip content={soundSettings.muted ? "Unmute" : "Mute"}>
+          <button
+            onClick={() => setMuted(!soundSettings.muted)}
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 14,
+              color: soundSettings.muted ? "#6b87a3" : "#d6e8f5",
+              background: "transparent",
+              border: "1px solid rgba(110,200,255,0.15)",
+              padding: "4px 8px",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+          >
+            {soundSettings.muted ? "\u{1F507}" : "\u{1F50A}"}
+          </button>
+        </Tooltip>
         <input
           type="range"
           min={0}
@@ -202,32 +207,33 @@ function TopbarIconButton({
 }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      style={{
-        width: 28,
-        height: 28,
-        background: "transparent",
-        border: hovered
-          ? "1px solid rgba(77,219,255,0.5)"
-          : "1px solid rgba(110,200,255,0.20)",
-        color: hovered ? "#4ddbff" : "#9ab4cf",
-        fontFamily: FONT_MONO,
-        fontSize: 14,
-        lineHeight: 1,
-        cursor: "pointer",
-        borderRadius: 2,
-        padding: 0,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "color .15s, border-color .15s",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <FontAwesomeIcon icon={icon} style={{ width: 12, height: 12 }} />
-    </button>
+    <Tooltip content={title}>
+      <button
+        onClick={onClick}
+        style={{
+          width: 28,
+          height: 28,
+          background: "transparent",
+          border: hovered
+            ? "1px solid rgba(77,219,255,0.5)"
+            : "1px solid rgba(110,200,255,0.20)",
+          color: hovered ? "#4ddbff" : "#9ab4cf",
+          fontFamily: FONT_MONO,
+          fontSize: 14,
+          lineHeight: 1,
+          cursor: "pointer",
+          borderRadius: 2,
+          padding: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "color .15s, border-color .15s",
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <FontAwesomeIcon icon={icon} style={{ width: 12, height: 12 }} />
+      </button>
+    </Tooltip>
   );
 }
