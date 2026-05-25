@@ -1,6 +1,6 @@
 import type { GameState, SystemState, StructureInstance, ProbeState, LogEntry } from "../state";
 import type { PrestigeState } from "../prestige";
-import { calculateRates, isActiveAndComplete, PROBE_MAINTENANCE } from "../rates";
+import { calculateRates, isActiveAndComplete, PROBE_MAINTENANCE, IDLE_MAINTENANCE_FRACTION } from "../rates";
 import { STRUCTURES, structureKey } from "../data/structures";
 
 const HEALTH_DRAIN_RATE = 0.01;
@@ -9,8 +9,8 @@ const HEALTH_RECOVERY_RATE = 0.005;
 function sumMaintenance(structures: readonly StructureInstance[]): number {
   let total = 0;
   for (const s of structures) {
-    if (s.active && s.constructionProgress >= 1 && s.maintenanceCost > 0) {
-      total += s.maintenanceCost;
+    if (s.constructionProgress >= 1 && s.maintenanceCost > 0) {
+      total += s.active ? s.maintenanceCost : s.maintenanceCost * IDLE_MAINTENANCE_FRACTION;
     }
   }
   return total;
@@ -27,8 +27,10 @@ function updateStructureHealth(
 
     let changed = false;
     const result = structures.map((s) => {
-      if (!s.active || s.constructionProgress < 1 || s.maintenanceCost <= 0) return s;
-      const drain = HEALTH_DRAIN_RATE * (s.maintenanceCost / totalSystemMaintenance) * dt;
+      if (s.constructionProgress < 1 || s.maintenanceCost <= 0) return s;
+      const effectiveCost = s.active ? s.maintenanceCost : s.maintenanceCost * IDLE_MAINTENANCE_FRACTION;
+      if (effectiveCost <= 0) return s;
+      const drain = HEALTH_DRAIN_RATE * (effectiveCost / totalSystemMaintenance) * dt;
       const newHealth = Math.max(0, s.health - drain);
       if (newHealth === s.health) return s;
       changed = true;

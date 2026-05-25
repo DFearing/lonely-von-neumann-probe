@@ -579,7 +579,7 @@ describe("interstellar travel end-to-end", () => {
   });
 
   describe("probe arriving at occupied system", () => {
-    test("second probe is discarded when destination already has mainProbe", () => {
+    test("second probe added to availableProbes when destination already has mainProbe", () => {
       const state = createInitialState(SEED);
       const ac = state.systems["alpha_centauri"]!;
 
@@ -632,10 +632,12 @@ describe("interstellar travel end-to-end", () => {
       const after = tick(modified, DT, []);
 
       expect(after.systems["alpha_centauri"]!.mainProbe!.id).toBe("existing_probe");
+      expect(after.systems["alpha_centauri"]!.availableProbes).toHaveLength(1);
+      expect(after.systems["alpha_centauri"]!.availableProbes[0]!.id).toBe("arriving_probe");
       expect(after.systems["sol"]!.sentProbes).toHaveLength(0);
     });
 
-    test("research is still merged even when arriving probe is discarded", () => {
+    test("research is still merged when arriving probe goes to availableProbes", () => {
       const state = createInitialState(SEED);
       const sol = state.systems["sol"]!;
       const ac = state.systems["alpha_centauri"]!;

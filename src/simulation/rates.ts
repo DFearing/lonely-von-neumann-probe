@@ -43,7 +43,7 @@ function sumOperatingCosts(structures: readonly StructureInstance[]): number {
   return total;
 }
 
-const IDLE_MAINTENANCE_FRACTION = 0.25;
+export const IDLE_MAINTENANCE_FRACTION = 0.25;
 
 function sumMaintenanceCosts(structures: readonly StructureInstance[]): number {
   let total = 0;

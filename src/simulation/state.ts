@@ -4,6 +4,7 @@ import type { PrestigeState } from "./prestige";
 import { createRng } from "./rng";
 import { createPrestigeState } from "./prestige";
 import { CPUS } from "./data/components";
+import { KNOWN_SYSTEMS } from "./data/star-systems";
 
 export { MAX_TIER, MAX_STRUCTURE_TIER } from "./constants";
 
@@ -204,30 +205,39 @@ function emptySystemState(
   };
 }
 
-function randomRichness(rngFloat: number): number {
-  return Math.round((0.5 + rngFloat * 1.5) * 100) / 100;
+function knownRichness(systemId: string, fallback: number): number {
+  const known = KNOWN_SYSTEMS.find((s) => s.id === systemId);
+  return known?.knownRichness ?? fallback;
 }
 
 export function createInitialState(seed: number, probeName = "Probe"): GameState {
   const rng = createRng(seed);
 
-  const sol = emptySystemState("sol", "Sol", "yellow", 0, 1.0, true, true);
   const cpuDef = CPUS["cpu_t1"];
-  sol.mainProbe = {
-    id: "probe_sol_0",
-    name: `${probeName}-01`,
-    mode: "idle",
-    systemId: "sol",
-    components: {
-      cpu: "cpu_t1",
-      propulsion: "prop_t1",
-      reactor: "rct_t1",
+  const sol: SystemState = {
+    ...emptySystemState("sol", "Sol", "yellow", 0, knownRichness("sol", 1.0), true, true),
+    mainProbe: {
+      id: "probe_sol_0",
+      name: `${probeName}-01`,
+      mode: "idle",
+      systemId: "sol",
+      components: {
+        cpu: "cpu_t1",
+        propulsion: "prop_t1",
+        reactor: "rct_t1",
+      },
+      miningOutput: cpuDef?.miningOutput ?? 1,
+      computingOutput: cpuDef?.computingOutput ?? 0.5,
+      internalPrinterSpeed: cpuDef?.printSpeed ?? 0.5,
+      autoReplicating: false,
+      health: 1,
     },
-    miningOutput: cpuDef?.miningOutput ?? 1,
-    computingOutput: cpuDef?.computingOutput ?? 0.5,
-    internalPrinterSpeed: cpuDef?.printSpeed ?? 0.5,
-    autoReplicating: false,
-    health: 1,
+    discoveredSystems: [
+      "alpha_centauri",
+      "sirius",
+      "barnards_star",
+      "wolf_359",
+    ],
   };
 
   const alphaCentauri = emptySystemState(
@@ -235,50 +245,40 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
     "Alpha Centauri",
     "yellow",
     4.37,
-    1.2,
+    knownRichness("alpha_centauri", 1.3),
     true,
     false,
   );
 
-  const siriusRichness = randomRichness(rng.nextFloat());
   const sirius = emptySystemState(
     "sirius",
     "Sirius",
     "blue",
     8.6,
-    siriusRichness,
+    knownRichness("sirius", 0.9),
     true,
     false,
   );
 
-  const barnardsRichness = randomRichness(rng.nextFloat());
   const barnardsStar = emptySystemState(
     "barnards_star",
     "Barnard's Star",
     "red",
     5.96,
-    barnardsRichness,
+    knownRichness("barnards_star", 0.4),
     true,
     false,
   );
 
-  const wolfRichness = randomRichness(rng.nextFloat());
   const wolf359 = emptySystemState(
     "wolf_359",
     "Wolf 359",
     "red",
     7.86,
-    wolfRichness,
+    knownRichness("wolf_359", 0.5),
     true,
     false,
   );
-
-  sol.discoveredSystems = [
-    "alpha_centauri",
-    "sirius",
-    "barnards_star",
-    "wolf_359",
-  ];
 
   const systems: Record<string, SystemState> = {
     sol,
