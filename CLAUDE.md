@@ -54,7 +54,7 @@ The game is intentionally slow in early game (~30 min to self-sustaining). Key p
 - **Structure cost scaling**: 2.2x per tier across all types
 - **Maintenance**: All structures and probes drain nano-materials (0.08-0.2/sec, scaling with tier). Probe maintenance is 0.1/sec flat.
 - **Materials rates** track supply (gross production) and demand (maintenance) separately, like energy tracks supply/demand.
-- **Research**: base cost 40 materials / 10 energy, continuous cost 3 computing/sec, 120 sec base time (1.20x scaling per tier)
+- **Research**: base cost 40 materials / 10 energy, continuous cost 2–6 computing/sec (per-branch, see `BRANCH_COMPUTING_PARAMS` in `tech-tree.ts`), 120 sec base time (1.20x scaling per tier)
 
 ## UI
 
