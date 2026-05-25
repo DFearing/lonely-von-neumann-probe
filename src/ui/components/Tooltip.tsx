@@ -13,17 +13,21 @@ export function Tooltip({
   content: ReactNode;
   children: ReactNode;
   block?: boolean;
-  placement?: "above" | "below";
+  placement?: "above" | "below" | "right";
 }) {
-  const [visible, setVisible] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
 
   const show = useCallback(() => {
     const el = triggerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    if (placement === "below") {
+    if (placement === "right") {
+      setPosition({
+        top: rect.top + window.scrollY + rect.height / 2,
+        left: rect.right + ARROW_SIZE + 2,
+      });
+    } else if (placement === "below") {
       setPosition({
         top: rect.bottom + window.scrollY + ARROW_SIZE + 2,
         left: rect.left + rect.width / 2,
@@ -34,14 +38,46 @@ export function Tooltip({
         left: rect.left + rect.width / 2,
       });
     }
-    setVisible(true);
   }, [placement]);
 
   const hide = useCallback(() => {
-    setVisible(false);
+    setPosition(null);
   }, []);
 
-  const isBelow = placement === "below";
+  const transform =
+    placement === "right"
+      ? "translate(0, -50%)"
+      : placement === "below"
+        ? "translate(-50%, 0)"
+        : "translate(-50%, -100%)";
+
+  const arrowStyle: React.CSSProperties =
+    placement === "right"
+      ? {
+          top: "50%",
+          right: "100%",
+          transform: "translateY(-50%)",
+          borderTop: `${ARROW_SIZE}px solid transparent`,
+          borderBottom: `${ARROW_SIZE}px solid transparent`,
+          borderRight: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
+        }
+      : placement === "below"
+        ? {
+            left: "50%",
+            bottom: "100%",
+            transform: "translateX(-50%)",
+            borderLeft: `${ARROW_SIZE}px solid transparent`,
+            borderRight: `${ARROW_SIZE}px solid transparent`,
+            borderBottom: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
+          }
+        : {
+            left: "50%",
+            top: "100%",
+            transform: "translateX(-50%)",
+            borderLeft: `${ARROW_SIZE}px solid transparent`,
+            borderRight: `${ARROW_SIZE}px solid transparent`,
+            borderTop: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
+          };
 
   return (
     <>
@@ -53,7 +89,7 @@ export function Tooltip({
       >
         {children}
       </span>
-      {visible &&
+      {position !== null &&
         createPortal(
           <div
             className="tooltip-popup"
@@ -61,7 +97,7 @@ export function Tooltip({
               position: "absolute",
               top: position.top,
               left: position.left,
-              transform: isBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
+              transform,
               background: "rgba(8,16,30,0.95)",
               border: "1px solid rgba(110,200,255,0.15)",
               borderRadius: 4,
@@ -72,31 +108,10 @@ export function Tooltip({
               pointerEvents: "none",
               zIndex: 9999,
               whiteSpace: "nowrap",
-              animation: "tooltip-fade-in 0.15s ease-out",
             }}
           >
             {content}
-            <div
-              style={{
-                position: "absolute",
-                left: "50%",
-                ...(isBelow
-                  ? {
-                      bottom: "100%",
-                      transform: "translateX(-50%)",
-                      borderLeft: `${ARROW_SIZE}px solid transparent`,
-                      borderRight: `${ARROW_SIZE}px solid transparent`,
-                      borderBottom: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
-                    }
-                  : {
-                      top: "100%",
-                      transform: "translateX(-50%)",
-                      borderLeft: `${ARROW_SIZE}px solid transparent`,
-                      borderRight: `${ARROW_SIZE}px solid transparent`,
-                      borderTop: `${ARROW_SIZE}px solid rgba(8,16,30,0.95)`,
-                    }),
-              }}
-            />
+            <div style={{ position: "absolute", ...arrowStyle }} />
           </div>,
           document.body,
         )}

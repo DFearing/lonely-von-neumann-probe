@@ -5,6 +5,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FONT_MONO } from "../tokens";
 import { useGameState } from "../context";
 import { DEV_MODE } from "../../simulation/dev";
+import { Tooltip } from "../components/Tooltip";
 
 export type ViewId = "overview" | "fleet" | "systems" | "research" | "log" | "prestige";
 
@@ -38,6 +39,7 @@ export function Sidebar({
   const [hoveredId, setHoveredId] = useState<ViewId | null>(null);
   const state = useGameState();
   const showPrestige = DEV_MODE || state.prestige.blackHoleDiscovered;
+  const fleetSystemsUnlocked = state.nextProbeNumber >= 3;
 
   return (
     <div
@@ -52,9 +54,14 @@ export function Sidebar({
       }}
     >
       {NAV_ITEMS.map((item) => {
+        const locked = (item.id === "fleet" || item.id === "systems") && !fleetSystemsUnlocked;
+        if (locked && !DEV_MODE) return null;
+
         const active = activeView === item.id;
         const hovered = hoveredId === item.id;
-        return (
+        const dimmed = locked && DEV_MODE;
+
+        const node = (
           <div
             key={item.id}
             data-tour={`nav-${item.id}`}
@@ -64,20 +71,20 @@ export function Sidebar({
               alignItems: "center",
               gap: 10,
               padding: "10px 20px",
-              color: active ? "#4ddbff" : hovered ? "#d6e8f5" : "#9ab4cf",
-              background: active
+              color: dimmed ? "#3d5572" : active ? "#4ddbff" : hovered ? "#d6e8f5" : "#9ab4cf",
+              background: active && !dimmed
                 ? "linear-gradient(90deg, rgba(77,219,255,0.12), transparent)"
                 : "transparent",
-              borderLeft: active
+              borderLeft: active && !dimmed
                 ? "2px solid #4ddbff"
                 : "2px solid transparent",
               cursor: "pointer",
-              fontWeight: active ? 600 : 500,
+              fontWeight: active && !dimmed ? 600 : 500,
               letterSpacing: "0.02em",
               transition: "color .15s, background .15s",
             }}
             onMouseEnter={() => {
-              if (!active) setHoveredId(item.id);
+              if (!active && !dimmed) setHoveredId(item.id);
             }}
             onMouseLeave={() => setHoveredId(null)}
           >
@@ -86,15 +93,24 @@ export function Sidebar({
               style={{
                 width: 18,
                 height: 18,
-                color: active ? "#4ddbff" : hovered ? "#d6e8f5" : "#9ab4cf",
+                color: dimmed ? "#3d5572" : active ? "#4ddbff" : hovered ? "#d6e8f5" : "#9ab4cf",
               }}
             />
-            {item.label}
+            {item.label}{dimmed && " *"}
           </div>
         );
+
+        if (dimmed) {
+          return (
+            <Tooltip key={item.id} content="Unlocks when a second probe is built" placement="right">
+              {node}
+            </Tooltip>
+          );
+        }
+        return node;
       })}
 
-      {showPrestige && <PrestigeNavItem active={activeView === "prestige"} hovered={hoveredId === "prestige"} onNavigate={onNavigate} onHover={setHoveredId} />}
+      {showPrestige && <PrestigeNavItem active={activeView === "prestige"} hovered={hoveredId === "prestige"} dimmed={!!(DEV_MODE && !state.prestige.blackHoleDiscovered)} onNavigate={onNavigate} onHover={setHoveredId} />}
 
       <div
         style={{
@@ -122,15 +138,17 @@ const PRESTIGE_GOLD = "#f0c674";
 function PrestigeNavItem({
   active,
   hovered,
+  dimmed,
   onNavigate,
   onHover,
 }: {
   active: boolean;
   hovered: boolean;
+  dimmed: boolean;
   onNavigate: (view: ViewId) => void;
   onHover: (id: ViewId | null) => void;
 }) {
-  return (
+  const node = (
     <div
       onClick={() => onNavigate("prestige")}
       style={{
@@ -139,21 +157,21 @@ function PrestigeNavItem({
         gap: 10,
         padding: "10px 20px",
         marginTop: 8,
-        borderTop: "1px solid rgba(240,198,116,0.15)",
-        color: active ? PRESTIGE_GOLD : hovered ? PRESTIGE_GOLD : "rgba(240,198,116,0.7)",
-        background: active
+        borderTop: `1px solid ${dimmed ? "rgba(110,200,255,0.08)" : "rgba(240,198,116,0.15)"}`,
+        color: dimmed ? "#3d5572" : active ? PRESTIGE_GOLD : hovered ? PRESTIGE_GOLD : "rgba(240,198,116,0.7)",
+        background: active && !dimmed
           ? "linear-gradient(90deg, rgba(240,198,116,0.12), transparent)"
           : "transparent",
-        borderLeft: active
+        borderLeft: active && !dimmed
           ? `2px solid ${PRESTIGE_GOLD}`
           : "2px solid transparent",
         cursor: "pointer",
-        fontWeight: active ? 600 : 500,
+        fontWeight: active && !dimmed ? 600 : 500,
         letterSpacing: "0.02em",
         transition: "color .15s, background .15s",
       }}
       onMouseEnter={() => {
-        if (!active) onHover("prestige");
+        if (!active && !dimmed) onHover("prestige");
       }}
       onMouseLeave={() => onHover(null)}
     >
@@ -162,10 +180,19 @@ function PrestigeNavItem({
         style={{
           width: 18,
           height: 18,
-          color: active ? PRESTIGE_GOLD : hovered ? PRESTIGE_GOLD : "rgba(240,198,116,0.7)",
+          color: dimmed ? "#3d5572" : active ? PRESTIGE_GOLD : hovered ? PRESTIGE_GOLD : "rgba(240,198,116,0.7)",
         }}
       />
-      Prestige
+      Prestige{dimmed && " *"}
     </div>
   );
+
+  if (dimmed) {
+    return (
+      <Tooltip content="Unlocks when a black hole is discovered" placement="right">
+        {node}
+      </Tooltip>
+    );
+  }
+  return node;
 }
