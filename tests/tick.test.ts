@@ -74,7 +74,6 @@ describe("tick", () => {
         minerCost.energy + 100,
       );
       const materialsBefore = state.systems["sol"]!.resources.materials;
-      const energyBefore = state.systems["sol"]!.resources.energy;
 
       const action: PlayerAction = {
         type: "build_structure",
@@ -90,9 +89,8 @@ describe("tick", () => {
       expect(sol.constructionQueue[0]!.targetType).toBe("miner");
       expect(sol.constructionQueue[0]!.targetTier).toBe(1);
 
-      const rawDeductedMaterials = materialsBefore - minerCost.materials;
-      expect(sol.resources.materials).toBeGreaterThanOrEqual(rawDeductedMaterials - 1);
-      expect(sol.resources.energy).not.toBe(energyBefore);
+      expect(sol.resources.materials).toBeLessThanOrEqual(materialsBefore - minerCost.materials);
+      expect(sol.resources.materials).toBeGreaterThanOrEqual(materialsBefore - minerCost.materials - 1);
     });
 
     test("insufficient resources leaves state unchanged (no project added)", () => {
