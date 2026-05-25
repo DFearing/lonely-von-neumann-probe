@@ -44,6 +44,23 @@ export const BRANCH_GROUPS = [
   { id: "communication", label: "Communication", branches: ["communication", "communication_speed"] },
 ] as const;
 
+export const BRANCH_COMPUTING_PARAMS: Record<TechBranchId, { baseCost: number; scalingFactor: number }> = {
+  mining_efficiency:        { baseCost: 2,   scalingFactor: 1.15 },
+  mining_types:             { baseCost: 3.5, scalingFactor: 1.18 },
+  energy_production:        { baseCost: 3,   scalingFactor: 1.17 },
+  energy_types:             { baseCost: 5,   scalingFactor: 1.20 },
+  manufacturing_efficiency: { baseCost: 2,   scalingFactor: 1.15 },
+  manufacturing_types:      { baseCost: 3.5, scalingFactor: 1.18 },
+  station_efficiency:       { baseCost: 3,   scalingFactor: 1.17 },
+  station_types:            { baseCost: 4,   scalingFactor: 1.19 },
+  probe_propulsion:         { baseCost: 4,   scalingFactor: 1.20 },
+  probe_reactors:           { baseCost: 5,   scalingFactor: 1.20 },
+  computing_speed:          { baseCost: 2.5, scalingFactor: 1.16 },
+  computing_architecture:   { baseCost: 6,   scalingFactor: 1.22 },
+  communication:            { baseCost: 3,   scalingFactor: 1.17 },
+  communication_speed:      { baseCost: 2,   scalingFactor: 1.15 },
+};
+
 function generateStructurePathNames(structureNames: readonly string[]): string[] {
   const names: string[] = [];
   for (let tier = 1; tier <= MAX_TIER; tier++) {
@@ -479,6 +496,7 @@ function generateTechTree(): Record<string, TechDefinition> {
 
   for (const branchId of TECH_BRANCHES) {
     const names = TECH_NAMES[branchId];
+    const params = BRANCH_COMPUTING_PARAMS[branchId];
     for (let tier = 1; tier <= MAX_TIER; tier++) {
       const id = techIdForBranch(branchId, tier);
       tree[id] = {
@@ -490,7 +508,7 @@ function generateTechTree(): Record<string, TechDefinition> {
           materials: Math.round(40 * 1.22 ** (tier - 1)),
           energy: Math.round(10 * 1.25 ** (tier - 1)),
         },
-        continuousCost: Math.round(3 * 1.18 ** (tier - 1)),
+        continuousCost: Math.round(params.baseCost * params.scalingFactor ** (tier - 1)),
         researchTime: Math.round(120 * 1.20 ** (tier - 1)),
         effects: generateEffects(branchId, tier),
         unlocks: generateUnlocks(branchId, tier),
