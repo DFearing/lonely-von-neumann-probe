@@ -70,8 +70,8 @@ function generateCpus(): Record<string, CpuDefinition> {
       type: id,
       name: CPU_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(15 * 2.2 ** (tier - 1)),
-        energy: Math.round(3 * 2.2 ** (tier - 1)),
+        materials: Math.round(187 * 2.2 ** (tier - 1)),
+        energy: Math.round(36 * 2.2 ** (tier - 1)),
       },
       computingOutput: +(0.5 * 1.45 ** (tier - 1)).toFixed(2),
       miningOutput: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
@@ -90,8 +90,8 @@ function generatePropulsions(): Record<string, PropulsionDefinition> {
       type: id,
       name: PROPULSION_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(15 * 2.2 ** (tier - 1)),
-        energy: Math.round(3 * 2.2 ** (tier - 1)),
+        materials: Math.round(187 * 2.2 ** (tier - 1)),
+        energy: Math.round(36 * 2.2 ** (tier - 1)),
       },
       travelSpeed: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
       autoReplicate: tier >= 5,
@@ -109,8 +109,8 @@ function generateReactors(): Record<string, ReactorDefinition> {
       type: id,
       name: PROBE_REACTOR_NAMES[tier - 1]!,
       cost: {
-        materials: Math.round(15 * 2.2 ** (tier - 1)),
-        energy: Math.round(3 * 2.2 ** (tier - 1)),
+        materials: Math.round(187 * 2.2 ** (tier - 1)),
+        energy: Math.round(36 * 2.2 ** (tier - 1)),
       },
       energyMultiplier: +(1 * (1 + 0.30 * (tier - 1))).toFixed(2),
       solarScaling: SOLAR_REACTOR_TIERS.has(tier),
