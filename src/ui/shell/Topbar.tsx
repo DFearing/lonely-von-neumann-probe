@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faForwardFast } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { useGameState, useCurrentSystem, useLoop } from "../context";
+import { useGameState, useLoop } from "../context";
 import { FONT_MONO } from "../tokens";
-import { starColor } from "../data/star-colors";
 import type { GameSpeed } from "../../simulation/actions";
 import { useSoundSettings } from "../../audio/use-sound-events";
 import { DEV_MODE } from "../../simulation/dev";
@@ -13,15 +12,6 @@ import { MUSIC_MOODS } from "../../audio/ambient-music";
 import { Tooltip } from "../components/Tooltip";
 import { fmt } from "../format";
 
-function richnessLabel(value: number): string {
-  if (value < 0.7) return "Barren";
-  if (value < 0.9) return "Poor";
-  if (value < 1.1) return "Moderate";
-  if (value < 1.4) return "Rich";
-  if (value < 1.8) return "Abundant";
-  return "Plentiful";
-}
-
 const SPEEDS: GameSpeed[] = DEV_MODE ? [1, 10, 100, 1000] : [1, 2, 3, 4, 5];
 const SPEED_LABELS: Record<GameSpeed, string> = DEV_MODE
   ? { 1: "1×", 10: "10×", 100: "100×", 1000: "1000×" }
@@ -29,7 +19,6 @@ const SPEED_LABELS: Record<GameSpeed, string> = DEV_MODE
 
 export function Topbar({ onOpenAutopilot }: { onOpenAutopilot?: () => void }) {
   const state = useGameState();
-  const system = useCurrentSystem();
   const loop = useLoop();
   const { settings: soundSettings, setVolume, setMuted, setMusicMuted, setMusicMood } = useSoundSettings();
 
@@ -83,36 +72,6 @@ export function Topbar({ onOpenAutopilot }: { onOpenAutopilot?: () => void }) {
         fontSize: 15,
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <span
-          style={{
-            display: "inline-block",
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            background: starColor(system.starType),
-            boxShadow: `0 0 8px ${starColor(system.starType)}`,
-            alignSelf: "center",
-          }}
-        />
-        <span style={{ color: "#6b87a3", letterSpacing: "0.14em" }}>
-          SYSTEM
-        </span>
-        <span
-          style={{
-            color: "#d6e8f5",
-            letterSpacing: "0.12em",
-            fontWeight: 600,
-            fontSize: 16,
-          }}
-        >
-          {system.name}
-        </span>
-        <span style={{ color: "#3d5572" }}>&middot;</span>
-        <span style={{ color: "#d6e8f5" }}>
-          {richnessLabel(system.resourceRichness)} materials
-        </span>
-      </div>
       <div style={{ flex: 1 }} />
       <div data-tour="topbar" style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <Tooltip placement="below" content={paused ? "Resume (Ctrl+0)" : "Pause (Ctrl+0)"}>

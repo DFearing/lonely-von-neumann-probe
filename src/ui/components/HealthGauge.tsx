@@ -1,6 +1,6 @@
 import { Tooltip } from "./Tooltip";
 
-const SEGMENT_COUNT = 5;
+const SEGMENT_COUNT = 25;
 
 function healthColor(health: number): string {
   if (health > 0.6) return "#4ade80";

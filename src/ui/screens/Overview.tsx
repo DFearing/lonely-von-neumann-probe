@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useGameState, useDispatch, useCurrentSystem } from "../context";
 import { ProbesColumn } from "./overview/ProbesColumn";
 import { StructureColumn } from "./overview/StructureColumn";
+import { DetailsPanel } from "./overview/DetailsPanel";
 
 const MIN_BUILD_COST = 30;
 
@@ -26,21 +27,35 @@ export function Overview() {
       data-tour="overview"
       style={{
         display: "grid",
-        gridTemplateColumns: showExpansion ? "1fr 1fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr",
-        gridTemplateRows: "minmax(0, 1fr)",
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gridTemplateRows: "1fr 1fr",
         gap: 16,
         flex: 1,
         minHeight: 0,
       }}
     >
-      <ProbesColumn state={state} system={system} dispatch={dispatch} />
+      <div style={{ gridColumn: "1", gridRow: "1", minHeight: 0, display: "flex", flexDirection: "column" as const }}>
+        <ProbesColumn state={state} system={system} dispatch={dispatch} />
+      </div>
+      <div style={{ gridColumn: "2", gridRow: "1", minHeight: 0, display: "flex", flexDirection: "column" as const }}>
+        <StructureColumn
+          system={system}
+          category="stations"
+          dispatch={dispatch}
+          disabled={!showExpansion}
+        />
+      </div>
+      <div style={{ gridColumn: "3", gridRow: "1", minHeight: 0, display: "flex" }}>
+        <DetailsPanel state={state} system={system} />
+      </div>
       <div
         data-tour="structures"
         style={{
+          gridColumn: "1 / -1",
+          gridRow: "2",
           display: "grid",
-          gridTemplateColumns: showExpansion ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr",
+          gridTemplateColumns: "1fr 1fr 1fr",
           gap: 16,
-          gridColumn: showExpansion ? "span 4" : "span 3",
           minHeight: 0,
         }}
       >
@@ -62,13 +77,6 @@ export function Overview() {
           dispatch={dispatch}
           disabled={!showStructures}
         />
-        {showExpansion && (
-          <StructureColumn
-            system={system}
-            category="stations"
-            dispatch={dispatch}
-          />
-        )}
       </div>
     </div>
   );
