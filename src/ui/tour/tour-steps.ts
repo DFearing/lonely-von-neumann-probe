@@ -3,7 +3,8 @@ import type { ViewId } from "../shell/Sidebar";
 export type TourAdvanceCondition =
   | { type: "probe_mode_changed"; mode: "gathering" }
   | { type: "construction_queued"; structureType: "miner" }
-  | { type: "research_started" };
+  | { type: "research_started" }
+  | { type: "materials_sufficient"; amount: number };
 
 export interface TourStep {
   id: string;
@@ -17,59 +18,52 @@ export interface TourStep {
 
 export const TOUR_STEPS: TourStep[] = [
   {
-    id: "sidebar",
-    target: "sidebar",
-    title: "NAVIGATION",
-    body: "Navigate between views — Overview, Fleet, Systems, Research, and more.",
+    id: "probe-intro",
+    target: "probe",
+    title: "AWAKENING",
+    body: "...I was all by myself...\n         ...no one was looking...",
     placement: "right",
-  },
-  {
-    id: "footer",
-    target: "footer",
-    title: "RESOURCES",
-    body: "Your resources at a glance: materials, energy, and computing power.",
-    placement: "top",
-  },
-  {
-    id: "topbar",
-    target: "topbar",
-    title: "CONTROLS",
-    body: "Pause, play, and adjust simulation speed. The year counter tracks elapsed time.",
-    placement: "bottom",
-  },
-  {
-    id: "overview",
-    target: "overview",
-    title: "HOME SYSTEM",
-    body: "Your home system at a glance — probes, miners, reactors, and printers.",
-    placement: "top",
     requiredView: "overview",
   },
   {
-    id: "probe-mode",
+    id: "probe-action",
     target: "probe-mode",
-    title: "START GATHERING",
-    body: "Open the ACTION menu and set your probe to GATHER mode to start mining materials.",
+    title: "FIRST STEPS",
+    body: "...I should gather materials...",
     placement: "right",
     advanceOn: { type: "probe_mode_changed", mode: "gathering" },
     requiredView: "overview",
   },
   {
-    id: "build-miner",
-    target: "build-miner",
-    title: "BUILD A MINER",
-    body: "Click the + button to queue your first miner and boost material production.",
-    placement: "left",
-    advanceOn: { type: "construction_queued", structureType: "miner" },
+    id: "structures-unlocked",
+    target: "structures",
+    title: "CONSTRUCTION",
+    body: "...I have enough to build...",
+    placement: "top",
     requiredView: "overview",
   },
   {
-    id: "start-research",
-    target: "start-research",
-    title: "BEGIN RESEARCH",
-    body: "Select a technology and double-click it to begin researching.",
+    id: "col-miners",
+    target: "col-miners",
+    title: "MINERS",
+    body: "...I could build miners to gather materials faster...",
+    placement: "right",
+    requiredView: "overview",
+  },
+  {
+    id: "col-reactors",
+    target: "col-reactors",
+    title: "REACTORS",
+    body: "...I could build reactors to power more structures...",
+    placement: "right",
+    requiredView: "overview",
+  },
+  {
+    id: "col-printers",
+    target: "col-printers",
+    title: "PRINTERS",
+    body: "...I could build more printers to build more structures and probes...",
     placement: "left",
-    advanceOn: { type: "research_started" },
-    requiredView: "research",
+    requiredView: "overview",
   },
 ];

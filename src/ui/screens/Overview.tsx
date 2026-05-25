@@ -1,14 +1,29 @@
+import { useRef } from "react";
 import type { ViewId } from "../shell/Sidebar";
 import { useGameState, useDispatch, useCurrentSystem } from "../context";
 import { ProbesColumn } from "./overview/ProbesColumn";
 import { StructureColumn } from "./overview/StructureColumn";
 
+const MIN_BUILD_COST = 30;
+
 export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void }) {
   const state = useGameState();
   const dispatch = useDispatch();
   const system = useCurrentSystem();
+
+  const canBuild = system.resources.materials >= MIN_BUILD_COST
+    || system.constructionQueue.length > 0
+    || system.structures.miners.length > 0
+    || system.structures.reactors.length > 0
+    || system.structures.printers.length > 0;
+  const showStructuresRef = useRef(canBuild);
+  if (canBuild) showStructuresRef.current = true;
+  const showStructures = showStructuresRef.current;
+
   const showExpansion = Object.keys(system.completedResearch).length >= 4;
-  const cols = showExpansion ? "1fr 1fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr";
+  const cols = !showStructures
+    ? "1fr"
+    : showExpansion ? "1fr 1fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr";
 
   return (
     <div
@@ -23,27 +38,40 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
       }}
     >
       <ProbesColumn state={state} system={system} dispatch={dispatch} onNavigate={onNavigate} />
-      <StructureColumn
-        system={system}
-        category="miners"
-        dispatch={dispatch}
-      />
-      <StructureColumn
-        system={system}
-        category="reactors"
-        dispatch={dispatch}
-      />
-      <StructureColumn
-        system={system}
-        category="printers"
-        dispatch={dispatch}
-      />
-      {showExpansion && (
-        <StructureColumn
-          system={system}
-          category="stations"
-          dispatch={dispatch}
-        />
+      {showStructures && (
+        <div
+          data-tour="structures"
+          style={{
+            display: "grid",
+            gridTemplateColumns: showExpansion ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr",
+            gap: 16,
+            gridColumn: showExpansion ? "span 4" : "span 3",
+            minHeight: 0,
+          }}
+        >
+          <StructureColumn
+            system={system}
+            category="miners"
+            dispatch={dispatch}
+          />
+          <StructureColumn
+            system={system}
+            category="reactors"
+            dispatch={dispatch}
+          />
+          <StructureColumn
+            system={system}
+            category="printers"
+            dispatch={dispatch}
+          />
+          {showExpansion && (
+            <StructureColumn
+              system={system}
+              category="stations"
+              dispatch={dispatch}
+            />
+          )}
+        </div>
       )}
     </div>
   );
