@@ -151,7 +151,6 @@ describe("tick", () => {
         cpu: "cpu_t1",
         propulsion: "prop_t1",
         reactor: "rct_t1",
-        targetSystemId: "alpha_centauri",
       };
 
       const next = tick(state, DT, [action]);
@@ -164,7 +163,6 @@ describe("tick", () => {
       expect(project.targetConfig!.cpu).toBe("cpu_t1");
       expect(project.targetConfig!.propulsion).toBe("prop_t1");
       expect(project.targetConfig!.reactor).toBe("rct_t1");
-      expect(project.targetConfig!.targetSystemId).toBe("alpha_centauri");
       expect(project.totalCost).toEqual(cost);
     });
   });

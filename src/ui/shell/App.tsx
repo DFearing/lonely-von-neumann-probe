@@ -41,7 +41,7 @@ function Screen({
 }) {
   switch (view) {
     case "overview":
-      return <Overview onNavigate={onNavigate} />;
+      return <Overview />;
     case "fleet":
       return <Probes />;
     case "systems":
@@ -51,7 +51,7 @@ function Screen({
     case "log":
       return <Log />;
     case "prestige":
-      if (DEV_MODE) return <Overview onNavigate={onNavigate} />;
+      if (DEV_MODE) return <Overview />;
       return <Prestige onBeginNewMission={onPrestige ?? (() => {})} />;
   }
 }

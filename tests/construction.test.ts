@@ -6,7 +6,7 @@ import type {
   ConstructionProject,
   StructureInstance,
 } from "../src/simulation/state";
-import { PROPULSIONS } from "../src/simulation/data/components";
+import { CPUS, PROPULSIONS } from "../src/simulation/data/components";
 
 const SEED = 42;
 const DT = 1;
@@ -27,18 +27,16 @@ function makePrinter(id: string): StructureInstance {
 }
 
 function makeProbeProject(
-  targetSystemId: string,
   overrides?: Partial<ConstructionProject>,
 ): ConstructionProject {
   return {
-    id: `build_probe_${targetSystemId}`,
+    id: "build_probe",
     targetType: "probe",
     targetTier: 0,
     targetConfig: {
       cpu: "cpu_t1",
       propulsion: "prop_t1",
       reactor: "rct_t1",
-      targetSystemId,
     },
     totalCost: { materials: 30, energy: 6 },
     remainingCost: { materials: 0, energy: 0 },
@@ -48,12 +46,12 @@ function makeProbeProject(
   };
 }
 
-describe("resolveDistance via probe construction", () => {
-  test("probe targeting Alpha Centauri gets travel time based on real distance", () => {
+describe("probe construction produces availableProbes", () => {
+  test("completed probe goes to availableProbes, not sentProbes", () => {
     const state = createInitialState(SEED);
     const sol = state.systems["sol"]!;
 
-    const project = makeProbeProject("alpha_centauri");
+    const project = makeProbeProject();
     const printer = makePrinter("printer_1");
 
     const modified: GameState = {
@@ -69,26 +67,76 @@ describe("resolveDistance via probe construction", () => {
     };
 
     const next = tickConstruction(modified, DT);
-    const probe = next.systems["sol"]!.sentProbes[0];
+    const solAfter = next.systems["sol"]!;
 
-    expect(probe).toBeDefined();
-
-    const expectedDistance = 4.37;
-    const propulsion = PROPULSIONS["prop_t1"]!;
-    const expectedTravelTime = expectedDistance / propulsion.travelSpeed;
-
-    expect(probe!.travelTimeSeconds).toBeCloseTo(expectedTravelTime);
+    expect(solAfter.availableProbes).toHaveLength(1);
+    expect(solAfter.sentProbes).toHaveLength(0);
   });
 
-  test("probe travel time reflects actual distance, not a hardcoded value", () => {
+  test("completed probe has correct components from targetConfig", () => {
     const state = createInitialState(SEED);
     const sol = state.systems["sol"]!;
 
-    const projectAC = makeProbeProject("alpha_centauri");
-    const projectSirius = makeProbeProject("sirius", {
-      id: "build_probe_sirius",
-      assignedPrinterIds: ["printer_2"],
-    });
+    const project = makeProbeProject();
+    const printer = makePrinter("printer_1");
+
+    const modified: GameState = {
+      ...state,
+      systems: {
+        ...state.systems,
+        sol: {
+          ...sol,
+          structures: { ...sol.structures, printers: [printer] },
+          constructionQueue: [project],
+        },
+      },
+    };
+
+    const next = tickConstruction(modified, DT);
+    const probe = next.systems["sol"]!.availableProbes[0]!;
+
+    expect(probe.components.cpu).toBe("cpu_t1");
+    expect(probe.components.propulsion).toBe("prop_t1");
+    expect(probe.components.reactor).toBe("rct_t1");
+  });
+
+  test("completed probe has stats derived from cpu definition", () => {
+    const state = createInitialState(SEED);
+    const sol = state.systems["sol"]!;
+
+    const project = makeProbeProject();
+    const printer = makePrinter("printer_1");
+
+    const modified: GameState = {
+      ...state,
+      systems: {
+        ...state.systems,
+        sol: {
+          ...sol,
+          structures: { ...sol.structures, printers: [printer] },
+          constructionQueue: [project],
+        },
+      },
+    };
+
+    const next = tickConstruction(modified, DT);
+    const probe = next.systems["sol"]!.availableProbes[0]!;
+    const cpuDef = CPUS["cpu_t1"]!;
+
+    expect(probe.miningOutput).toBe(cpuDef.miningOutput);
+    expect(probe.computingOutput).toBe(cpuDef.computingOutput);
+    expect(probe.internalPrinterSpeed).toBe(cpuDef.printSpeed);
+    expect(probe.health).toBe(1);
+    expect(probe.mode).toBe("idle");
+    expect(probe.autoReplicating).toBe(PROPULSIONS["prop_t1"]!.autoReplicate);
+  });
+
+  test("multiple probes can be built and accumulate in availableProbes", () => {
+    const state = createInitialState(SEED);
+    const sol = state.systems["sol"]!;
+
+    const project1 = makeProbeProject({ id: "build_probe_1", assignedPrinterIds: ["printer_1"] });
+    const project2 = makeProbeProject({ id: "build_probe_2", assignedPrinterIds: ["printer_2"] });
     const printer1 = makePrinter("printer_1");
     const printer2 = makePrinter("printer_2");
 
@@ -99,23 +147,45 @@ describe("resolveDistance via probe construction", () => {
         sol: {
           ...sol,
           structures: { ...sol.structures, printers: [printer1, printer2] },
-          constructionQueue: [projectAC, projectSirius],
+          constructionQueue: [project1, project2],
         },
       },
     };
 
     const next = tickConstruction(modified, DT);
-    const probes = next.systems["sol"]!.sentProbes;
+    const solAfter = next.systems["sol"]!;
 
-    expect(probes.length).toBe(2);
+    expect(solAfter.availableProbes).toHaveLength(2);
+    expect(solAfter.sentProbes).toHaveLength(0);
+    expect(solAfter.constructionQueue).toHaveLength(0);
+  });
 
-    const probeAC = probes.find((p) => p.destinationSystemId === "alpha_centauri")!;
-    const probeSirius = probes.find((p) => p.destinationSystemId === "sirius")!;
+  test("construction log says ready for deployment", () => {
+    const state = createInitialState(SEED);
+    const sol = state.systems["sol"]!;
 
-    expect(probeAC.travelTimeSeconds).not.toBe(probeSirius.travelTimeSeconds);
+    const project = makeProbeProject();
+    const printer = makePrinter("printer_1");
 
-    const propulsion = PROPULSIONS["prop_t1"]!;
-    expect(probeAC.travelTimeSeconds).toBeCloseTo(4.37 / propulsion.travelSpeed);
-    expect(probeSirius.travelTimeSeconds).toBeCloseTo(8.6 / propulsion.travelSpeed);
+    const modified: GameState = {
+      ...state,
+      systems: {
+        ...state.systems,
+        sol: {
+          ...sol,
+          structures: { ...sol.structures, printers: [printer] },
+          constructionQueue: [project],
+        },
+      },
+    };
+
+    const next = tickConstruction(modified, DT);
+    const logBefore = state.log.length;
+    const newEntries = next.log.slice(logBefore);
+
+    const entry = newEntries.find((e) => e.message.includes("ready for deployment"));
+    expect(entry).toBeDefined();
+    expect(entry!.category).toBe("milestone");
+    expect(entry!.soundEvent).toBe("probe_constructed");
   });
 });

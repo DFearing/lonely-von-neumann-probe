@@ -1,12 +1,11 @@
 import { useRef } from "react";
-import type { ViewId } from "../shell/Sidebar";
 import { useGameState, useDispatch, useCurrentSystem } from "../context";
 import { ProbesColumn } from "./overview/ProbesColumn";
 import { StructureColumn } from "./overview/StructureColumn";
 
 const MIN_BUILD_COST = 30;
 
-export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void }) {
+export function Overview() {
   const state = useGameState();
   const dispatch = useDispatch();
   const system = useCurrentSystem();
@@ -37,7 +36,7 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
         minHeight: 0,
       }}
     >
-      <ProbesColumn state={state} system={system} dispatch={dispatch} onNavigate={onNavigate} />
+      <ProbesColumn state={state} system={system} dispatch={dispatch} />
       {showStructures && (
         <div
           data-tour="structures"

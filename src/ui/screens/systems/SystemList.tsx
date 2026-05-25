@@ -1,29 +1,39 @@
 import type { GameState, SystemState } from "../../../simulation/state";
+import { getIncomingProbes } from "../../../simulation/queries";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
 import { starColor } from "../../data/star-colors";
 import { fmt } from "../../format";
 
-function systemStatus(sys: SystemState, isHome: boolean): string {
+function systemStatus(sys: SystemState, isHome: boolean, hasIncoming: boolean): string {
   if (isHome) return "HOME";
   if (sys.mainProbe) return "COLONIZED";
+  if (hasIncoming) return "INCOMING";
   return "KNOWN";
+}
+
+function statusColorForStatus(status: string, isHome: boolean): string {
+  if (isHome) return "#4cd8a8";
+  if (status === "INCOMING") return "#4ddbff";
+  return "#6b87a3";
 }
 
 function SystemListItem({
   sys,
   isSelected,
   isHome,
+  hasIncoming,
   onSelect,
 }: {
   sys: SystemState;
   isSelected: boolean;
   isHome: boolean;
+  hasIncoming: boolean;
   onSelect: () => void;
 }) {
   const color = starColor(sys.starType);
-  const status = systemStatus(sys, isHome);
-  const statusColor = isHome ? "#4cd8a8" : "#6b87a3";
+  const status = systemStatus(sys, isHome, hasIncoming);
+  const statusColor = statusColorForStatus(status, isHome);
 
   return (
     <div
@@ -113,6 +123,7 @@ export function SystemList({
               sys={sys}
               isSelected={selectedSystem === id}
               isHome={state.currentSystemId === id}
+              hasIncoming={getIncomingProbes(state, id).length > 0}
               onSelect={() => onSelect(id)}
             />
           );

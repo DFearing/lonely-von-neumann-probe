@@ -6,15 +6,15 @@ import type { ProbeState, ProbeInTransit } from "../../simulation/state";
 import { FONT_MONO } from "../tokens";
 import { Panel } from "../components/Panel";
 import { ScreenHeader } from "../components/ScreenHeader";
-import { ProbeRow, TransitProbeRow } from "./probes/ProbeRow";
-import { ProbeDetail } from "./probes/ProbeDetail";
+import { ProbeRow, TransitProbeRow, AvailableProbeRow } from "./probes/ProbeRow";
 import { BuildProbeModal } from "./probes/BuildProbeModal";
+import { LaunchProbeModal } from "./probes/LaunchProbeModal";
 
 export function Probes() {
   const state = useGameState();
   const dispatch = useDispatch();
-  const [selected, setSelected] = useState<string | null>(null);
   const [showBuild, setShowBuild] = useState(false);
+  const [launchingProbe, setLaunchingProbe] = useState<ProbeState | null>(null);
 
   const system = state.systems[state.currentSystemId];
   if (!system) return null;
@@ -31,24 +31,12 @@ export function Probes() {
     }
   }
 
-  const totalCount = activeProbes.length + transitProbes.length;
+  const availableProbes = system.availableProbes;
+
+  const totalCount = activeProbes.length + transitProbes.length + availableProbes.length;
   const homeCount = activeProbes.length;
   const transitCount = transitProbes.length;
-
-  let selectedProbe: ProbeState | null = null;
-  let selectedSystemName = "";
-  if (selected) {
-    const active = activeProbes.find((a) => a.probe.id === selected);
-    if (active) {
-      selectedProbe = active.probe;
-      selectedSystemName = active.systemName;
-    }
-  }
-
-  const targetSystems = system.discoveredSystems
-    .map((id) => state.systems[id])
-    .filter((s): s is NonNullable<typeof s> => s != null && !s.mainProbe)
-    .map((s) => ({ id: s.id, name: s.name }));
+  const availableCount = availableProbes.length;
 
   return (
     <>
@@ -78,6 +66,12 @@ export function Probes() {
                 <span style={{ color: "#4ddbff" }}>{transitCount}</span>{" "}
                 <span style={{ color: "#6b87a3" }}>IN TRANSIT</span>
               </span>
+              {availableCount > 0 && (
+                <span>
+                  <span style={{ color: "#4cd8a8" }}>{availableCount}</span>{" "}
+                  <span style={{ color: "#6b87a3" }}>AVAILABLE</span>
+                </span>
+              )}
             </div>
             <button
               onClick={() => setShowBuild(true)}
@@ -121,6 +115,7 @@ export function Probes() {
             >
               {[
                 { color: "#4cd8a8", label: "IN SYSTEM" },
+                { color: "#4cd8a8", label: "AVAILABLE" },
                 { color: "#4ddbff", label: "TRANSIT" },
                 { color: "#ff9966", label: "BUILDING" },
               ].map((l) => (
@@ -154,24 +149,29 @@ export function Probes() {
               minHeight: 0,
             }}
           >
+            {availableProbes.map((probe) => (
+              <AvailableProbeRow
+                key={probe.id}
+                probe={probe}
+                onExplore={() => setLaunchingProbe(probe)}
+              />
+            ))}
             {activeProbes.map(({ probe, systemName }) => (
               <ProbeRow
                 key={probe.id}
                 probe={probe}
                 systemName={systemName}
-                selected={selected === probe.id}
-                onClick={() => setSelected(probe.id)}
               />
             ))}
             {transitProbes.map((p) => (
               <TransitProbeRow
                 key={p.id}
                 probe={p}
-                selected={selected === p.id}
-                onClick={() => setSelected(p.id)}
+                originName={state.systems[p.originSystemId]?.name ?? p.originSystemId}
+                destinationName={state.systems[p.destinationSystemId]?.name ?? p.destinationSystemId}
               />
             ))}
-            {activeProbes.length === 0 && transitProbes.length === 0 && (
+            {activeProbes.length === 0 && transitProbes.length === 0 && availableProbes.length === 0 && (
               <div
                 style={{
                   fontFamily: FONT_MONO,
@@ -188,31 +188,21 @@ export function Probes() {
         </Panel>
       </div>
 
-      {selectedProbe && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            width: 380,
-            height: "100%",
-            zIndex: 10,
-          }}
-        >
-          <ProbeDetail
-            probe={selectedProbe}
-            systemName={selectedSystemName}
-            onBuild={() => setShowBuild(true)}
-          />
-        </div>
-      )}
-
       {showBuild && (
         <BuildProbeModal
           system={system}
-          targetSystems={targetSystems}
           dispatch={dispatch}
           onClose={() => setShowBuild(false)}
+        />
+      )}
+
+      {launchingProbe && (
+        <LaunchProbeModal
+          probe={launchingProbe}
+          system={system}
+          state={state}
+          dispatch={dispatch}
+          onClose={() => setLaunchingProbe(null)}
         />
       )}
     </>

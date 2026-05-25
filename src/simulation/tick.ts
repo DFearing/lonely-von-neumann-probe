@@ -1,6 +1,7 @@
 import type {
   ConstructionProject,
   GameState,
+  ProbeInTransit,
   ResearchProject,
   SystemState,
 } from "./state";
@@ -15,7 +16,9 @@ import { tickEvents } from "./systems/events";
 import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
-
+import { KNOWN_SYSTEMS } from "./data/star-systems";
+import { resolveDistance } from "./queries";
+import { TRAVEL_TIME_SCALE } from "./constants";
 import { purchaseUpgrade, calculatePrestigePoints } from "./prestige";
 import type { PrestigeUpgradeId } from "./prestige";
 
@@ -134,14 +137,13 @@ function applyBuildProbe(
   if (!canAfford(system, cost)) return state;
 
   const project: ConstructionProject = {
-    id: `proj_${state.tickCount}_probe_${action.targetSystemId}`,
+    id: `proj_${state.tickCount}_probe`,
     targetType: "probe",
     targetTier: 0,
     targetConfig: {
       cpu: action.cpu,
       propulsion: action.propulsion,
       reactor: action.reactor,
-      targetSystemId: action.targetSystemId,
     },
     totalCost: { ...cost },
     remainingCost: { ...cost },
@@ -154,6 +156,51 @@ function applyBuildProbe(
     ...updated,
     constructionQueue: [...updated.constructionQueue, project],
   });
+}
+
+function applyLaunchProbe(
+  state: GameState,
+  action: Extract<PlayerAction, { type: "launch_probe" }>,
+): GameState {
+  const system = getSystem(state, action.systemId);
+  if (!system) return state;
+
+  const probeIndex = system.availableProbes.findIndex(p => p.id === action.probeId);
+  if (probeIndex === -1) return state;
+  const probe = system.availableProbes[probeIndex]!;
+
+  const distance = resolveDistance(system, action.targetSystemId, state.systems);
+
+  const propulsion = PROPULSIONS[probe.components.propulsion];
+  if (!propulsion) return state;
+  const travelTimeSeconds = (distance * TRAVEL_TIME_SCALE) / propulsion.travelSpeed;
+
+  const transitProbe: ProbeInTransit = {
+    id: probe.id,
+    name: probe.name,
+    components: probe.components,
+    originSystemId: system.id,
+    destinationSystemId: action.targetSystemId,
+    travelTimeSeconds,
+    elapsedSeconds: 0,
+  };
+
+  const updatedAvailable = system.availableProbes.filter((_, i) => i !== probeIndex);
+
+  const targetName = state.systems[action.targetSystemId]?.name
+    ?? KNOWN_SYSTEMS.find(s => s.id === action.targetSystemId)?.name
+    ?? action.targetSystemId;
+  const etaSeconds = Math.ceil(travelTimeSeconds);
+  const logMessage = `${probe.name} launched toward ${targetName} — ETA ${etaSeconds} cycles`;
+
+  return {
+    ...updateSystem(state, action.systemId, {
+      ...system,
+      availableProbes: updatedAvailable,
+      sentProbes: [...system.sentProbes, transitProbe],
+    }),
+    log: [...state.log, { tick: state.tickCount, message: logMessage, category: "info" as const }],
+  };
 }
 
 function applyStartResearch(
@@ -356,6 +403,8 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
       return applyCancelConstruction(state, action);
     case "build_probe":
       return applyBuildProbe(state, action);
+    case "launch_probe":
+      return applyLaunchProbe(state, action);
     case "start_research":
       return applyStartResearch(state, action);
     case "pause_research":

@@ -16,7 +16,7 @@ function createArrivingProbe(
     systemId,
     components: probe.components,
     miningOutput: cpuDef?.miningOutput ?? 1,
-    computingOutput: cpuDef?.computingOutput ?? 1,
+    computingOutput: cpuDef?.computingOutput ?? 0.5,
     internalPrinterSpeed: cpuDef?.printSpeed ?? 0.5,
     autoReplicating: propDef?.autoReplicate ?? false,
     health: 1,
@@ -151,6 +151,7 @@ function tickSystemNavigation(
           researchQueue: [],
           completedResearch: { ...originSystem.completedResearch },
           discoveredSystems: [originSystem.id],
+          availableProbes: [],
           sentProbes: [],
         };
         newSystems[destId] = system;
@@ -243,7 +244,19 @@ export function tickNavigation(
 
   const mergedSystems: Record<string, SystemState> = {};
   for (const [id, system] of Object.entries(processedOrigins)) {
-    mergedSystems[id] = allUpdatedSystems[id] ?? system;
+    const updated = allUpdatedSystems[id];
+    if (updated) {
+      // `updated` has arriving-probe data (mainProbe, research); `system` has
+      // this origin's own sentProbes with elapsed times advanced. Both must survive.
+      const combinedDiscovered = [...new Set([...system.discoveredSystems, ...updated.discoveredSystems])];
+      mergedSystems[id] = {
+        ...updated,
+        sentProbes: system.sentProbes,
+        discoveredSystems: combinedDiscovered,
+      };
+    } else {
+      mergedSystems[id] = system;
+    }
   }
   for (const [id, system] of Object.entries(allNewSystems)) {
     if (!mergedSystems[id]) {

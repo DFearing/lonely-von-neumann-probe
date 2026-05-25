@@ -86,7 +86,6 @@ describe("tech gating", () => {
         cpu: "cpu_t2",
         propulsion: "prop_t1",
         reactor: "rct_t1",
-        targetSystemId: "alpha_centauri",
       };
 
       const next = tick(state, DT, [action]);
@@ -107,7 +106,6 @@ describe("tech gating", () => {
         cpu: "cpu_t2",
         propulsion: "prop_t1",
         reactor: "rct_t1",
-        targetSystemId: "alpha_centauri",
       };
 
       const next = tick(state, DT, [action]);
@@ -152,7 +150,6 @@ describe("tech gating", () => {
         cpu: "cpu_t2",
         propulsion: "prop_t2",
         reactor: "rct_t2",
-        targetSystemId: "alpha_centauri",
       };
 
       const nextMissing = tick(missingPropAndReactor, DT, [action]);

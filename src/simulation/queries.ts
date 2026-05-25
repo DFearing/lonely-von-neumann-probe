@@ -1,4 +1,4 @@
-import type { GameState, SystemState } from "./state";
+import type { GameState, ProbeInTransit, SystemState } from "./state";
 import { TECH_TREE, techsInBranch } from "./data/tech-tree";
 import type { TechDefinition } from "./data/tech-tree";
 import { STRUCTURES } from "./data/structures";
@@ -9,6 +9,7 @@ import type {
   PropulsionDefinition,
   ReactorDefinition,
 } from "./data/components";
+import { KNOWN_SYSTEMS } from "./data/star-systems";
 
 export type TechStatus = "completed" | "in_progress" | "available" | "locked";
 
@@ -124,4 +125,56 @@ export function isBlackHoleVisible(state: GameState): boolean {
 
 export function getBlackHoleSystemId(): string {
   return "cygnus_x1";
+}
+
+export function getIncomingProbes(
+  state: GameState,
+  targetSystemId: string,
+): ProbeInTransit[] {
+  const results: ProbeInTransit[] = [];
+  for (const system of Object.values(state.systems)) {
+    for (const probe of system.sentProbes) {
+      if (probe.destinationSystemId === targetSystemId) {
+        results.push(probe);
+      }
+    }
+  }
+  return results;
+}
+
+export function getProbeETA(probe: ProbeInTransit): number {
+  return Math.max(0, probe.travelTimeSeconds - probe.elapsedSeconds);
+}
+
+export function getProbeProgress(probe: ProbeInTransit): number {
+  if (probe.travelTimeSeconds <= 0) return 1;
+  return Math.min(1, probe.elapsedSeconds / probe.travelTimeSeconds);
+}
+
+export function getAllTransitProbes(state: GameState): ProbeInTransit[] {
+  const results: ProbeInTransit[] = [];
+  for (const system of Object.values(state.systems)) {
+    for (const probe of system.sentProbes) {
+      results.push(probe);
+    }
+  }
+  return results;
+}
+
+export function resolveDistance(
+  originSystem: SystemState,
+  targetSystemId: string,
+  allSystems: Record<string, SystemState>,
+): number {
+  const target = allSystems[targetSystemId];
+  if (target) {
+    return Math.abs(target.distanceFromOrigin - originSystem.distanceFromOrigin);
+  }
+
+  const knownTarget = KNOWN_SYSTEMS.find((s) => s.id === targetSystemId);
+  if (knownTarget) {
+    return Math.abs(knownTarget.distanceFromOrigin - originSystem.distanceFromOrigin);
+  }
+
+  return 10;
 }

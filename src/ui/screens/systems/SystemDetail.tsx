@@ -1,4 +1,6 @@
 import type { GameState, SystemState } from "../../../simulation/state";
+import { getIncomingProbes, getProbeETA } from "../../../simulation/queries";
+import { TRAVEL_TIME_SCALE } from "../../../simulation/constants";
 import type { ViewId } from "../../shell/Sidebar";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
@@ -220,20 +222,33 @@ function ColonizedDetail({
 
 function UnvisitedDetail({
   system,
+  state,
   onNavigate,
 }: {
   system: SystemState;
+  state: GameState;
   onNavigate: (view: ViewId) => void;
 }) {
-  const travelTime = system.distanceFromOrigin * 3.1536e7;
+  const travelTime = system.distanceFromOrigin * TRAVEL_TIME_SCALE;
+  const incoming = getIncomingProbes(state, system.id);
+  const hasIncoming = incoming.length > 0;
+  const nearestETA = hasIncoming
+    ? Math.min(...incoming.map(getProbeETA))
+    : 0;
 
   return (
     <Panel
       label="DETAIL · UNVISITED"
       right={
-        <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
-          ◌ NO PROBE
-        </span>
+        hasIncoming ? (
+          <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#4ddbff" }}>
+            ● INCOMING
+          </span>
+        ) : (
+          <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#6b87a3" }}>
+            ◌ NO PROBE
+          </span>
+        )
       }
     >
       <div style={{ marginBottom: 14 }}>
@@ -251,6 +266,34 @@ function UnvisitedDetail({
           {system.starType}
         </div>
       </div>
+
+      {hasIncoming && (
+        <div
+          style={{
+            padding: "10px 12px",
+            background: "rgba(77,219,255,0.04)",
+            borderLeft: "2px solid #4ddbff",
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            color: "#9ab4cf",
+            lineHeight: 1.6,
+            marginBottom: 14,
+          }}
+        >
+          <span style={{ color: "#4ddbff", letterSpacing: "0.14em" }}>
+            PROBE INCOMING
+          </span>
+          {" — "}
+          <span style={{ color: "#d6e8f5" }}>
+            ETA {fmtTime(nearestETA)}
+          </span>
+          {incoming.length > 1 && (
+            <span style={{ color: "#6b87a3" }}>
+              {" "}({incoming.length} probes en route)
+            </span>
+          )}
+        </div>
+      )}
 
       <div
         style={{
@@ -293,26 +336,28 @@ function UnvisitedDetail({
         <span style={{ color: "#d6e8f5" }}>Zero Latency Comms</span> researched.
       </div>
 
-      <button
-        style={{
-          width: "100%",
-          padding: "12px 18px",
-          background:
-            "linear-gradient(180deg, rgba(77,219,255,0.18), rgba(77,219,255,0.08))",
-          border: "1px solid #4ddbff",
-          color: "#4ddbff",
-          fontFamily: FONT_MONO,
-          fontSize: 12,
-          letterSpacing: "0.18em",
-          fontWeight: 600,
-          cursor: "pointer",
-          borderRadius: 2,
-          boxShadow: "0 0 12px rgba(77,219,255,0.15)",
-        }}
-        onClick={() => onNavigate("fleet")}
-      >
-        ▲ SEND PROBE TO {system.name.toUpperCase()}
-      </button>
+      {!hasIncoming && (
+        <button
+          style={{
+            width: "100%",
+            padding: "12px 18px",
+            background:
+              "linear-gradient(180deg, rgba(77,219,255,0.18), rgba(77,219,255,0.08))",
+            border: "1px solid #4ddbff",
+            color: "#4ddbff",
+            fontFamily: FONT_MONO,
+            fontSize: 12,
+            letterSpacing: "0.18em",
+            fontWeight: 600,
+            cursor: "pointer",
+            borderRadius: 2,
+            boxShadow: "0 0 12px rgba(77,219,255,0.15)",
+          }}
+          onClick={() => onNavigate("fleet")}
+        >
+          ▲ SEND PROBE TO {system.name.toUpperCase()}
+        </button>
+      )}
     </Panel>
   );
 }
@@ -334,6 +379,6 @@ export function SystemDetail({
   return isColonized ? (
     <ColonizedDetail system={system} onNavigate={onNavigate} />
   ) : (
-    <UnvisitedDetail system={system} onNavigate={onNavigate} />
+    <UnvisitedDetail system={system} state={state} onNavigate={onNavigate} />
   );
 }

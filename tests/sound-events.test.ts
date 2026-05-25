@@ -77,6 +77,7 @@ function makeSystem(overrides?: Partial<SystemState>): SystemState {
     researchQueue: [],
     completedResearch: {},
     discoveredSystems: [],
+    availableProbes: [],
     sentProbes: [],
     ...overrides,
   };
@@ -174,7 +175,6 @@ describe("construction sound events", () => {
         cpu: "cpu_t1",
         propulsion: "prop_t1",
         reactor: "rct_t1",
-        targetSystemId: "alpha_centauri",
       },
       totalCost: { materials: 30, energy: 6 },
       remainingCost: { materials: 0, energy: 0 },
@@ -192,7 +192,7 @@ describe("construction sound events", () => {
     const entries = newLogEntries(state, next);
 
     const probeEntry = entries.find((e) =>
-      e.message.includes("Probe constructed"),
+      e.message.includes("construction complete"),
     );
     expect(probeEntry).toBeDefined();
     expect(probeEntry!.soundEvent).toBe("probe_constructed");

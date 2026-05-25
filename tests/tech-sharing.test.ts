@@ -145,4 +145,49 @@ describe("cross-system tech sharing", () => {
       }
     });
   });
+
+  describe("origin-destination merge", () => {
+    test("system that is both origin and destination preserves its own sentProbes", () => {
+      const state = createInitialState(SEED);
+      const sol = state.systems["sol"]!;
+      const ac = state.systems["alpha_centauri"]!;
+
+      const solOutbound: ProbeInTransit = {
+        id: "sol_outbound",
+        name: "Sol Outbound",
+        components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
+        originSystemId: "sol",
+        destinationSystemId: "barnards_star",
+        travelTimeSeconds: 100,
+        elapsedSeconds: 10,
+      };
+
+      const acToSol: ProbeInTransit = {
+        id: "ac_to_sol",
+        name: "AC Probe",
+        components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
+        originSystemId: "alpha_centauri",
+        destinationSystemId: "sol",
+        travelTimeSeconds: 10,
+        elapsedSeconds: 9,
+      };
+
+      const modified: GameState = {
+        ...state,
+        systems: {
+          ...state.systems,
+          sol: { ...sol, sentProbes: [solOutbound] },
+          alpha_centauri: { ...ac, sentProbes: [acToSol] },
+        },
+      };
+
+      const rng = createRngFromState(modified.rngState);
+      const next = tickNavigation(modified, DT, rng);
+
+      const solAfter = next.systems["sol"]!;
+      expect(solAfter.sentProbes).toHaveLength(1);
+      expect(solAfter.sentProbes[0]!.id).toBe("sol_outbound");
+      expect(solAfter.sentProbes[0]!.elapsedSeconds).toBe(11);
+    });
+  });
 });

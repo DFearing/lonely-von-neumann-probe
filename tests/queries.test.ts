@@ -4,9 +4,13 @@ import {
   getAvailableStructures,
   getAvailableComponents,
   getMissingPrerequisites,
+  getIncomingProbes,
+  getProbeETA,
+  getProbeProgress,
+  getAllTransitProbes,
 } from "../src/simulation/queries";
 import { createInitialState } from "../src/simulation/state";
-import type { SystemState, ResearchProject } from "../src/simulation/state";
+import type { GameState, SystemState, ResearchProject, ProbeInTransit } from "../src/simulation/state";
 import { TECH_TREE, TECH_BRANCHES } from "../src/simulation/data/tech-tree";
 import { STRUCTURES } from "../src/simulation/data/structures";
 
@@ -395,5 +399,112 @@ describe("tech prerequisite graph validation", () => {
       );
       expect(branchTechs.length).toBeGreaterThan(0);
     }
+  });
+});
+
+function makeProbe(overrides?: Partial<ProbeInTransit>): ProbeInTransit {
+  return {
+    id: "probe_1",
+    name: "Test Probe",
+    components: { cpu: "cpu_t1", propulsion: "prop_t1", reactor: "rct_t1" },
+    originSystemId: "sol",
+    destinationSystemId: "alpha_centauri",
+    travelTimeSeconds: 100,
+    elapsedSeconds: 50,
+    ...overrides,
+  };
+}
+
+function stateWithProbes(probesBySystem: Record<string, ProbeInTransit[]>): GameState {
+  const base = createInitialState(SEED);
+  const systems: Record<string, SystemState> = {};
+  for (const [id, system] of Object.entries(base.systems)) {
+    systems[id] = { ...system, sentProbes: probesBySystem[id] ?? [] };
+  }
+  return { ...base, systems };
+}
+
+describe("getIncomingProbes", () => {
+  test("finds probes targeting a specific system", () => {
+    const probe = makeProbe({ destinationSystemId: "alpha_centauri" });
+    const state = stateWithProbes({ sol: [probe] });
+
+    const incoming = getIncomingProbes(state, "alpha_centauri");
+    expect(incoming).toHaveLength(1);
+    expect(incoming[0]!.id).toBe("probe_1");
+  });
+
+  test("returns empty when no probes target the system", () => {
+    const probe = makeProbe({ destinationSystemId: "sirius" });
+    const state = stateWithProbes({ sol: [probe] });
+
+    expect(getIncomingProbes(state, "alpha_centauri")).toHaveLength(0);
+  });
+
+  test("aggregates probes from multiple origin systems", () => {
+    const probe1 = makeProbe({ id: "p1", originSystemId: "sol", destinationSystemId: "sirius" });
+    const probe2 = makeProbe({ id: "p2", originSystemId: "alpha_centauri", destinationSystemId: "sirius" });
+    const state = stateWithProbes({ sol: [probe1], alpha_centauri: [probe2] });
+
+    const incoming = getIncomingProbes(state, "sirius");
+    expect(incoming).toHaveLength(2);
+  });
+});
+
+describe("getProbeETA", () => {
+  test("returns remaining travel time", () => {
+    const probe = makeProbe({ travelTimeSeconds: 100, elapsedSeconds: 30 });
+    expect(getProbeETA(probe)).toBe(70);
+  });
+
+  test("returns 0 when probe has arrived or overshot", () => {
+    const probe = makeProbe({ travelTimeSeconds: 100, elapsedSeconds: 150 });
+    expect(getProbeETA(probe)).toBe(0);
+  });
+
+  test("returns 0 at exact arrival", () => {
+    const probe = makeProbe({ travelTimeSeconds: 100, elapsedSeconds: 100 });
+    expect(getProbeETA(probe)).toBe(0);
+  });
+});
+
+describe("getProbeProgress", () => {
+  test("returns fractional progress", () => {
+    const probe = makeProbe({ travelTimeSeconds: 100, elapsedSeconds: 25 });
+    expect(getProbeProgress(probe)).toBe(0.25);
+  });
+
+  test("returns 1 when travel time is zero", () => {
+    const probe = makeProbe({ travelTimeSeconds: 0, elapsedSeconds: 0 });
+    expect(getProbeProgress(probe)).toBe(1);
+  });
+
+  test("clamps to 1 when elapsed exceeds travel time", () => {
+    const probe = makeProbe({ travelTimeSeconds: 100, elapsedSeconds: 200 });
+    expect(getProbeProgress(probe)).toBe(1);
+  });
+
+  test("returns 0 at start", () => {
+    const probe = makeProbe({ travelTimeSeconds: 100, elapsedSeconds: 0 });
+    expect(getProbeProgress(probe)).toBe(0);
+  });
+});
+
+describe("getAllTransitProbes", () => {
+  test("returns all probes from all systems", () => {
+    const probe1 = makeProbe({ id: "p1", originSystemId: "sol" });
+    const probe2 = makeProbe({ id: "p2", originSystemId: "alpha_centauri" });
+    const state = stateWithProbes({ sol: [probe1], alpha_centauri: [probe2] });
+
+    const all = getAllTransitProbes(state);
+    expect(all).toHaveLength(2);
+    const ids = all.map((p) => p.id);
+    expect(ids).toContain("p1");
+    expect(ids).toContain("p2");
+  });
+
+  test("returns empty when no probes are in transit", () => {
+    const state = stateWithProbes({});
+    expect(getAllTransitProbes(state)).toHaveLength(0);
   });
 });
