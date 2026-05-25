@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTour } from "./TourProvider";
 import { useTourTrigger } from "./useTourTrigger";
+import { useLoop } from "../context";
 import { FONT_MONO, FONT_DISPLAY, COLORS } from "../tokens";
 
 const PADDING = 8;
@@ -92,9 +93,20 @@ function clampToViewport(pos: { top: number; left: number }): { top: number; lef
 }
 
 export function TourOverlay() {
-  const { active, currentStep, stepIndex, totalSteps, advance, skip } = useTour();
+  const { active, waiting, currentStep, stepIndex, totalSteps, advance, skip } = useTour();
   useTourTrigger();
+  const loop = useLoop();
   const rect = useTargetRect(active ? (currentStep?.target ?? null) : null);
+
+  const showing = active && !!currentStep && !waiting && !!rect;
+  const shouldPause = showing && !currentStep?.advanceOn;
+
+  useEffect(() => {
+    if (!shouldPause) return;
+    const wasPaused = loop.isPaused();
+    if (!wasPaused) loop.pause();
+    return () => { if (!wasPaused) loop.unpause(); };
+  }, [shouldPause, loop]);
 
   useEffect(() => {
     if (!active) return;
@@ -108,7 +120,7 @@ export function TourOverlay() {
     return () => window.removeEventListener("keydown", onKey);
   }, [active, skip]);
 
-  if (!active || !currentStep || !rect) return null;
+  if (!showing) return null;
 
   const isInteractive = !!currentStep.advanceOn;
   const blockClicks = !isInteractive;

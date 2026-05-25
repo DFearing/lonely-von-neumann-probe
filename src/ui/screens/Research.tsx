@@ -27,10 +27,12 @@ export function Research() {
     <>
       <ScreenHeader title="Research & Technology" />
 
-      <ActiveBanner
-        project={activeProject ?? null}
-        computeRate={system.resourceRates.computingPowerPerSecond}
-      />
+      <div data-tour="research-banner">
+        <ActiveBanner
+          project={activeProject ?? null}
+          computeRate={system.resourceRates.computingPowerPerSecond}
+        />
+      </div>
 
       <div
         style={{
