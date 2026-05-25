@@ -20,16 +20,13 @@ export function Overview() {
   const showStructures = showStructuresRef.current;
 
   const showExpansion = Object.keys(system.completedResearch).length >= 4;
-  const cols = !showStructures
-    ? "1fr"
-    : showExpansion ? "1fr 1fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr";
 
   return (
     <div
       data-tour="overview"
       style={{
         display: "grid",
-        gridTemplateColumns: cols,
+        gridTemplateColumns: showExpansion ? "1fr 1fr 1fr 1fr 1fr" : "1fr 1fr 1fr 1fr",
         gridTemplateRows: "minmax(0, 1fr)",
         gap: 16,
         flex: 1,
@@ -37,41 +34,42 @@ export function Overview() {
       }}
     >
       <ProbesColumn state={state} system={system} dispatch={dispatch} />
-      {showStructures && (
-        <div
-          data-tour="structures"
-          style={{
-            display: "grid",
-            gridTemplateColumns: showExpansion ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr",
-            gap: 16,
-            gridColumn: showExpansion ? "span 4" : "span 3",
-            minHeight: 0,
-          }}
-        >
+      <div
+        data-tour="structures"
+        style={{
+          display: "grid",
+          gridTemplateColumns: showExpansion ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr",
+          gap: 16,
+          gridColumn: showExpansion ? "span 4" : "span 3",
+          minHeight: 0,
+        }}
+      >
+        <StructureColumn
+          system={system}
+          category="miners"
+          dispatch={dispatch}
+          disabled={!showStructures}
+        />
+        <StructureColumn
+          system={system}
+          category="reactors"
+          dispatch={dispatch}
+          disabled={!showStructures}
+        />
+        <StructureColumn
+          system={system}
+          category="printers"
+          dispatch={dispatch}
+          disabled={!showStructures}
+        />
+        {showExpansion && (
           <StructureColumn
             system={system}
-            category="miners"
+            category="stations"
             dispatch={dispatch}
           />
-          <StructureColumn
-            system={system}
-            category="reactors"
-            dispatch={dispatch}
-          />
-          <StructureColumn
-            system={system}
-            category="printers"
-            dispatch={dispatch}
-          />
-          {showExpansion && (
-            <StructureColumn
-              system={system}
-              category="stations"
-              dispatch={dispatch}
-            />
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

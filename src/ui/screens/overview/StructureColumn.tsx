@@ -110,10 +110,12 @@ export function StructureColumn({
   system,
   category,
   dispatch,
+  disabled,
 }: {
   system: SystemState;
   category: CategoryId;
   dispatch: (action: PlayerAction) => void;
+  disabled?: boolean;
 }) {
   const config = CATEGORY_CONFIGS[category];
   const instances = system.structures[category];
@@ -130,6 +132,43 @@ export function StructureColumn({
 
   const [showBuild, setShowBuild] = useState(false);
   const [destroyConfirmId, setDestroyConfirmId] = useState<string | null>(null);
+
+  if (disabled) {
+    return (
+      <Panel
+        label={
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 16 }}>
+              <FontAwesomeIcon icon={config.icon} />
+            </span>
+            <span>{config.label}</span>
+          </span>
+        }
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          minWidth: 0,
+          overflow: "hidden",
+          opacity: 0.35,
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 11,
+            color: "#6b87a3",
+            letterSpacing: "0.14em",
+            textAlign: "center",
+            padding: "24px 8px",
+          }}
+        >
+          {config.description}
+        </div>
+      </Panel>
+    );
+  }
 
   return (
     <Panel
