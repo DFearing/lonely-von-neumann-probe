@@ -169,17 +169,22 @@ export function Sidebar({
             Mission Archives
           </div>
         )}
-        <div
+        <a
+          href={`https://github.com/DFearing/lonely-von-neumann-probe/commit/${__COMMIT_HASH__}`}
+          target="_blank"
+          rel="noopener noreferrer"
           style={{
+            display: "block",
             padding: "6px 20px 4px",
             fontFamily: FONT_MONO,
             fontSize: 10,
             color: "#6b87a3",
             letterSpacing: "0.16em",
+            textDecoration: "none",
           }}
         >
-          BUILD v0.1.0
-        </div>
+          BUILD {__COMMIT_HASH__}
+        </a>
       </div>
     </div>
   );
