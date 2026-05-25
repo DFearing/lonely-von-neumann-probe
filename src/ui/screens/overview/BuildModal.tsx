@@ -479,7 +479,7 @@ export function BuildModal({
       if (d && isUnlocked(system, d)) { best = i; break; }
     }
     setIdx(best);
-  }, [cat, system]);
+  }, [cat]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
