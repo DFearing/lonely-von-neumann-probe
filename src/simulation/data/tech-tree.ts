@@ -335,8 +335,7 @@ function generateEffects(branchId: string, tier: number): string[] {
       return [`Research phase toward ${nextName}`];
     }
     case "computing_speed": {
-      const bonus = 5 + 0.3 * (tier - 1);
-      return [`+${+bonus.toFixed(1)}% computing TFLOPS (probes & stations)`];
+      return ["+5% computing TFLOPS (probes & stations)"];
     }
     case "station_efficiency": {
       const bonus = 4 + 0.3 * (tier - 1);

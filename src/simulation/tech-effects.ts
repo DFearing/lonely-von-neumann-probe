@@ -33,7 +33,7 @@ export function getTechMultipliers(
   let computingMultiplier = 1.0;
   for (let tier = 1; tier <= MAX_TIER; tier++) {
     if (completedResearch[`computing_speed_t${tier}`]) {
-      computingMultiplier += 0.05 + 0.003 * (tier - 1);
+      computingMultiplier += 0.05;
     }
   }
 
