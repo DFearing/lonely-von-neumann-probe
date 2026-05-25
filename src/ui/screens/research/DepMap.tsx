@@ -178,16 +178,42 @@ function rowLabel(branchId: string): string {
   return parts[1] ?? parts[0] ?? branchId;
 }
 
+function collectQueuedPrereqs(
+  techId: string,
+  queuedTechIds: Set<string>,
+): string[] {
+  const result: string[] = [];
+  const visited = new Set<string>();
+
+  function visit(id: string) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    if (!queuedTechIds.has(id)) return;
+
+    result.push(id);
+    const tech = TECH_TREE[id];
+    if (!tech) return;
+
+    if (tech.tier > 1) visit(`${tech.branchId}_t${tech.tier - 1}`);
+    for (const prereqId of tech.prerequisites) visit(prereqId);
+  }
+
+  visit(techId);
+  return result;
+}
+
 export function DepMap({
   system,
   selectedTech,
   onSelect,
   onQueue,
+  onDequeue,
 }: {
   system: SystemState;
   selectedTech: string | null;
   onSelect: (techId: string | null) => void;
   onQueue: (techId: string) => void;
+  onDequeue: (projectIds: string[]) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -232,14 +258,37 @@ export function DepMap({
     return s;
   }, [selectedTech, ancestors]);
 
-  const handleDoubleClick = useCallback(
-    (techId: string) => {
-      const toQueue = collectUnresearchedPrereqs(techId, system);
-      for (const id of toQueue) {
-        onQueue(id);
+  const projectByTechId = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of system.researchQueue) {
+      m.set(p.techId, p.id);
+    }
+    return m;
+  }, [system.researchQueue]);
+
+  const handleNodeClick = useCallback(
+    (e: React.MouseEvent, techId: string, isSelected: boolean) => {
+      e.stopPropagation();
+      soundManager.playUI("ui_click");
+      if (e.detail >= 2) {
+        if (queueMap.has(techId)) {
+          const queuedIds = new Set(projectByTechId.keys());
+          const toRemove = collectQueuedPrereqs(techId, queuedIds);
+          const projectIds = toRemove
+            .map((id) => projectByTechId.get(id))
+            .filter((id): id is string => id !== undefined);
+          if (projectIds.length > 0) onDequeue(projectIds);
+        } else {
+          const toQueue = collectUnresearchedPrereqs(techId, system);
+          for (const id of toQueue) {
+            onQueue(id);
+          }
+        }
+      } else {
+        onSelect(isSelected ? null : techId);
       }
     },
-    [system, onQueue],
+    [system, onQueue, onDequeue, onSelect, queueMap, projectByTechId],
   );
 
   useEffect(() => {
@@ -307,6 +356,7 @@ export function DepMap({
           flex: 1,
           minHeight: 0,
           overflow: "auto",
+          userSelect: "none",
         }}
       >
         <div style={{ position: "relative", width: gridW, height: gridH }}>
@@ -512,8 +562,7 @@ export function DepMap({
             return (
               <div
                 key={tech.id}
-                onClick={(e) => { e.stopPropagation(); soundManager.playUI("ui_click"); onSelect(isSelected ? null : tech.id); }}
-                onDoubleClick={() => handleDoubleClick(tech.id)}
+                onClick={(e) => handleNodeClick(e, tech.id, isSelected)}
                 style={{
                   position: "absolute",
                   left: center.x - TIER_W / 2,

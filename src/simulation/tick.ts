@@ -268,10 +268,11 @@ function applyCancelResearch(
   const system = getSystem(state, action.systemId);
   if (!system) return state;
 
+  const ids = Array.isArray(action.projectId) ? new Set(action.projectId) : new Set([action.projectId]);
   return updateSystem(state, action.systemId, {
     ...system,
     researchQueue: system.researchQueue.filter(
-      (p) => p.id !== action.projectId,
+      (p) => !ids.has(p.id),
     ),
   });
 }

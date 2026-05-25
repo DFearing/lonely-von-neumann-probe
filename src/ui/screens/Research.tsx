@@ -49,6 +49,13 @@ export function Research() {
           selectedTech={selectedTech}
           onSelect={setSelectedTech}
           onQueue={handleQueue}
+          onDequeue={(projectIds) =>
+            dispatch({
+              type: "cancel_research",
+              systemId: system.id,
+              projectId: projectIds,
+            })
+          }
         />
 
         <Panel
