@@ -15,7 +15,7 @@ import { tickEvents } from "./systems/events";
 import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
-import { hasPrerequisites } from "./queries";
+
 import { purchaseUpgrade, calculatePrestigePoints } from "./prestige";
 import type { PrestigeUpgradeId } from "./prestige";
 
@@ -165,8 +165,6 @@ function applyStartResearch(
 
   const tech = TECH_TREE[action.techId];
   if (!tech) return state;
-
-  if (!hasPrerequisites(system, action.techId)) return state;
 
   const alreadyResearching = system.researchQueue.some(
     (p) => p.techId === action.techId,
