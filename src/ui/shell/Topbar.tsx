@@ -69,6 +69,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
         padding: "0 24px",
         gap: 24,
         background: "rgba(8,16,30,0.6)",
+        userSelect: "none",
         fontFamily: FONT_MONO,
         fontSize: 15,
       }}

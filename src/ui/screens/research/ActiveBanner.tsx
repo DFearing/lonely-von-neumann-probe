@@ -10,6 +10,7 @@ const BANNER_STYLE: React.CSSProperties = {
   padding: "14px 18px",
   marginBottom: 16,
   flexShrink: 0,
+  userSelect: "none",
 };
 
 export function ActiveBanner({

@@ -21,6 +21,7 @@ export function Panel({
         background:
           "linear-gradient(180deg, rgba(13,24,46,0.6) 0%, rgba(8,16,30,0.6) 100%)",
         border: "1px solid rgba(110,200,255,0.14)",
+        userSelect: "none",
         ...style,
       }}
     >
