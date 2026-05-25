@@ -32,6 +32,9 @@ export function useSoundSettings(): {
   settings: SoundSettings;
   setVolume: (v: number) => void;
   setMuted: (m: boolean) => void;
+  setMusicVolume: (v: number) => void;
+  setMusicMuted: (m: boolean) => void;
+  setMusicMood: (id: string) => void;
 } {
   const settings = useSyncExternalStore(
     (cb) => soundManager.subscribe(cb),
@@ -40,10 +43,16 @@ export function useSoundSettings(): {
 
   const setVolume = useCallback((v: number) => soundManager.setVolume(v), []);
   const setMuted = useCallback((m: boolean) => soundManager.setMuted(m), []);
+  const setMusicVolume = useCallback((v: number) => soundManager.setMusicVolume(v), []);
+  const setMusicMuted = useCallback((m: boolean) => soundManager.setMusicMuted(m), []);
+  const setMusicMood = useCallback((id: string) => soundManager.setMusicMood(id), []);
 
   return {
     settings,
     setVolume,
     setMuted,
+    setMusicVolume,
+    setMusicMuted,
+    setMusicMood,
   };
 }

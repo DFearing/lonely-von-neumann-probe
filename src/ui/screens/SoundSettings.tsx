@@ -3,6 +3,7 @@ import { FONT_MONO, FONT_DISPLAY } from "../tokens";
 import { useSoundSettings } from "../../audio/use-sound-events";
 import { soundManager } from "../../audio/sound-manager";
 import type { SoundEventType } from "../../simulation/state";
+import { MUSIC_MOODS } from "../../audio/ambient-music";
 
 const PREVIEW_EVENTS: { label: string; event: SoundEventType }[] = [
   { label: "Research Complete", event: "research_complete" },
@@ -16,7 +17,7 @@ const PREVIEW_EVENTS: { label: string; event: SoundEventType }[] = [
 ];
 
 export function SoundSettings({ onClose }: { onClose: () => void }) {
-  const { settings, setVolume, setMuted } = useSoundSettings();
+  const { settings, setVolume, setMuted, setMusicVolume, setMusicMuted, setMusicMood } = useSoundSettings();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -163,6 +164,127 @@ export function SoundSettings({ onClose }: { onClose: () => void }) {
             >
               {settings.muted ? "MUTED" : "ACTIVE"}
             </button>
+          </div>
+
+          <SectionHeader label="MUSIC" />
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                color: "#6b87a3",
+                letterSpacing: "0.14em",
+                width: 70,
+              }}
+            >
+              MUSIC
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(settings.musicVolume * 100)}
+              onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
+              style={{
+                flex: 1,
+                height: 4,
+                accentColor: "#4ddbff",
+                cursor: "pointer",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                color: "#d6e8f5",
+                width: 36,
+                textAlign: "right",
+              }}
+            >
+              {Math.round(settings.musicVolume * 100)}%
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                color: "#6b87a3",
+                letterSpacing: "0.14em",
+                width: 70,
+              }}
+            >
+              MUTE
+            </span>
+            <button
+              onClick={() => setMusicMuted(!settings.musicMuted)}
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                color: settings.musicMuted ? "#ff5555" : "#4cd8a8",
+                background: settings.musicMuted
+                  ? "rgba(255,85,85,0.1)"
+                  : "rgba(76,216,168,0.1)",
+                border: `1px solid ${settings.musicMuted ? "rgba(255,85,85,0.4)" : "rgba(76,216,168,0.4)"}`,
+                padding: "6px 14px",
+                cursor: "pointer",
+                letterSpacing: "0.12em",
+              }}
+            >
+              {settings.musicMuted ? "MUTED" : "ACTIVE"}
+            </button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 11,
+                color: "#6b87a3",
+                letterSpacing: "0.14em",
+                width: 70,
+              }}
+            >
+              MOOD
+            </span>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flex: 1 }}>
+              {MUSIC_MOODS.map((mood) => {
+                const active = settings.musicMood === mood.id;
+                return (
+                  <button
+                    key={mood.id}
+                    onClick={() => setMusicMood(mood.id)}
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: 10,
+                      color: active ? "#4ddbff" : "#9ab4cf",
+                      background: active
+                        ? "rgba(77,219,255,0.12)"
+                        : "rgba(8,16,30,0.6)",
+                      border: `1px solid ${active ? "rgba(77,219,255,0.5)" : "rgba(110,200,255,0.18)"}`,
+                      padding: "6px 10px",
+                      cursor: "pointer",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    {mood.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 10,
+              color: "#3d5572",
+              letterSpacing: "0.06em",
+              paddingLeft: 84,
+              marginTop: -10,
+            }}
+          >
+            {MUSIC_MOODS.find(m => m.id === settings.musicMood)?.description ?? ""}
           </div>
 
           <div
