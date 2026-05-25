@@ -99,6 +99,7 @@ function wrapSystem(system: SystemState): GameState {
     },
     prestigeSnapshot: null,
     prestigeTriggered: false,
+    gameOver: false,
   };
 }
 

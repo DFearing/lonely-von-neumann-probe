@@ -25,6 +25,7 @@ export interface GameState {
   prestige: PrestigeState;
   prestigeSnapshot: PrestigeState | null;
   prestigeTriggered: boolean;
+  gameOver: boolean;
 }
 
 export interface SystemState {
@@ -308,5 +309,6 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
     prestige: createPrestigeState(),
     prestigeSnapshot: null,
     prestigeTriggered: false,
+    gameOver: false,
   };
 }
