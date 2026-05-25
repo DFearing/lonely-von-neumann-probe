@@ -5,7 +5,7 @@ export interface TechMultipliers {
   energyMultiplier: number;
   manufacturingSpeedMultiplier: number;
   stationComputingMultiplier: number;
-  stationCostDivisor: number;
+  computingMultiplier: number;
   commSpeedMultiplier: number;
   maxConcurrentResearch: number;
   printerNetworking: boolean;
@@ -30,10 +30,10 @@ export function getTechMultipliers(
     }
   }
 
-  let stationCostDivisor = 1.0;
+  let computingMultiplier = 1.0;
   for (let tier = 1; tier <= MAX_TIER; tier++) {
     if (completedResearch[`computing_speed_t${tier}`]) {
-      stationCostDivisor += 0.05 + 0.003 * (tier - 1);
+      computingMultiplier += 0.05 + 0.003 * (tier - 1);
     }
   }
 
@@ -71,7 +71,7 @@ export function getTechMultipliers(
     energyMultiplier,
     manufacturingSpeedMultiplier,
     stationComputingMultiplier,
-    stationCostDivisor,
+    computingMultiplier,
     commSpeedMultiplier,
     maxConcurrentResearch,
     printerNetworking,

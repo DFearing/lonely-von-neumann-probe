@@ -99,10 +99,10 @@ export function calculateRates(system: SystemState, prestige?: PrestigeState): R
   const energyDemand =
     sumOperatingCosts(structures.miners) +
     sumOperatingCosts(structures.printers) +
-    sumOperatingCosts(structures.stations) / multipliers.stationCostDivisor;
+    sumOperatingCosts(structures.stations);
 
-  const probeCompute = mainProbe ? mainProbe.computingOutput * mainProbe.health : 0;
-  const stationCompute = sumProductionRates(structures.stations) * multipliers.stationComputingMultiplier;
+  const probeCompute = mainProbe ? mainProbe.computingOutput * mainProbe.health * multipliers.computingMultiplier : 0;
+  const stationCompute = sumProductionRates(structures.stations) * multipliers.stationComputingMultiplier * multipliers.computingMultiplier;
   const computeSupply = probeCompute + stationCompute;
 
   const computeDemand =
@@ -124,7 +124,7 @@ export function calculateRates(system: SystemState, prestige?: PrestigeState): R
     sumMaintenanceCosts(structures.miners) +
     sumMaintenanceCosts(structures.reactors) +
     sumMaintenanceCosts(structures.printers) +
-    sumMaintenanceCosts(structures.stations) / multipliers.stationCostDivisor +
+    sumMaintenanceCosts(structures.stations) +
     (mainProbe ? PROBE_MAINTENANCE : 0);
 
   return {
