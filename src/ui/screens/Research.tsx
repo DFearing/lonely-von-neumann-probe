@@ -20,12 +20,10 @@ export function Research() {
     <>
       <ScreenHeader title="Research & Technology" />
 
-      {activeProject && (
-        <ActiveBanner
-          project={activeProject}
-          computeRate={system.resourceRates.computingPowerPerSecond}
-        />
-      )}
+      <ActiveBanner
+        project={activeProject ?? null}
+        computeRate={system.resourceRates.computingPowerPerSecond}
+      />
 
       <div
         style={{
