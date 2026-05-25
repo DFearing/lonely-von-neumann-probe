@@ -12,6 +12,7 @@ export function Overview({ onNavigate }: { onNavigate: (view: ViewId) => void })
 
   return (
     <div
+      data-tour="overview"
       style={{
         display: "grid",
         gridTemplateColumns: cols,

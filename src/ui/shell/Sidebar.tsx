@@ -41,6 +41,7 @@ export function Sidebar({
 
   return (
     <div
+      data-tour="sidebar"
       style={{
         gridArea: "sidebar",
         borderRight: "1px solid rgba(110,200,255,0.12)",
