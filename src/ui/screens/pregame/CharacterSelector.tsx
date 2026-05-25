@@ -271,6 +271,7 @@ function OperatorRow({
 }) {
   const [hover, setHover] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [delHover, setDelHover] = useState(false);
 
   const elapsed = Date.now() - slot.timestamp;
   const lastPlayed = formatElapsed(elapsed);
@@ -364,10 +365,14 @@ function OperatorRow({
             e.stopPropagation();
             setConfirming(true);
           }}
+          onMouseEnter={() => setDelHover(true)}
+          onMouseLeave={() => setDelHover(false)}
           style={{
-            background: "transparent",
-            border: "1px solid rgba(110,200,255,0.18)",
-            color: "#6b87a3",
+            background: delHover ? "rgba(255,85,85,0.9)" : "transparent",
+            border: delHover
+              ? "1px solid #ff5555"
+              : "1px solid rgba(110,200,255,0.18)",
+            color: delHover ? "#fff" : "#6b87a3",
             padding: "5px 10px",
             fontFamily: FONT_MONO,
             fontSize: 9,
