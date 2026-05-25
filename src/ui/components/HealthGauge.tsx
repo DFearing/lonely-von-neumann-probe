@@ -1,3 +1,5 @@
+import { Tooltip } from "./Tooltip";
+
 const SEGMENT_COUNT = 5;
 
 function healthColor(health: number): string {
@@ -19,24 +21,25 @@ export function HealthGauge({
   const barHeight = compact ? 4 : 6;
 
   return (
-    <div
-      title={`${pct}% health`}
-      style={{ display: "flex", alignItems: "center", gap: compact ? 6 : 8, marginBottom: 6 }}
-    >
-      <div style={{ display: "flex", gap: 2, flex: 1 }}>
-        {Array.from({ length: SEGMENT_COUNT }, (_, i) => (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: barHeight,
-              background: i < filledSegments ? color : "rgba(110,200,255,0.08)",
-              opacity: i < filledSegments ? 0.85 : 1,
-              boxShadow: i < filledSegments ? `0 0 4px ${color}60` : "none",
-            }}
-          />
-        ))}
+    <Tooltip content={`${pct}% health`}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: compact ? 6 : 8, marginBottom: 6, width: "100%" }}
+      >
+        <div style={{ display: "flex", gap: 2, flex: 1 }}>
+          {Array.from({ length: SEGMENT_COUNT }, (_, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: barHeight,
+                background: i < filledSegments ? color : "rgba(110,200,255,0.08)",
+                opacity: i < filledSegments ? 0.85 : 1,
+                boxShadow: i < filledSegments ? `0 0 4px ${color}60` : "none",
+              }}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+    </Tooltip>
   );
 }

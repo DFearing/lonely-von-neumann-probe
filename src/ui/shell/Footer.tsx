@@ -4,6 +4,7 @@ import { useCurrentSystem } from "../context";
 import { fmt, fmtRate, fmtCycles } from "../format";
 import { FONT_MONO } from "../tokens";
 import { TECH_TREE } from "../../simulation/data/tech-tree";
+import { Tooltip } from "../components/Tooltip";
 import type { ViewId } from "./Sidebar";
 
 function resourceColor(
@@ -314,9 +315,11 @@ function ComputeResearchCell({
           {computeDemand.toFixed(1)} demand
         </span>
         {computeEfficiency < 1 && (
-          <span style={{ color }}>
-            {(computeEfficiency * 100).toFixed(0)}% eff
-          </span>
+          <Tooltip content="Compute efficiency — ratio of available to demanded TFLOPS">
+            <span style={{ color }}>
+              {(computeEfficiency * 100).toFixed(0)}% eff
+            </span>
+          </Tooltip>
         )}
       </div>
       <div
