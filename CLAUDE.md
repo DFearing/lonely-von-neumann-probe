@@ -2,10 +2,12 @@
 
 Bobiverse-inspired idle/progression browser game. Deterministic tick-based simulation with seeded RNG.
 
+**Live:** https://dfearing.github.io/lonely-von-neumann-probe/
+
 ## Commands
 
 ```bash
-bun test           # 186 tests, ~14s
+bun test           # 452 tests, ~30s
 bun run typecheck  # tsc --noEmit (strict)
 bun run dev        # vite dev server
 bun run build      # production build
@@ -64,4 +66,4 @@ Save/load uses a slot-based system (`saveGameSlot`/`loadGameSlot`/`deleteSlot`).
 
 ## Design Documents
 
-The three files in the repo root (`01_design_brief.md`, `02_detailed_context.md`, `03_ui_layout.md`) are the source of truth for game design. When in doubt about game mechanics, check these first.
+The three files in `docs/` (`01_design_brief.md`, `02_detailed_context.md`, `03_ui_layout.md`) are the source of truth for game design. When in doubt about game mechanics, check these first.
