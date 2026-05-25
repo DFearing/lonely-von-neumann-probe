@@ -23,10 +23,24 @@ export interface SaveSlotInfo {
 function isValidSaveData(data: unknown): data is SaveData {
   if (typeof data !== "object" || data === null) return false;
   const record = data as Record<string, unknown>;
+  if (typeof record["version"] !== "number") return false;
+  if (typeof record["state"] !== "object" || record["state"] === null) return false;
+  const state = record["state"] as Record<string, unknown>;
+  if (typeof state["systems"] !== "object" || state["systems"] === null) return false;
+  if (typeof state["tickCount"] !== "number") return false;
+  if (typeof state["rngState"] !== "object" || state["rngState"] === null) return false;
+  return true;
+}
+
+function isValidSlotInfo(entry: unknown): entry is SaveSlotInfo {
+  if (typeof entry !== "object" || entry === null) return false;
+  const record = entry as Record<string, unknown>;
   return (
-    typeof record["version"] === "number" &&
-    typeof record["state"] === "object" &&
-    record["state"] !== null
+    typeof record["key"] === "string" &&
+    typeof record["name"] === "string" &&
+    typeof record["tickCount"] === "number" &&
+    typeof record["timestamp"] === "number" &&
+    typeof record["probeName"] === "string"
   );
 }
 
@@ -34,7 +48,9 @@ function getSaveIndex(): SaveSlotInfo[] {
   const raw = localStorage.getItem(SAVE_INDEX_KEY);
   if (!raw) return [];
   try {
-    return JSON.parse(raw) as SaveSlotInfo[];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(isValidSlotInfo);
   } catch {
     return [];
   }

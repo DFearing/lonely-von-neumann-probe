@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useMemo,
   useSyncExternalStore,
 } from "react";
 import type { ReactNode } from "react";
@@ -28,12 +29,12 @@ export function GameProvider({
   onDevJumpForward?: (state: GameState) => void;
   children: ReactNode;
 }) {
-  const value: GameContextValue = {
+  const value = useMemo<GameContextValue>(() => ({
     loop,
     dispatch: loop.dispatchAction,
     onPrestige: onPrestige ?? null,
     onDevJumpForward: onDevJumpForward ?? null,
-  };
+  }), [loop, onPrestige, onDevJumpForward]);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 

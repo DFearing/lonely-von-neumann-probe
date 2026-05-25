@@ -1,4 +1,5 @@
 import type { GameState, ProbeInTransit, ProbeState, SystemState } from "../state";
+import { emptySystemState } from "../state";
 import type { Rng } from "../rng";
 import { KNOWN_SYSTEMS } from "../data/star-systems";
 import { CPUS, PROPULSIONS } from "../data/components";
@@ -124,35 +125,19 @@ function tickSystemNavigation(
       } else {
         const generated = generateNewSystem(destId, rng);
         const system: SystemState = {
-          id: destId,
-          name: generated.name,
-          starType: generated.starType,
-          distanceFromOrigin: generated.distance,
-          resourceRichness: generated.richness,
-          discovered: true,
-          scanned: true,
+          ...emptySystemState(
+            destId,
+            generated.name,
+            generated.starType,
+            generated.distance,
+            generated.richness,
+            true,
+            true,
+          ),
           mainProbe: arrivingProbe,
-          structures: { miners: [], reactors: [], printers: [], stations: [] },
           resources: { materials: 0, energy: 0, computingPower: 0 },
-          resourceRates: {
-            materialsSupply: 0,
-            materialsDemand: 0,
-            materialsPerSecond: 0,
-            energySupply: 0,
-            energyDemand: 0,
-            energyNet: 0,
-            computingPowerPerSecond: 0,
-            computeSupply: 0,
-            computeDemand: 0,
-            computeNet: 0,
-            computeEfficiency: 1,
-          },
-          constructionQueue: [],
-          researchQueue: [],
           completedResearch: { ...originSystem.completedResearch },
           discoveredSystems: [originSystem.id],
-          availableProbes: [],
-          sentProbes: [],
         };
         newSystems[destId] = system;
       }

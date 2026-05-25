@@ -162,7 +162,7 @@ export interface LogEntry {
   soundEvent?: SoundEventType;
 }
 
-function emptySystemState(
+export function emptySystemState(
   id: string,
   name: string,
   starType: string,
