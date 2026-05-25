@@ -11,6 +11,7 @@ export function Overview() {
 
   return (
     <div
+      data-tour="overview"
       style={{
         display: "grid",
         gridTemplateColumns: cols,

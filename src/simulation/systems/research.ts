@@ -3,6 +3,7 @@ import type {
   SystemState,
 } from "../state";
 import { TECH_TREE } from "../data/tech-tree";
+import { hasPrerequisites } from "../queries";
 import { getTechMultipliers, type TechMultipliers } from "../tech-effects";
 import { getPrestigeMultipliers } from "../prestige";
 
@@ -19,10 +20,24 @@ function tickSystemResearch(
   }
 
   const incompleteProjects = system.researchQueue.filter((p) => !p.completed && !p.paused);
-  const activeProjects = incompleteProjects.slice(
-    0,
-    multipliers.maxConcurrentResearch,
-  );
+  const candidates = incompleteProjects.slice(0, multipliers.maxConcurrentResearch);
+
+  const removedIds = new Set<string>();
+  const activeProjects = [];
+  for (const p of candidates) {
+    if (p.progress === 0 && !hasPrerequisites(system, p.techId)) {
+      removedIds.add(p.id);
+    } else {
+      activeProjects.push(p);
+    }
+  }
+
+  if (removedIds.size > 0) {
+    system = {
+      ...system,
+      researchQueue: system.researchQueue.filter((p) => !removedIds.has(p.id)),
+    };
+  }
 
   if (activeProjects.length === 0) {
     return { system, log: [] };

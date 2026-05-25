@@ -25,6 +25,9 @@ export interface GameState {
   prestige: PrestigeState;
   prestigeSnapshot: PrestigeState | null;
   prestigeTriggered: boolean;
+  nextProbeNumber: number;
+  probeName: string;
+  gameOver: boolean;
 }
 
 export interface SystemState {
@@ -212,7 +215,7 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
   const cpuDef = CPUS["cpu_t1"];
   sol.mainProbe = {
     id: "probe_sol_0",
-    name: probeName,
+    name: `${probeName}-01`,
     mode: "idle",
     systemId: "sol",
     components: {
@@ -309,5 +312,8 @@ export function createInitialState(seed: number, probeName = "Probe"): GameState
     prestige: createPrestigeState(),
     prestigeSnapshot: null,
     prestigeTriggered: false,
+    nextProbeNumber: 2,
+    probeName: probeName,
+    gameOver: false,
   };
 }

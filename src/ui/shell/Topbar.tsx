@@ -10,6 +10,7 @@ import { useSoundSettings } from "../../audio/use-sound-events";
 import { DEV_MODE } from "../../simulation/dev";
 import { soundManager } from "../../audio/sound-manager";
 import { Tooltip } from "../components/Tooltip";
+import { fmt } from "../format";
 
 function richnessLabel(value: number): string {
   if (value < 0.7) return "Barren";
@@ -103,7 +104,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
         </span>
       </div>
       <div style={{ flex: 1 }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div data-tour="topbar" style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <Tooltip content={paused ? "Resume (Ctrl+0)" : "Pause (Ctrl+0)"}>
           <button
             onClick={() => paused ? loop.unpause() : loop.pause()}
@@ -189,7 +190,7 @@ export function Topbar({ onOpenSettings, onBack, onOpenAutopilot }: { onOpenSett
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {cycle}
+          {fmt(cycle)}
         </span>
       </div>
     </div>

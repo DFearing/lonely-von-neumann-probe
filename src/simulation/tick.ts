@@ -17,7 +17,7 @@ import { STRUCTURES, structureKey } from "./data/structures";
 import { totalProbeCost, CPUS, PROPULSIONS, REACTORS } from "./data/components";
 import { TECH_TREE } from "./data/tech-tree";
 import { KNOWN_SYSTEMS } from "./data/star-systems";
-import { hasPrerequisites, resolveDistance } from "./queries";
+import { resolveDistance } from "./queries";
 import { TRAVEL_TIME_SCALE } from "./constants";
 import { purchaseUpgrade, calculatePrestigePoints } from "./prestige";
 import type { PrestigeUpgradeId } from "./prestige";
@@ -212,8 +212,6 @@ function applyStartResearch(
 
   const tech = TECH_TREE[action.techId];
   if (!tech) return state;
-
-  if (!hasPrerequisites(system, action.techId)) return state;
 
   const alreadyResearching = system.researchQueue.some(
     (p) => p.techId === action.techId,
@@ -469,6 +467,14 @@ function applyAction(state: GameState, action: PlayerAction): GameState {
   }
 }
 
+function isAllProbesDead(state: GameState): boolean {
+  for (const sys of Object.values(state.systems)) {
+    if (sys.mainProbe && sys.mainProbe.health > 0) return false;
+    if (sys.sentProbes.length > 0) return false;
+  }
+  return true;
+}
+
 export function tick(
   state: GameState,
   dt: number,
@@ -487,6 +493,24 @@ export function tick(
   }
 
   current = tickResources(current, dt);
+
+  if (!current.gameOver && isAllProbesDead(current)) {
+    return {
+      ...current,
+      gameOver: true,
+      paused: true,
+      log: [
+        ...current.log,
+        {
+          tick: current.tickCount,
+          message: "All probe systems have gone offline. Mission failed.",
+          category: "error" as const,
+        },
+      ],
+      rngState: rng.snapshot(),
+    };
+  }
+
   current = tickConstruction(current, dt);
   current = tickResearch(current, dt);
   current = tickNavigation(current, dt, rng);
