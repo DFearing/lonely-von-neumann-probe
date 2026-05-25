@@ -195,18 +195,12 @@ function BuildColumn({
   propulsion,
   reactor,
   canAfford,
-  targetSystems,
-  targetSystemId,
-  onTargetChange,
   onBuild,
 }: {
   cpu: CpuDefinition;
   propulsion: PropulsionDefinition;
   reactor: ReactorDefinition;
   canAfford: boolean;
-  targetSystems: { id: string; name: string }[];
-  targetSystemId: string;
-  onTargetChange: (id: string) => void;
   onBuild: () => void;
 }) {
   const cost = totalProbeCost(cpu.type, propulsion.type, reactor.type);
@@ -319,46 +313,9 @@ function BuildColumn({
         ))}
       </div>
 
-      {targetSystems.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 9,
-              color: "#6b87a3",
-              letterSpacing: "0.18em",
-              marginBottom: 6,
-            }}
-          >
-            DESTINATION
-          </div>
-          <select
-            value={targetSystemId}
-            onChange={(e) => onTargetChange(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              background: "rgba(8,16,30,0.6)",
-              border: "1px solid rgba(110,200,255,0.18)",
-              color: "#d6e8f5",
-              fontFamily: FONT_MONO,
-              fontSize: 11,
-              borderRadius: 0,
-              letterSpacing: "0.08em",
-            }}
-          >
-            {targetSystems.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       <button
         onClick={onBuild}
-        disabled={!canAfford || !targetSystemId}
+        disabled={!canAfford}
         style={{
           marginTop: "auto",
           padding: "12px 16px",
@@ -385,12 +342,10 @@ function BuildColumn({
 
 export function BuildProbeModal({
   system,
-  targetSystems,
   dispatch,
   onClose,
 }: {
   system: SystemState;
-  targetSystems: { id: string; name: string }[];
   dispatch: (action: PlayerAction) => void;
   onClose: () => void;
 }) {
@@ -403,7 +358,6 @@ export function BuildProbeModal({
   const [reactor, setReactor] = useState<string>(
     available.reactors[0]?.type ?? "rct_t1",
   );
-  const [targetSystemId, setTargetSystemId] = useState(targetSystems[0]?.id ?? "");
 
   const cost = totalProbeCost(cpu, propulsion, reactor);
   const canAfford = system.resources.materials >= cost.materials;
@@ -570,9 +524,6 @@ export function BuildProbeModal({
             propulsion={PROPULSIONS[propulsion]!}
             reactor={REACTORS[reactor]!}
             canAfford={canAfford}
-            targetSystems={targetSystems}
-            targetSystemId={targetSystemId}
-            onTargetChange={setTargetSystemId}
             onBuild={() => {
               dispatch({
                 type: "build_probe",
@@ -580,7 +531,6 @@ export function BuildProbeModal({
                 cpu,
                 propulsion,
                 reactor,
-                targetSystemId,
               });
               onClose();
             }}

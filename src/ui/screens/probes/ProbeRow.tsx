@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCompass } from "@fortawesome/free-solid-svg-icons";
 import type { ProbeState, ProbeInTransit } from "../../../simulation/state";
 import { HealthGauge } from "../../components/HealthGauge";
 import { FONT_MONO } from "../../tokens";
@@ -34,13 +36,9 @@ function parseTier(id: string): number {
 export function ProbeRow({
   probe,
   systemName,
-  selected,
-  onClick,
 }: {
   probe: ProbeState;
   systemName: string;
-  selected: boolean;
-  onClick: () => void;
 }) {
   const color = STATUS_COLORS.active;
   const ct = parseTier(probe.components.cpu);
@@ -49,16 +47,14 @@ export function ProbeRow({
 
   return (
     <div
-      onClick={onClick}
       style={{
         padding: "14px 16px",
-        background: selected ? "rgba(77,219,255,0.08)" : "rgba(8,16,30,0.4)",
-        border: `1px solid ${selected ? "#4ddbff" : "rgba(110,200,255,0.12)"}`,
+        background: "rgba(8,16,30,0.4)",
+        border: "1px solid rgba(110,200,255,0.12)",
         display: "grid",
         gridTemplateColumns: "1fr auto",
         gap: 12,
         rowGap: 10,
-        cursor: "pointer",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
@@ -154,12 +150,12 @@ export function ProbeRow({
 
 export function TransitProbeRow({
   probe,
-  selected,
-  onClick,
+  originName,
+  destinationName,
 }: {
   probe: ProbeInTransit;
-  selected: boolean;
-  onClick: () => void;
+  originName: string;
+  destinationName: string;
 }) {
   const progress =
     probe.travelTimeSeconds > 0
@@ -173,16 +169,14 @@ export function TransitProbeRow({
 
   return (
     <div
-      onClick={onClick}
       style={{
         padding: "14px 16px",
-        background: selected ? "rgba(77,219,255,0.08)" : "rgba(8,16,30,0.4)",
-        border: `1px solid ${selected ? "#4ddbff" : "rgba(110,200,255,0.12)"}`,
+        background: "rgba(8,16,30,0.4)",
+        border: "1px solid rgba(110,200,255,0.12)",
         display: "grid",
         gridTemplateColumns: "1fr auto",
         gap: 12,
         rowGap: 10,
-        cursor: "pointer",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
@@ -218,7 +212,7 @@ export function TransitProbeRow({
           }}
         >
           <span style={{ color: "#3d5572" }}>→ </span>
-          {probe.destinationSystemId}
+          {destinationName}
         </span>
       </div>
       <div
@@ -255,7 +249,7 @@ export function TransitProbeRow({
             }}
           >
             <span>
-              {probe.originSystemId} → {probe.destinationSystemId}
+              {originName} → {destinationName}
             </span>
             <span style={{ color: "#4ddbff" }}>
               {fmtPercent(progress)} · ETA {fmtTime(remaining)}
@@ -281,6 +275,116 @@ export function TransitProbeRow({
             />
           </div>
         </div>
+      </div>
+
+      <div style={{ gridColumn: "1 / -1" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(5, auto)",
+            gap: 18,
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+          }}
+        >
+          <TechChip label="CPU" tier={ct} accent="#4ddbff" />
+          <TechChip label="PROP" tier={pt} accent="#5cc7ff" />
+          <TechChip label="RCT" tier={rt} accent="#ffcb47" />
+          <TechChip label="MINING" tier={ct} accent="#5cc7ff" />
+          <TechChip label="COMPUTE" tier={ct} accent="#b08bff" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const AVAILABLE_COLOR = "#4cd8a8";
+
+export function AvailableProbeRow({
+  probe,
+  onExplore,
+}: {
+  probe: ProbeState;
+  onExplore: () => void;
+}) {
+  const ct = parseTier(probe.components.cpu);
+  const pt = parseTier(probe.components.propulsion);
+  const rt = parseTier(probe.components.reactor);
+
+  return (
+    <div
+      style={{
+        padding: "14px 16px",
+        background: "rgba(8,16,30,0.4)",
+        border: `1px solid ${AVAILABLE_COLOR}30`,
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        gap: 12,
+        rowGap: 10,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+        <span
+          style={{
+            width: 9,
+            height: 9,
+            borderRadius: "50%",
+            background: AVAILABLE_COLOR,
+            boxShadow: `0 0 6px ${AVAILABLE_COLOR}`,
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#d6e8f5",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {probe.name}
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          whiteSpace: "nowrap",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            color: AVAILABLE_COLOR,
+            letterSpacing: "0.16em",
+          }}
+        >
+          AVAILABLE
+        </span>
+        <button
+          onClick={onExplore}
+          style={{
+            padding: "5px 12px",
+            background: `${AVAILABLE_COLOR}14`,
+            border: `1px solid ${AVAILABLE_COLOR}60`,
+            color: AVAILABLE_COLOR,
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            letterSpacing: "0.14em",
+            fontWeight: 600,
+            cursor: "pointer",
+            borderRadius: 2,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <FontAwesomeIcon icon={faCompass} style={{ fontSize: 10 }} />
+          EXPLORE
+        </button>
       </div>
 
       <div style={{ gridColumn: "1 / -1" }}>

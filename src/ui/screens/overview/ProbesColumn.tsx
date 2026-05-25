@@ -3,12 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRocket, faCircleHalfStroke, faPause, faAtom, faIndustry, faCompass, faChevronDown, faMicrochip } from "@fortawesome/free-solid-svg-icons";
 import type { GameState, ProbeMode, SystemState } from "../../../simulation/state";
 import type { PlayerAction } from "../../../simulation/actions";
-import type { ViewId } from "../../shell/Sidebar";
 import { CPUS } from "../../../simulation/data/components";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
 import { Tooltip } from "../../components/Tooltip";
 import { HeaderAddButton } from "./HeaderAddButton";
+import { BuildProbeModal } from "../probes/BuildProbeModal";
 import { fmtCycles } from "../../format";
 import { FONT_MONO } from "../../tokens";
 
@@ -193,13 +193,12 @@ export function ProbesColumn({
   state,
   system,
   dispatch,
-  onNavigate,
 }: {
   state: GameState;
   system: SystemState;
   dispatch: (action: PlayerAction) => void;
-  onNavigate: (view: ViewId) => void;
 }) {
+  const [showBuild, setShowBuild] = useState(false);
   const fleet = gatherFleet(state);
   const transitCount = fleet.filter((p) => p.status === "in-transit").length;
 
@@ -224,7 +223,7 @@ export function ProbesColumn({
       right={
         <HeaderAddButton
           accent={ACCENT}
-          onClick={() => onNavigate("fleet")}
+          onClick={() => setShowBuild(true)}
         />
       }
       style={{
@@ -504,6 +503,14 @@ export function ProbesColumn({
           </div>
         ))}
       </div>
+
+      {showBuild && (
+        <BuildProbeModal
+          system={system}
+          dispatch={dispatch}
+          onClose={() => setShowBuild(false)}
+        />
+      )}
     </Panel>
   );
 }

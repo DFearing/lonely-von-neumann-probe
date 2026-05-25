@@ -1,4 +1,5 @@
 import type { GameState } from "../../../simulation/state";
+import { getAllTransitProbes, getProbeProgress } from "../../../simulation/queries";
 import { getSystemCoord } from "../../data/system-coords";
 import { Panel } from "../../components/Panel";
 import { FONT_MONO } from "../../tokens";
@@ -154,6 +155,35 @@ export function StarMap({
           >
             E
           </text>
+
+          {/* Probe trajectories */}
+          {getAllTransitProbes(state).map((probe) => {
+            const origin = getSystemCoord(probe.originSystemId);
+            const dest = getSystemCoord(probe.destinationSystemId);
+            const ox = origin.x * SCALE;
+            const oy = origin.y * SCALE;
+            const dx = dest.x * SCALE;
+            const dy = dest.y * SCALE;
+            const progress = getProbeProgress(probe);
+            const px = ox + (dx - ox) * progress;
+            const py = oy + (dy - oy) * progress;
+            return (
+              <g key={probe.id}>
+                <line
+                  x1={ox}
+                  y1={oy}
+                  x2={dx}
+                  y2={dy}
+                  stroke="#4ddbff"
+                  strokeWidth="0.4"
+                  strokeDasharray="1.5 1"
+                  opacity="0.4"
+                />
+                <circle cx={px} cy={py} r={1.5} fill="#4ddbff" opacity="0.9" />
+                <circle cx={px} cy={py} r={3} fill="#4ddbff" opacity="0.15" />
+              </g>
+            );
+          })}
 
           {/* Stars */}
           {systemIds.map((id) => {

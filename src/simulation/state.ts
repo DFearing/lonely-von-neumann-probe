@@ -64,6 +64,7 @@ export interface SystemState {
   researchQueue: ResearchProject[];
   completedResearch: Record<string, boolean>;
   discoveredSystems: string[];
+  availableProbes: ProbeState[];
   sentProbes: ProbeInTransit[];
 }
 
@@ -108,7 +109,6 @@ export interface ConstructionProject {
     cpu: CpuType;
     propulsion: PropulsionType;
     reactor: ReactorType;
-    targetSystemId: string;
   } | null;
   totalCost: { materials: number; energy: number };
   remainingCost: { materials: number; energy: number };
@@ -196,6 +196,7 @@ function emptySystemState(
     researchQueue: [],
     completedResearch: {},
     discoveredSystems: [],
+    availableProbes: [],
     sentProbes: [],
   };
 }

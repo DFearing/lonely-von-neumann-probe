@@ -52,6 +52,7 @@ function makeSystem(overrides?: Partial<SystemState>): SystemState {
     researchQueue: [],
     completedResearch: {},
     discoveredSystems: [],
+    availableProbes: [],
     sentProbes: [],
     ...overrides,
   };

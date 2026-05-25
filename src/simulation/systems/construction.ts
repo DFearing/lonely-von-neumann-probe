@@ -3,13 +3,12 @@ import type {
   SystemState,
   StructureInstance,
   ConstructionProject,
-  ProbeInTransit,
+  ProbeState,
   SoundEventType,
   StructureType,
 } from "../state";
 import { STRUCTURES, structureKey } from "../data/structures";
-import { PROPULSIONS } from "../data/components";
-import { KNOWN_SYSTEMS } from "../data/star-systems";
+import { CPUS, PROPULSIONS } from "../data/components";
 import { getTechMultipliers } from "../tech-effects";
 import { getPrestigeMultipliers } from "../prestige";
 
@@ -104,57 +103,37 @@ function completeStructure(
   };
 }
 
-function resolveDistance(
-  originSystem: SystemState,
-  targetSystemId: string,
-  allSystems: Record<string, SystemState>,
-): number {
-  const target = allSystems[targetSystemId];
-  if (target) {
-    return Math.abs(target.distanceFromOrigin - originSystem.distanceFromOrigin);
-  }
-
-  const knownTarget = KNOWN_SYSTEMS.find((s) => s.id === targetSystemId);
-  if (knownTarget) {
-    return Math.abs(
-      knownTarget.distanceFromOrigin - originSystem.distanceFromOrigin,
-    );
-  }
-
-  return 10;
-}
-
 function completeProbe(
   system: SystemState,
   project: ConstructionProject,
   tickCount: number,
-  allSystems: Record<string, SystemState>,
 ): SystemState {
   const config = project.targetConfig;
   if (!config) return system;
 
-  const propulsion = PROPULSIONS[config.propulsion];
-  if (!propulsion) return system;
-  const distance = resolveDistance(system, config.targetSystemId, allSystems);
-  const travelTimeSeconds = distance / propulsion.travelSpeed;
+  const cpuDef = CPUS[config.cpu];
+  if (!cpuDef) return system;
 
-  const probe: ProbeInTransit = {
+  const probe: ProbeState = {
     id: `${system.id}_probe_${tickCount}`,
     name: `Probe-${tickCount}`,
+    mode: "idle",
+    systemId: system.id,
     components: {
       cpu: config.cpu,
       propulsion: config.propulsion,
       reactor: config.reactor,
     },
-    originSystemId: system.id,
-    destinationSystemId: config.targetSystemId,
-    travelTimeSeconds,
-    elapsedSeconds: 0,
+    miningOutput: cpuDef.miningOutput,
+    computingOutput: cpuDef.computingOutput ?? 0.5,
+    internalPrinterSpeed: cpuDef.printSpeed ?? 0.5,
+    autoReplicating: PROPULSIONS[config.propulsion]?.autoReplicate ?? false,
+    health: 1,
   };
 
   return {
     ...system,
-    sentProbes: [...system.sentProbes, probe],
+    availableProbes: [...system.availableProbes, probe],
   };
 }
 
@@ -206,7 +185,6 @@ function tickSystemConstruction(
   system: SystemState,
   dt: number,
   tickCount: number,
-  allSystems: Record<string, SystemState>,
   prestigePrintSpeedMultiplier: number,
 ): { system: SystemState; log: GameState["log"] } {
   if (system.constructionQueue.length === 0) {
@@ -267,11 +245,11 @@ function tickSystemConstruction(
           updatedSystem,
           project,
           tickCount,
-          allSystems,
         );
+        const probeName = `Probe-${tickCount}`;
         log.push({
           tick: tickCount,
-          message: `Probe constructed and launched toward ${project.targetConfig.targetSystemId}`,
+          message: `${probeName} construction complete — ready for deployment`,
           category: "milestone",
           soundEvent: "probe_constructed",
         });
@@ -323,7 +301,6 @@ export function tickConstruction(state: GameState, dt: number): GameState {
       system,
       dt,
       state.tickCount,
-      state.systems,
       prestigePrintSpeedMultiplier,
     );
     newSystems[id] = result.system;

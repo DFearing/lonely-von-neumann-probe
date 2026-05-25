@@ -122,17 +122,20 @@ const balanced: AutopilotProfile = {
       const research = tryResearch(systemId, system, researchBranches);
       if (research) actions.push(research);
 
-      if (system.resources.materials > 500) {
-        const targets = getUncolonizedSystems(state, systemId);
-        if (targets.length > 0) {
-          actions.push({
-            type: "build_probe", systemId,
-            cpu: bestAvailableComponent(system, "cpu"),
-            propulsion: bestAvailableComponent(system, "propulsion"),
-            reactor: bestAvailableComponent(system, "reactor"),
-            targetSystemId: targets[0]!,
-          });
-        }
+      const targets = getUncolonizedSystems(state, systemId);
+
+      if (system.availableProbes.length > 0 && targets.length > 0) {
+        const probe = system.availableProbes[0]!;
+        actions.push({ type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! });
+      }
+
+      if (system.resources.materials > 500 && targets.length > 0) {
+        actions.push({
+          type: "build_probe", systemId,
+          cpu: bestAvailableComponent(system, "cpu"),
+          propulsion: bestAvailableComponent(system, "propulsion"),
+          reactor: bestAvailableComponent(system, "reactor"),
+        });
       }
     }
 
@@ -245,17 +248,20 @@ const miningHeavy: AutopilotProfile = {
       const research = tryResearch(systemId, system, researchBranches);
       if (research) actions.push(research);
 
-      if (system.resources.materials > 1000) {
-        const targets = getUncolonizedSystems(state, systemId);
-        if (targets.length > 0) {
-          actions.push({
-            type: "build_probe", systemId,
-            cpu: bestAvailableComponent(system, "cpu"),
-            propulsion: bestAvailableComponent(system, "propulsion"),
-            reactor: bestAvailableComponent(system, "reactor"),
-            targetSystemId: targets[0]!,
-          });
-        }
+      const targets = getUncolonizedSystems(state, systemId);
+
+      if (system.availableProbes.length > 0 && targets.length > 0) {
+        const probe = system.availableProbes[0]!;
+        actions.push({ type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! });
+      }
+
+      if (system.resources.materials > 1000 && targets.length > 0) {
+        actions.push({
+          type: "build_probe", systemId,
+          cpu: bestAvailableComponent(system, "cpu"),
+          propulsion: bestAvailableComponent(system, "propulsion"),
+          reactor: bestAvailableComponent(system, "reactor"),
+        });
       }
     }
 
@@ -307,13 +313,18 @@ const expansion: AutopilotProfile = {
       }
 
       const targets = getUncolonizedSystems(state, systemId);
+
+      if (system.availableProbes.length > 0 && targets.length > 0) {
+        const probe = system.availableProbes[0]!;
+        actions.push({ type: "launch_probe", systemId, probeId: probe.id, targetSystemId: targets[0]! });
+      }
+
       if (targets.length > 0 && system.resources.materials > 200) {
         actions.push({
           type: "build_probe", systemId,
           cpu: bestAvailableComponent(system, "cpu"),
           propulsion: bestAvailableComponent(system, "propulsion"),
           reactor: bestAvailableComponent(system, "reactor"),
-          targetSystemId: targets[0]!,
         });
         continue;
       }
