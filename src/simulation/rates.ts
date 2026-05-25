@@ -1,7 +1,7 @@
 import type { StructureInstance, SystemState } from "./state";
 import type { PrestigeState } from "./prestige";
 import { getPrestigeMultipliers } from "./prestige";
-import { getTechMultipliers } from "./tech-effects";
+import { getTechMultipliers, type TechMultipliers } from "./tech-effects";
 import { REACTORS } from "./data/components";
 import { STRUCTURES, structureKey } from "./data/structures";
 
@@ -67,10 +67,14 @@ function sumComputeDemands(structures: readonly StructureInstance[]): number {
 
 export const PROBE_MAINTENANCE = 0.1;
 
-export function calculateRates(system: SystemState, prestige?: PrestigeState): ResourceRates {
+export function calculateRates(
+  system: SystemState,
+  prestige?: PrestigeState,
+  techMultipliers?: TechMultipliers,
+): ResourceRates {
   const { structures, resourceRichness, mainProbe } = system;
 
-  const multipliers = getTechMultipliers(system.completedResearch);
+  const multipliers = techMultipliers ?? getTechMultipliers(system.completedResearch);
   const prestigeMult = prestige ? getPrestigeMultipliers(prestige) : undefined;
 
   const probeMining = mainProbe?.mode === "gathering" ? mainProbe.miningOutput * mainProbe.health : 0;
