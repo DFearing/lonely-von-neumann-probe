@@ -194,9 +194,7 @@ function findLargestConsumer(
   let largestArray: keyof SystemState["structures"] | null = null;
   let largestValue = 0;
 
-  const arrays: (keyof SystemState["structures"])[] = field === "operatingCost"
-    ? ["miners", "reactors", "printers"]
-    : ["miners", "reactors", "printers", "stations"];
+  const arrays: (keyof SystemState["structures"])[] = ["miners", "reactors", "printers", "stations"];
   for (const arrayName of arrays) {
     for (const s of system.structures[arrayName]) {
       if (isActiveAndComplete(s) && s[field] > largestValue) {
