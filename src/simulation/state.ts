@@ -72,7 +72,7 @@ export interface SystemState {
   sentProbes: ProbeInTransit[];
 }
 
-export type ProbeMode = "idle" | "gathering" | "printing";
+export type ProbeMode = "idle" | "gathering" | "printing" | "deep_research";
 
 export interface ProbeState {
   id: string;

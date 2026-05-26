@@ -236,6 +236,8 @@ export function autoPauseForShortfall(
   tickCount: number,
   techMultipliers?: TechMultipliers,
 ): { system: SystemState; log: LogEntry[] } {
+  if (system.mainProbe?.mode === "deep_research") return { system, log: [] };
+
   const rates = calculateRates(system, prestige, techMultipliers);
   const log: LogEntry[] = [];
 

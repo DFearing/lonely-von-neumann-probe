@@ -66,6 +66,7 @@ function sumComputeDemands(structures: readonly StructureInstance[]): number {
 }
 
 export const PROBE_MAINTENANCE = 0.1;
+export const DEEP_RESEARCH_BONUS = 1.25;
 
 export function calculateRates(
   system: SystemState,
@@ -114,15 +115,21 @@ export function calculateRates(
     sumComputeDemands(structures.reactors) +
     sumComputeDemands(structures.printers);
 
-  const computeNet = computeSupply - computeDemand;
-  const computeEfficiency = computeDemand === 0 ? 1 : Math.min(1, computeSupply / computeDemand);
+  const isDeepResearch = mainProbe?.mode === "deep_research";
+
+  const computeEfficiency = isDeepResearch
+    ? 0
+    : computeDemand === 0 ? 1 : Math.min(1, computeSupply / computeDemand);
+  const computeNet = isDeepResearch ? computeSupply * DEEP_RESEARCH_BONUS : computeSupply - computeDemand;
 
   const throttledMaterials = materialsPerSecond * computeEfficiency;
 
   const throttledReactorOutput = structureReactorOutput * computeEfficiency;
   const throttledEnergySupply = probeEnergySupply + throttledReactorOutput;
 
-  const computingPowerPerSecond = Math.max(0, computeSupply - computeDemand);
+  const computingPowerPerSecond = isDeepResearch
+    ? computeSupply * DEEP_RESEARCH_BONUS
+    : Math.max(0, computeSupply - computeDemand);
 
   const materialsDemand =
     sumMaintenanceCosts(structures.miners) +
