@@ -9,7 +9,7 @@ import { STRUCTURES } from "../../../simulation/data/structures";
 import { TECH_TREE } from "../../../simulation/data/tech-tree";
 import { getAvailableStructures } from "../../../simulation/queries";
 import { FONT_MONO, FONT_DISPLAY } from "../../tokens";
-import { fmt } from "../../format";
+import { fmt, fmtCycles } from "../../format";
 import { soundManager } from "../../../audio/sound-manager";
 
 // ---------------------------------------------------------------------------
@@ -122,9 +122,7 @@ const OUTPUT_UNITS: Record<StructureType, string> = {
 function fmtBuildTime(def: StructureDefinition, bpPerSec: number): string {
   if (bpPerSec <= 0) return "—";
   const secs = def.cost.materials / bpPerSec;
-  if (secs < 60) return `${Math.ceil(secs)}s`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m ${Math.floor(secs % 60)}s`;
-  return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
+  return fmtCycles(secs);
 }
 
 function getTechName(techGate: string): string {
