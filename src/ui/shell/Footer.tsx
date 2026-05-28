@@ -4,6 +4,7 @@ import { useCurrentSystem } from "../context";
 import { fmt, fmtRate, fmtCycles } from "../format";
 import { FONT_MONO } from "../tokens";
 import { TECH_TREE } from "../../simulation/data/tech-tree";
+import { BRANCH_META } from "../data/branch-meta";
 import { Tooltip } from "../components/Tooltip";
 import type { ViewId } from "./Sidebar";
 
@@ -181,6 +182,7 @@ function ComputeResearchCell({
   researchProgress,
   researchContinuousCost,
   researchTechId,
+  researchBranchId,
   onNavigate,
 }: {
   computeRate: number;
@@ -192,6 +194,7 @@ function ComputeResearchCell({
   researchProgress: number;
   researchContinuousCost: number;
   researchTechId: string | null;
+  researchBranchId: string | null;
   onNavigate: (view: ViewId) => void;
 }) {
   const pct = researchProgress * 100;
@@ -202,12 +205,15 @@ function ComputeResearchCell({
       ? ((1 - researchProgress) * researchContinuousCost * researchTime) / computeRate
       : 0;
   const color = computeColor(computeEfficiency);
+  const branchColor = researchBranchId
+    ? BRANCH_META[researchBranchId]?.color ?? "#b08bff"
+    : "#b08bff";
 
   return (
     <div
       onClick={() => onNavigate("research")}
       style={{
-        padding: "14px 24px",
+        padding: "10px 24px",
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -217,70 +223,19 @@ function ComputeResearchCell({
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: 12,
-          marginBottom: 6,
+          fontFamily: FONT_MONO,
+          fontSize: 11,
+          color: "#6b87a3",
+          letterSpacing: "0.18em",
+          marginBottom: 2,
         }}
       >
-        <span
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 11,
-            color: "#6b87a3",
-            letterSpacing: "0.18em",
-          }}
-        >
-          <FontAwesomeIcon icon={faMicrochip} style={{ fontSize: 14, marginRight: 6 }} />COMPUTE
-        </span>
-        {researchName != null ? (
-          <span
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              color: "#6b87a3",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <span style={{ color: "#3d5572" }}>&rarr; </span>
-            <span style={{ color: "#9ab4cf" }}>{researchName}</span>
-            {researchTier != null && (
-              <span style={{ color: "#3d5572" }}> &middot; T{researchTier}</span>
-            )}
-          </span>
-        ) : (
-          <span
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              color: "#3d5572",
-              flex: 1,
-            }}
-          >
-            No research is being pursued
-          </span>
-        )}
-        {researchName != null && (
-          <span
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              color: "#b08bff",
-              flexShrink: 0,
-            }}
-          >
-            {fmtCycles(eta)}
-          </span>
-        )}
+        <FontAwesomeIcon icon={faMicrochip} style={{ fontSize: 14, marginRight: 6 }} />COMPUTE
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
         <span
           style={{
-            fontSize: 38,
+            fontSize: 30,
             fontWeight: 500,
             color,
             fontVariantNumeric: "tabular-nums",
@@ -292,42 +247,95 @@ function ComputeResearchCell({
           {fmtRate(computeRate)}
         </span>
         <span
-          style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#6b87a3" }}
+          style={{ fontFamily: FONT_MONO, fontSize: 12, color: "#6b87a3" }}
         >
           Teraflops net
         </span>
+        <span style={{ flex: 1 }} />
+        <span
+          style={{
+            display: "flex",
+            gap: 10,
+            fontFamily: FONT_MONO,
+            fontSize: 12,
+          }}
+        >
+          <span style={{ color: "#4cd8a8" }}>
+            <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 3 }} />
+            {computeSupply.toFixed(1)}
+          </span>
+          <span style={{ color: computeDemand > 0 ? "#6b87a3" : "#3d5572" }}>
+            <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 3 }} />
+            {computeDemand.toFixed(1)}
+          </span>
+          {computeEfficiency < 1 && (
+            <Tooltip content="Compute efficiency — ratio of available to demanded TFLOPS">
+              <span style={{ color }}>
+                {(computeEfficiency * 100).toFixed(0)}%
+              </span>
+            </Tooltip>
+          )}
+        </span>
       </div>
+      {researchName != null ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: 8,
+            marginTop: 6,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 13,
+              fontWeight: 500,
+              color: branchColor,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0,
+            }}
+          >
+            {researchName}
+            {researchTier != null && (
+              <span style={{ opacity: 0.6 }}> T{researchTier}</span>
+            )}
+          </span>
+          <span style={{ flex: 1 }} />
+          <span
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 11,
+              color: branchColor,
+              opacity: 0.8,
+              flexShrink: 0,
+            }}
+          >
+            {pct.toFixed(0)}% &middot; {fmtCycles(eta)}
+          </span>
+        </div>
+      ) : (
+        <div
+          style={{
+            fontFamily: FONT_MONO,
+            fontSize: 12,
+            color: "#3d5572",
+            marginTop: 6,
+          }}
+        >
+          No active research
+        </div>
+      )}
       <div
         style={{
-          display: "flex",
-          gap: 12,
-          fontFamily: FONT_MONO,
-          fontSize: 14,
-          marginTop: 4,
-        }}
-      >
-        <span style={{ color: "#4cd8a8" }}>
-          <FontAwesomeIcon icon={faCaretUp} style={{ marginRight: 4 }} />
-          {computeSupply.toFixed(1)} supply
-        </span>
-        <span style={{ color: computeDemand > 0 ? "#6b87a3" : "#3d5572" }}>
-          <FontAwesomeIcon icon={faCaretDown} style={{ marginRight: 4 }} />
-          {computeDemand.toFixed(1)} demand
-        </span>
-        {computeEfficiency < 1 && (
-          <Tooltip content="Compute efficiency — ratio of available to demanded TFLOPS">
-            <span style={{ color }}>
-              {(computeEfficiency * 100).toFixed(0)}% eff
-            </span>
-          </Tooltip>
-        )}
-      </div>
-      <div
-        style={{
-          height: 2,
-          marginTop: 8,
-          background: "rgba(176,139,255,0.10)",
+          height: 5,
+          marginTop: 6,
+          borderRadius: 2,
+          background: `${branchColor}18`,
           position: "relative",
+          overflow: "hidden",
         }}
       >
         <div
@@ -335,8 +343,9 @@ function ComputeResearchCell({
             position: "absolute",
             inset: "0 auto 0 0",
             width: `${pct}%`,
-            background: "#b08bff",
-            opacity: 0.7,
+            borderRadius: 2,
+            background: branchColor,
+            opacity: 0.8,
             transition: "width .4s linear",
           }}
         />
@@ -400,6 +409,7 @@ export function Footer({
           researchProgress={activeResearch?.progress ?? 0}
           researchContinuousCost={activeResearch?.continuousCost ?? 0}
           researchTechId={activeResearch?.techId ?? null}
+          researchBranchId={activeResearch?.branchId ?? null}
           onNavigate={onNavigate}
         />
       </div>

@@ -173,6 +173,20 @@ function generateStructures(): Record<string, StructureDefinition> {
     };
   }
 
+  structures["station_0"] = {
+    type: "station",
+    tier: 0,
+    name: "Basic Station",
+    description: "A rudimentary computing hub. Doubles early-game processing capacity.",
+    cost: { materials: 200, energy: 25 },
+    productionRate: 1.0,
+    operatingCost: 2.0,
+    maintenanceCost: 0.15,
+    computeDemand: 0,
+    techGate: null,
+    solarScaling: false,
+  };
+
   return structures;
 }
 

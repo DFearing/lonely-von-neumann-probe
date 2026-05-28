@@ -82,6 +82,7 @@ function gatherFleet(state: GameState): FleetProbe[] {
 const ACTION_OPTIONS = [
   { mode: "gathering" as ProbeMode, label: "GATHER", icon: faAtom, accent: "#5fd9c4" },
   { mode: "printing" as ProbeMode, label: "PRINT", icon: faIndustry, accent: "#4cd8a8" },
+  { mode: "deep_research" as ProbeMode, label: "DEEP RESEARCH", icon: faMicrochip, accent: "#d488ec" },
   { mode: null, label: "EXPLORE", icon: faCompass, accent: "#6b87a3" },
 ] as const;
 
@@ -444,7 +445,9 @@ export function ProbesColumn({
                     ? "GATHERING"
                     : p.mode === "printing"
                       ? "PRINTING"
-                      : "IDLE"}
+                      : p.mode === "deep_research"
+                        ? "DEEP RESEARCH"
+                        : "IDLE"}
               </span>
             </div>
             {p.status === "station-keeping" && (

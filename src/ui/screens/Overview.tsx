@@ -20,7 +20,7 @@ export function Overview() {
   if (canBuild) showStructuresRef.current = true;
   const showStructures = showStructuresRef.current;
 
-  const showExpansion = Object.keys(system.completedResearch).length >= 4;
+  const showExpansion = canBuild || system.structures.stations.length > 0;
 
   return (
     <div

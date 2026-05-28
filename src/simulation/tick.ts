@@ -369,6 +369,7 @@ function applySetProbeMode(
   let message: string;
   let updatedProbe = { ...probe, mode: action.mode };
 
+  // Exit effects: determine message and clean up state from the mode we're leaving
   if (probe.mode === "gathering") {
     const gathered = system.resources.materials - (probe.gatheringStartMaterials ?? 0);
     const { gatheringStartMaterials: _, ...probeWithoutGathering } = updatedProbe;
@@ -376,15 +377,25 @@ function applySetProbeMode(
     message = gathered > 0
       ? `${probe.name} stopped gathering (${(Math.round(gathered * 10) / 10).toFixed(1)} tons collected)`
       : `${probe.name} stopped gathering`;
+  } else if (probe.mode === "deep_research") {
+    message = `Exiting deep research mode — resuming normal operations`;
   } else if (action.mode === "gathering") {
-    updatedProbe = { ...updatedProbe, gatheringStartMaterials: system.resources.materials };
     message = `${probe.name} began gathering`;
+  } else if (action.mode === "deep_research") {
+    message = system.constructionQueue.length > 0
+      ? `Entering deep research mode — all computing dedicated to research (construction halted)`
+      : `Entering deep research mode — all computing dedicated to research`;
   } else if (action.mode === "printing") {
     message = `${probe.name} began printing`;
   } else if (action.mode === "idle") {
     message = `${probe.name} is now idle`;
   } else {
     message = `${probe.name} mode: ${action.mode}`;
+  }
+
+  // Entry effects: apply state changes for the mode we're entering
+  if (action.mode === "gathering") {
+    updatedProbe = { ...updatedProbe, gatheringStartMaterials: system.resources.materials };
   }
 
   return {
