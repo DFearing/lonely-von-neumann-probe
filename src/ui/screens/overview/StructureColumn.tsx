@@ -376,8 +376,6 @@ function UnitCard({
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       style={{
         position: "relative",
         display: "flex",
@@ -488,7 +486,11 @@ function UnitCard({
               TIER {roman(inst.tier)} · #{String(serial).padStart(2, "0")}
             </span>
           </div>
-          <span style={{ marginLeft: "auto" }}>
+          <span
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{ marginLeft: "auto" }}
+          >
             {hovered ? (
               <Tooltip content="Destroy structure">
                 <button
