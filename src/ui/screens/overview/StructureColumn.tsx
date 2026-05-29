@@ -210,6 +210,7 @@ function CostBar({ totals }: { totals: CostTotals }) {
             return (
               <Tooltip
                 key={seg.key}
+                wrapperStyle={{ flex: `${grow} 1 0`, height: "100%", minWidth: 0 }}
                 content={
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                     <FontAwesomeIcon icon={seg.icon} style={{ color }} />
@@ -225,7 +226,7 @@ function CostBar({ totals }: { totals: CostTotals }) {
                 <span
                   style={{
                     display: "block",
-                    flex: `${grow} 1 0`,
+                    width: "100%",
                     background: color,
                     borderRadius: 2,
                     height: "100%",
@@ -247,21 +248,22 @@ function CostStats({ totals }: { totals: { power: number; maint: number; compute
     { value: totals.compute, unit: "TFLOPS", color: COST_COLORS.compute },
   ];
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
       {items.map((it, i) => (
         <span
           key={i}
           style={{
             fontFamily: FONT_MONO,
-            fontSize: 13,
             color: it.color,
             display: "inline-flex",
-            alignItems: "baseline",
-            gap: 3,
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
+            lineHeight: 1,
           }}
         >
-          {it.value.toFixed(2)}
-          <small style={{ fontSize: 10, opacity: 0.7 }}>{it.unit}</small>
+          <span style={{ fontSize: 13 }}>{it.value.toFixed(2)}</span>
+          <span style={{ fontSize: 9, opacity: 0.7, letterSpacing: "0.05em" }}>{it.unit}</span>
         </span>
       ))}
     </div>
