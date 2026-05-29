@@ -243,11 +243,12 @@ function CostBar({ totals }: { totals: CostTotals }) {
 }
 
 function CostStats({ totals }: { totals: { power: number; maint: number; compute: number } }) {
-  const items: Array<{ value: number; unit: string; color: string }> = [
+  const items = [
     { value: totals.power, unit: "MW", color: COST_COLORS.power },
     { value: totals.maint, unit: "T/cy", color: COST_COLORS.maint },
     { value: totals.compute, unit: "TFLOPS", color: COST_COLORS.compute },
-  ];
+  ].filter((it) => it.value > 0);
+  if (items.length === 0) return null;
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
       {items.map((it, i) => (
@@ -735,7 +736,7 @@ export function StructureColumn({
               color: config.accent,
             }}
           >
-            {activeCount} ACTIVE · {idleCount} IDLE
+            {activeCount} ACTIVE{idleCount > 0 ? ` · ${idleCount} IDLE` : ""}
           </div>
           <div
             style={{
