@@ -18,6 +18,7 @@ import type { PlayerAction } from "../../../simulation/actions";
 import { STRUCTURES } from "../../../simulation/data/structures";
 import type { StructureDefinition } from "../../../simulation/data/structures";
 import { structureKey } from "../../../simulation/data/structures";
+import { IDLE_MAINTENANCE_FRACTION } from "../../../simulation/rates";
 import { Panel } from "../../components/Panel";
 import { HealthGauge } from "../../components/HealthGauge";
 import { Tooltip } from "../../components/Tooltip";
@@ -123,7 +124,7 @@ function totalsFor(completed: StructureInstance[]): CostTotals {
       compute += s.computeDemand;
       maint += s.maintenanceCost;
     } else {
-      maint += s.maintenanceCost * 0.25;
+      maint += s.maintenanceCost * IDLE_MAINTENANCE_FRACTION;
     }
   }
   return { power, maint, compute };
@@ -569,9 +570,9 @@ function UnitCard({
           <div style={{ paddingBottom: 3 }}>
             <CostStats
               totals={{
-                power: inst.operatingCost,
-                maint: inst.maintenanceCost,
-                compute: inst.computeDemand,
+                power: inst.active ? inst.operatingCost : 0,
+                maint: inst.active ? inst.maintenanceCost : inst.maintenanceCost * IDLE_MAINTENANCE_FRACTION,
+                compute: inst.active ? inst.computeDemand : 0,
               }}
             />
           </div>
