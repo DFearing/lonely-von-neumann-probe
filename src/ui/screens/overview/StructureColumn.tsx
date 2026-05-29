@@ -241,18 +241,13 @@ function CostBar({ totals }: { totals: CostTotals }) {
 }
 
 function CostStats({ totals }: { totals: { power: number; maint: number; compute: number } }) {
-  const items: Array<{
-    value: number;
-    unit: string;
-    color: string;
-    icon: IconDefinition;
-  }> = [
-    { value: totals.power, unit: "MW", color: COST_COLORS.power, icon: faBolt },
-    { value: totals.maint, unit: "T/cy", color: COST_COLORS.maint, icon: faWrench },
-    { value: totals.compute, unit: "TFLOPS", color: COST_COLORS.compute, icon: faMicrochip },
+  const items: Array<{ value: number; unit: string; color: string }> = [
+    { value: totals.power, unit: "MW", color: COST_COLORS.power },
+    { value: totals.maint, unit: "T/cy", color: COST_COLORS.maint },
+    { value: totals.compute, unit: "TFLOPS", color: COST_COLORS.compute },
   ];
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
       {items.map((it, i) => (
         <span
           key={i}
@@ -261,11 +256,10 @@ function CostStats({ totals }: { totals: { power: number; maint: number; compute
             fontSize: 13,
             color: it.color,
             display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
+            alignItems: "baseline",
+            gap: 3,
           }}
         >
-          <FontAwesomeIcon icon={it.icon} style={{ fontSize: 11 }} />
           {it.value.toFixed(2)}
           <small style={{ fontSize: 10, opacity: 0.7 }}>{it.unit}</small>
         </span>
@@ -535,12 +529,12 @@ function UnitCard({
             marginTop: 10,
           }}
         >
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 9 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
             <span
               style={{
                 fontSize: 26,
                 fontWeight: 600,
-                lineHeight: 0.82,
+                lineHeight: 1,
                 letterSpacing: "-0.01em",
                 color: inst.active ? accent : COST_COLORS.idle,
                 textShadow: inst.active ? `0 0 14px ${accent}55` : "none",
@@ -548,7 +542,7 @@ function UnitCard({
             >
               {config.formatOutput(def.productionRate)}
             </span>
-            <span style={{ display: "flex", flexDirection: "column", gap: 3, paddingBottom: 2 }}>
+            <span style={{ display: "flex", flexDirection: "column", gap: 2, lineHeight: 1 }}>
               <span
                 style={{
                   fontFamily: FONT_MONO,
@@ -761,12 +755,12 @@ export function StructureColumn({
             gap: 18,
           }}
         >
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 10, flex: "none" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, flex: "none" }}>
             <span
               style={{
                 fontSize: 40,
                 fontWeight: 600,
-                lineHeight: 0.85,
+                lineHeight: 1,
                 letterSpacing: "-0.02em",
                 color: config.accent,
                 textShadow: `0 0 22px ${config.accent}55`,
@@ -774,7 +768,7 @@ export function StructureColumn({
             >
               {config.formatOutput(summaryRate)}
             </span>
-            <span style={{ display: "flex", flexDirection: "column", gap: 3, paddingBottom: 4 }}>
+            <span style={{ display: "flex", flexDirection: "column", gap: 2, lineHeight: 1 }}>
               <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: config.accent }}>
                 {config.outputUnit}
               </span>
