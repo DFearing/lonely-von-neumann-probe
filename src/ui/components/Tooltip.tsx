@@ -9,11 +9,13 @@ export function Tooltip({
   children,
   block,
   placement = "above",
+  wrapperStyle,
 }: {
   content: ReactNode;
   children: ReactNode;
   block?: boolean;
   placement?: "above" | "below" | "right";
+  wrapperStyle?: React.CSSProperties;
 }) {
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -85,7 +87,7 @@ export function Tooltip({
         ref={triggerRef}
         onMouseEnter={show}
         onMouseLeave={hide}
-        style={{ display: block ? "flex" : "inline-flex" }}
+        style={{ display: block ? "flex" : "inline-flex", ...wrapperStyle }}
       >
         {children}
       </span>
